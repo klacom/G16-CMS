@@ -1,0 +1,116 @@
+@layer base {
+  :root {
+    --background: #F5F6FA;
+    --foreground: #111827;
+    --card: #ffffff;
+    --card-foreground: #111827;
+    --popover: #ffffff;
+    --popover-foreground: #111827;
+    --primary: #1B2D4F;
+    --primary-foreground: #F5F6FA;
+    --secondary: #1560BD;
+    --secondary-foreground: #F5F6FA;
+    --muted: #6B7280;
+    --muted-foreground: #111827;
+    --accent: #1560BD;
+    --accent-foreground: #F5F6FA;
+    --destructive: #DC2626;
+    --destructive-foreground: #ffffff;
+    --border: #E2E5EC;
+    --input: #ffffff;
+    --ring: #1358C4;
+    --chart-1: #1B2D4F;
+    --chart-2: #1560BD;
+    --chart-3: #EBF2FD;
+    --chart-4: #E2E5EC;
+    --chart-5: #6B7280;
+    --success: #16BF48;
+    --warning: #F59E0B;
+    --info: #1358C4;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: #111827;
+    --foreground: #F5F6FA;
+    --card: #1F2937;
+    --card-foreground: #F5F6FA;
+    --popover: #1F2937;
+    --popover-foreground: #F5F6FA;
+    --primary: #EBF2FD;
+    --primary-foreground: #111827;
+    --secondary: #1358C4;
+    --secondary-foreground: #F5F6FA;
+    --muted: #9CA3AF;
+    --muted-foreground: #E5E7EB;
+    --accent: #1560BD;
+    --accent-foreground: #F5F6FA;
+    --destructive: #F87171;
+    --destructive-foreground: #111827;
+    --border: #373F51;
+    --input: #111827;
+    --ring: #93C5FD;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    transition: all ease-in-out 150ms;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+
+  a:hover,
+  a:focus-visible {
+    color: var(--secondary);
+    outline: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  input,
+  textarea,
+  select {
+    background: var(--input);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 4px rgb(19 88 196 / 12%);
+    outline: none;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--accent);
+  }
+
+  ::selection {
+    background: rgba(21, 96, 189, 0.25);
+    color: var(--foreground);
+  }
+}
