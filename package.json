@@ -1,0 +1,28 @@
+{
+  "name": "g16-cms",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">\r   <img src=\"pics/banner.png\" alt=\"G16-CMS Banner\" style=\"border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);\"/>\r </div>",
+  "main": "index.php",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/klacom/G16-CMS.git"
+  },
+  "keywords": [],
+  "author": "Klarenz and Charles",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/klacom/G16-CMS/issues"
+  },
+  "homepage": "https://github.com/klacom/G16-CMS#readme",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "daisyui": "^5.5.20"
+  }
+}

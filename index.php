@@ -7,8 +7,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lundayan : Pamantasan ng Lungsod ng Pasig</title>
-    <link rel="stylesheet" href="styles-lundayan-site.css">
+    <!-- <link rel="stylesheet" href="styles-lundayan-site.css"> -->
     <link rel="icon" href="pics/lundayan-logo.png">
+    <link href="src/output.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <div id="fb-root"></div>
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v22.0"></script>
@@ -87,7 +88,7 @@
         <section class="news-cards">
             <div class="extras-container">
                 <div class="remaining-texts">
-                    <p>announcements</p>
+                    <p class="">announcements</p>
                     <h2>Upcoming Events</h2>
                 </div>
                 <!-- Upcoming Events -->
