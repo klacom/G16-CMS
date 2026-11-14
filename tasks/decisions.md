@@ -9,6 +9,22 @@ The user approved proceeding with T01-T05. Use the current checkout on
 and local Supabase. Preserve the legacy PHP application and Claude-owned files.
 No hosted project, paid service, production cutover, or domain schema is selected.
 
+## Confirmed access rules
+
+Confirmed directly by the user on 2026-11-14:
+
+1. Each application account has one role initially: Writer, Reviewer or Admin.
+   Admin content-management capabilities do not require multiple role memberships.
+2. Admins may manage every article. Publication still requires reviewer approval;
+   the Admin role does not provide a review bypass.
+3. Deactivated accounts immediately lose authenticated access, including through
+   existing sessions. Preserve their articles, authorship and audit history.
+   Deactivation does not itself archive or delete content.
+
+These resolve the corresponding T01 decisions for T06-T09/T38. Review quorum,
+self-review, assignment eligibility and other editorial semantics remain pending.
+This records product decisions; implementation task completion is unchanged.
+
 ## Evidence and unresolved decisions
 
 The external migration artifact was inaccessible during planning. Local
@@ -19,7 +35,9 @@ contracts in `contracts.md` are a proposal, not a recovered external schema.
 | --- | --- | --- |
 | App Router, TypeScript, npm, root app with `src/` | Accepted for T02-T05 by user go-ahead | None |
 | Node 24 LTS; exact npm/dependency versions pinned | Verify against installed tools/registry during T02 | Installation |
-| Business roles and overlap/publishing permissions | Proposed in contracts; needs review | T06/T09 final authorization |
+| One role per account: Writer, Reviewer or Admin | Confirmed by user | Apply in T06/T09/T38 |
+| Admin manages all articles; reviewer approval still required to publish | Confirmed by user | Apply in T09/T29-T35 |
+| Immediate deactivation denial; preserve content and audit history | Confirmed by user | Apply in T06-T09/T38 |
 | Review quorum, self-review, revision invalidation | Proposed; needs review | T24, T29-T35 |
 | Public archive vs withdrawal; expiry semantics | Unresolved | T11 final visibility, T35 |
 | Invite-only vs public registration; first admin | Unresolved; no public registration implemented now | T37 |

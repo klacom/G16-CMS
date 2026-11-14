@@ -1,6 +1,6 @@
 # ICG implementation contracts
 
-Status: foundation conventions accepted; business semantics proposed for review.
+Status: foundation conventions and the access rules below are confirmed; other business semantics remain proposed for review.
 Source: `CLAUDE.md`, `design/PAGES.md`, legacy behavior as reference only.
 The inaccessible external artifact has not been reproduced or approved here.
 
@@ -34,18 +34,30 @@ tie-breaker. No fixed numeric limits are silently invented as client requirement
 | Settings | Explicit public projection; provider secrets live outside editable settings |
 | Audit | Server-attributed append-only actions; no secrets or full message bodies |
 
-## Proposed permission matrix
+## Confirmed access rules
+
+The user confirmed on 2026-11-14: one role per account initially (Writer,
+Reviewer or Admin); Admins may manage every article but must obtain reviewer
+approval before publication; deactivation immediately removes authenticated
+access while retaining the account's articles, attribution and audit history.
+Apply deactivation checks to existing sessions as well as new sign-ins. It does
+not itself alter the publication state of preserved articles.
+
+## Permission matrix
 
 | Actor | Intended access | Must be denied |
 | --- | --- | --- |
 | Anonymous | Eligible published content, approved public settings, contact submission | Drafts, private media, users, comments, messages, audit, privileged writes |
 | Writer | Own drafts and editorial workflow; eligible reviewer invitations | Another writer's private material, role assignment, self-approval bypass |
 | Reviewer | Accepted assigned revisions, review discussion and decisions | Unassigned private content, editing article bodies, administrative data |
-| Admin | User/site administration, private messages and audit | Forging audit history or bypassing an unspecified publishing policy |
-| Inactive account | No sensitive authenticated action | Continuing sensitive actions through an old session/token |
+| Admin | Manage every article; user/site administration, private messages and audit | Forging audit history or publishing without reviewer approval |
+| Inactive account | Public access available to anonymous visitors; articles and history retained | Dashboard access or authenticated operations, including through an old session/token |
 
-Role overlap, whether admins may publish without review, self-review, reviewer
-quorum and last-admin safeguards need explicit agreement before implementation.
+One-role membership, admin article-management scope and the prohibition on an
+admin review bypass are confirmed. Reviewer eligibility, self-review, reviewer
+quorum and last-admin safeguards still need explicit agreement before their
+affected implementation. Other matrix entries retain their existing proposed
+scope until the corresponding contract review.
 Role checks use authoritative server-controlled data, never user-editable metadata.
 
 ## Editorial state proposal
@@ -60,6 +72,8 @@ Proposed safeguards: reviews bind to a revision; edited content cannot inherit
 stale approval; a writer editing a published article works on a new draft while
 the last approved revision remains public; zero reviewers never accidentally
 approve an article. The quorum and exact re-review behavior remain pending.
+Admins are subject to reviewer approval before publication under the confirmed
+access rules; this does not decide the quorum or self-review policy.
 Concurrent transitions must check the expected revision/state atomically.
 
 ## Public visibility proposal

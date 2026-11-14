@@ -147,6 +147,10 @@ Complete a task checkbox only when its acceptance criteria and verification have
 
 **Description:** Introduce the minimum profile/role foundation and a database policy test harness before feature tables expand.
 
+**Confirmed rules:** One role per account initially (Writer, Reviewer or Admin).
+Inactive accounts must lose authenticated access immediately; retain their
+articles, authorship and audit history. See decisions.md for the user confirmation.
+
 **Acceptance criteria:**
 - [ ] Users cannot assign themselves roles or modify another profile; authorization uses server-controlled records.
 - [ ] Anonymous, writer, reviewer, admin, and inactive-user policy cases run against a resettable local database.
@@ -228,6 +232,11 @@ Complete a task checkbox only when its acceptance criteria and verification have
 - [ ] T09 complete
 
 **Description:** Exercise server and database authorization together before authoring or administration is introduced.
+
+**Confirmed rules:** Admins may manage every article but cannot bypass reviewer
+approval before publication. Existing sessions must not retain authenticated
+access after account deactivation. Editorial quorum/self-review remain separate
+decisions; do not treat them as confirmed by the admin-management decision.
 
 **Acceptance criteria:**
 - [ ] A shared permission contract covers ownership, reviewer assignments, administrative actions, and inactive users.

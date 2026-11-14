@@ -28,7 +28,7 @@ This plan is based on the local documents and selected legacy feature paths. It 
 1. Keep the existing checkout and legacy files intact. Introduce the app at the repository root with source under `src/`, incremental migrations under `supabase/`, and evidence under `tasks/`.
 2. Use Next.js App Router with TypeScript; choose actual compatible package versions from current official documentation at implementation time, then pin them. npm is the proposed package manager, pending Task 1.
 3. Public routes use a `(public)` route group; dashboard and auth routes have separate layouts. Route groups do not change public URLs.
-4. Use writer, reviewer, and admin as provisional business roles from PAGES.md. Exact overlap, publishing authority, self-review, quorum, and last-admin behavior require the Task 1 contract.
+4. The user confirmed one role per account initially (Writer, Reviewer or Admin). Admins may manage all articles but need reviewer approval to publish. Deactivated users immediately lose authenticated access while their articles and audit history remain preserved. Reviewer eligibility, self-review, quorum, writer publishing authority and last-admin behavior still require the Task 1 contract.
 5. Seed synthetic ICG demo content locally. Do not infer permission to publish legacy personal data, copy credentials, or upload every legacy media file.
 6. Store instants consistently and display in Asia/Manila as the proposed site timezone. Publication time and event time are distinct.
 7. Functional development can proceed from an agreed contract while Claude works on design. Visual acceptance of a route requires its handoff; missing handoffs do not justify inventing a replacement visual direction.
@@ -255,7 +255,7 @@ Claude can continue design alongside Codex's implementation. Independent applica
 | Decision | Blocks |
 | --- | --- |
 | Accessible migration specification or explicit replacement contract | T01 completion; final schema/state machine semantics |
-| Writer/reviewer/admin permissions, publishing actor, review quorum, self-review | T06/T09 contract; T29-T35 behavior |
+| Remaining reviewer eligibility, writer publishing authority, review quorum and self-review rules | Affected T09 capabilities; T29-T35 behavior. One-role membership, admin article management/review requirement and immediate deactivation are already confirmed. |
 | Revision retention and edits after approval/publication | T24, T32-T35 |
 | Public archive vs withdrawn article behavior, expiry, restoration | T11 visibility contract, T35 |
 | Invite-only vs public sign-up and first-admin provisioning | T37; production setup |
