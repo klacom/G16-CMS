@@ -1,0 +1,9 @@
+@import "../../design/tokens.css";
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { width: min(100% - 2 * var(--gutter), var(--container)); margin: 12vh auto; }
+h1 { margin: 1rem 0; font-family: var(--font-display); font-size: clamp(3rem, 12vw, 6rem); line-height: 1.1; }
+p { max-width: 60ch; line-height: 1.6; }
+.kicker { font-size: 0.8rem; text-transform: uppercase; }
+:focus-visible { outline: 2px solid var(--color-amber); outline-offset: 4px; }

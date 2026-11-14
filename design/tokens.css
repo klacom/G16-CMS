@@ -1,0 +1,46 @@
+/*
+ * ICG design tokens — single source for the Next.js build.
+ *
+ * Chosen 2026-11-14 in Figma ("Home — Final" page):
+ *   Layout: Variant A. Hero: Cinematic (no story-card row).
+ *   Palette: Midnight & Marigold. Type: Anton (display) + Public Sans (text).
+ *
+ * Contrast (WCAG AA needs 4.5:1 for body text):
+ *   on midnight:  text 16.4 · muted 7.5 · marigold 10.0
+ *   on paper:     ink 16.8 · ink-muted 5.4 · amber 5.4 · marigold 1.7 (NEVER text on paper)
+ *   on marigold:  midnight 10.0
+ */
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Public+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Dark surfaces: hero, This week strip, announcements, footer */
+  --color-midnight: #0c1422;
+  --color-surface: #16233a;
+  --color-line: #25344f;
+  --color-text-on-dark: #f6f1e7;
+  --color-muted-on-dark: #9aa6bd;
+
+  /* Accent */
+  --color-marigold: #f5b335;     /* on dark, or as a fill (buttons, today, pills) */
+  --color-on-marigold: #1a1206;
+
+  /* Light surfaces: body sections */
+  --color-paper: #f7f4ee;
+  --color-ink: #0c1422;
+  --color-ink-muted: #5b6475;
+  --color-amber: #8a5a00;        /* links and labels on paper */
+  --color-rule: #ddd7cc;
+
+  /* Type */
+  --font-display: "Anton", Impact, "Arial Narrow", sans-serif;   /* headlines, day numerals, section titles (uppercase) */
+  --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Shape and space */
+  --radius-sm: 6px;
+  --radius-pill: 999px;
+  --container: 1440px;
+  --page-padding: 64px;
+  --gutter: 16px;                /* mobile side padding */
+}
+
+html { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-body); }
