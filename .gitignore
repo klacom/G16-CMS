@@ -14,3 +14,7 @@ supabase/.temp/
 supabase/.env*
 *.pem
 *.key
+
+# Installed third-party agent skills (the project skill icg-prototype stays tracked)
+.claude/skills/*
+!.claude/skills/icg-prototype/
