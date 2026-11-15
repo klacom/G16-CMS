@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview A, the pipeline · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Structure A: the pipeline. The overview is the editorial pipeline itself:
+     * four ruled lanes, one per state, spanning the full width. Each lane is a
+     * ruled column (3px Ink rule on top, DESIGN.md section patterns).
+     */
+    .lanes { margin-top: 32px; display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; padding-bottom: 8px; margin-inline: -16px; padding-inline: 16px; scrollbar-width: none; }
+    .lanes::-webkit-scrollbar { display: none; }
+    .lane { flex: 0 0 84%; scroll-snap-align: start; min-width: 0; }
+    @media (min-width: 768px) { .lane { flex-basis: 46%; } }
+    @media (min-width: 1024px) {
+      .lanes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; overflow: visible; margin-inline: 0; padding-inline: 0; }
+    }
+    .lane-head { border-top: 3px solid var(--color-ink); padding: 12px 0 14px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .lane-head .count { font-size: 15px; font-weight: 600; color: var(--color-ink-muted); }
+    .lane-note { font-size: 13px; color: var(--color-ink-muted); }
+    .cards { display: grid; gap: 8px; }
+    .card { display: block; background: var(--color-card); border-radius: var(--radius-sm); padding: 16px; color: inherit; transition: background-color 150ms ease; }
+    a.card:hover { background: var(--color-card-hover); }
+    a.card:hover .t-row { text-decoration: underline; text-underline-offset: 4px; }
+    .card .when { margin-top: 12px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-ink-muted); }
+    .card .when svg { flex: none; }
+    .ask { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--color-rule); }
+    .ask p:first-child { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+    .lane-empty { padding: 16px 0; font-size: 14px; color: var(--color-ink-muted); }
+    .next { margin-top: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--color-card); border-radius: var(--radius-sm); }
+    .next .display { font-size: 30px; }  /* numeral-time-sm */
+    @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head">
+        <div>
+          <h1 class="t-section" id="page-heading">Good morning, Lea</h1>
+          <p class="ov-sub" id="summary"></p>
+        </div>
+        <a href="#new" data-later="The article editor" class="btn btn-primary hidden lg:inline-flex" id="new-btn"></a>
+      </header>
+
+      <a href="calendar.html?date=2026-11-18" class="next" id="next" data-component="NextOnCalendar"></a>
+
+      <div class="lanes" id="lanes" data-component="PipelineLanes"></div>
+    </div>
+  </main>
+
+  <script>
+    const { $, esc, icon, ARTICLES, TODAY, DAYS, MONTHS, parse, plainDate, edited, mount } = window.Desk;
+    mount({ current: 'overview', title: 'Overview', action: { label: 'New article', href: '#new', icon: 'plus' } });
+    document.querySelectorAll('[href="#new"]').forEach(a => a.setAttribute('data-later', 'The article editor'));
+    $('new-btn').innerHTML = icon('plus', 18) + 'New article';
+
+    const by = s => ARTICLES.filter(a => a.status === s);
+    const lanes = [
+      { key: 'draft', name: 'Drafts', items: by('draft'), note: '1 needs you' },
+      { key: 'in_review', name: 'In review', items: by('in_review'), note: 'With an editor' },
+      { key: 'approved', name: 'Approved', items: by('approved'), note: 'Scheduled' },
+      { key: 'published', name: 'Published', items: by('published').slice(0, 3), note: 'Latest 3 of 6', more: true },
+    ];
+    $('summary').innerHTML = `Sunday, November 15<span class="dot-sep"></span><a href="#draft">2 drafts</a><span class="dot-sep"></span><a href="#in_review">1 in review</a><span class="dot-sep"></span><a href="#approved">1 going live tomorrow</a>`;
+
+    // The one dated line: your next thing on the calendar.
+    const ev = ARTICLES.find(a => a.id === 'a5'), d = parse(ev.event_starts_at);
+    $('next').innerHTML = `<span class="text-[13px] font-semibold text-ink-muted w-full sm:w-auto">Next on your calendar</span>
+      <span class="flex items-center gap-3 min-w-0 flex-1"><span class="display" aria-hidden="true">${d.getDate()}</span>
+      <span class="min-w-0"><span class="block t-row">${esc(ev.title)}</span><span class="block text-[13px] text-ink-muted">${DAYS[d.getDay()]}, ${plainDate(ev.event_starts_at)}, ${ev.event_time} to ${ev.event_end}</span></span></span>
+      <span class="text-ink-muted">${icon('chevron', 20)}</span>`;
+
+    const whenLine = a => a.status === 'draft' ? [icon('clock', 16), `Edited ${edited(a.updated_at, a.time)}`]
+      : a.status === 'in_review' ? [icon('user', 16), `With ${esc(a.reviewer)} since ${plainDate(a.sent)}`]
+      : a.status === 'approved' ? [icon('calendar', 16), `Goes live ${esc(a.publish_at)}`]
+      : [icon('calendar', 16), `Published ${plainDate(a.updated_at)}`];
+
+    function card(a) {
+      const top = `<p class="meta"><span class="type">${a.type}</span><span class="dot-sep"></span>${esc(a.category)}${a.event_starts_at ? `<span class="dot-sep"></span>${plainDate(a.event_starts_at)}` : ''}</p>
+        <p class="t-row mt-1.5">${esc(a.title)}</p>`;
+      const [ic, text] = whenLine(a);
+      if (a.changes) {
+        return `<div class="card" data-component="PipelineCard">${top}
+          <div class="ask"><p>${icon('inbox', 16)}Changes requested by ${esc(a.changes.by)}</p>
+            <p class="mt-1 text-[14px] text-ink-muted">“${esc(a.changes.note)}”</p>
+            <a href="#edit" data-later="The article editor" class="btn btn-day mt-3">Edit draft</a></div></div>`;
+      }
+      return `<a href="#edit" data-later="The article editor" class="card" data-component="PipelineCard">${top}<p class="when">${ic}${text}</p></a>`;
+    }
+
+    $('lanes').innerHTML = lanes.map(l => `<section class="lane" id="${l.key}" aria-labelledby="lane-${l.key}">
+      <div class="lane-head"><h2 class="t-h2" id="lane-${l.key}">${l.name} <span class="count">${l.key === 'published' ? 6 : l.items.length}</span></h2><span class="lane-note">${l.note}</span></div>
+      <div class="cards">${l.items.length ? l.items.map(card).join('') : `<p class="lane-empty">Nothing here.</p>`}</div>
+      ${l.more ? `<a href="dashboard-articles.html?status=published" class="link inline-block mt-4 text-[14px]">All published articles</a>` : ''}
+    </section>`).join('');
+  </script>
+</body>
+</html>

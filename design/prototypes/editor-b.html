@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor B, the writing page · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <script src="desk-editor.js"></script>
+  <style>
+    /*
+     * Editor B: the writing page. The story gets a quiet white page set like the
+     * public article (680px measure, 18px body), with cover, title and summary
+     * written in place. Everything that isn't writing lives in a full-height
+     * settings column on the right, in three tabs: Details, Event, Review.
+     */
+    .write-layout { display: grid; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 1024px) { .write-layout { grid-template-columns: minmax(0, 1fr) 380px; min-height: calc(100svh - 65px); } }
+    .canvas { padding: 16px 16px 40px; }
+    @media (min-width: 768px) { .canvas { padding: 40px; } }
+    .page { max-width: 760px; margin: 0 auto; background: var(--color-card); border-radius: var(--radius-sm); padding: 24px 16px 48px; }
+    @media (min-width: 768px) { .page { padding: 40px 40px 64px; } }
+    .page .drop { aspect-ratio: 21 / 9; }
+    .t-input { width: 100%; border: 0; resize: none; background: transparent; outline: none; color: var(--color-ink); overflow: hidden; }
+    .t-input::placeholder { color: var(--color-ink-muted); }
+    .t-title { margin-top: 28px; font-size: 24px; line-height: 1.2; font-weight: 700; }              /* title-feature-sm */
+    @media (min-width: 768px) { .t-title { font-size: 32px; line-height: 1.15; } }                     /* title-feature */
+    .t-excerpt { margin-top: 12px; font-size: 18px; line-height: 1.5; color: var(--color-ink-muted); }  /* body-lead */
+    .t-input:focus-visible, .rte:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 6px; border-radius: 4px; }
+    .tools-row { position: sticky; top: 64px; z-index: 5; margin: 28px -8px 20px; padding: 4px 4px; background: var(--color-card); border-top: 1px solid var(--color-rule); border-bottom: 1px solid var(--color-rule); }
+    @media (max-width: 1023px) { .tools-row { top: 120px; } }
+    .settings { background: var(--color-card); padding: 24px 16px 48px; }
+    @media (min-width: 1024px) { .settings { position: sticky; top: 65px; height: calc(100svh - 65px); overflow-y: auto; padding: 24px 28px 48px; } }
+    .tabs { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--color-paper); }
+    .tabs button { flex: 1; height: 40px; border-radius: 999px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .tabs button[aria-selected="true"] { background: var(--color-ink); color: var(--color-paper); }
+    .tabs .n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--color-ink); color: var(--color-paper); font-size: 12px; display: inline-grid; place-items: center; }
+    .tabs [aria-selected="true"] .n { background: var(--color-paper); color: var(--color-ink); }
+    .tabpanel { margin-top: 24px; }
+    .tabpanel > * + * { margin-top: 20px; }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--color-ink-faint); background: var(--color-card); font-size: 14px; font-weight: 600; }
+    .pill[aria-checked="true"] { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+    .ask { padding: 12px 14px; background: var(--color-paper); border-radius: var(--radius-sm); font-size: 14px; }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div id="bar"></div>
+    <div class="write-layout">
+      <div class="canvas">
+        <article class="page" data-component="WritingPage" aria-label="Story">
+          <button type="button" class="drop w-full" data-later="Photo upload"></button>
+          <label for="title" class="sr-only">Title</label>
+          <textarea id="title" class="t-input t-title" rows="1" placeholder="Title, in plain words"></textarea>
+          <label for="excerpt" class="sr-only">Summary</label>
+          <textarea id="excerpt" class="t-input t-excerpt" rows="2" placeholder="One or two sentences readers see first"></textarea>
+          <div class="tools-row" id="tools"></div>
+          <div class="rte" id="body" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Story"></div>
+        </article>
+      </div>
+
+      <aside class="settings" aria-label="Article settings" data-component="SettingsColumn">
+        <div class="tabs" role="tablist" aria-label="Settings" id="tabs"></div>
+        <div id="panel" class="tabpanel" role="tabpanel" tabindex="0"></div>
+      </aside>
+    </div>
+    <div id="macts"></div>
+  </main>
+
+  <script>
+    const { $, esc, icon, mount, toast } = window.Desk;
+    const { DRAFT, THREAD, CATEGORIES, TYPES, bar, mobileActs, toolbar, tagbox, touched } = window.Editor;
+    mount({ current: 'articles', title: 'Edit draft' });
+    $('bar').innerHTML = bar();
+    $('macts').innerHTML = mobileActs();
+    document.querySelector('.drop').innerHTML = `${icon('plus', 22)}<span><span class="font-semibold text-ink">Add a cover photo</span><br>Landscape, at least 2400px wide</span>`;
+    $('title').value = DRAFT.title; $('excerpt').value = DRAFT.excerpt; $('body').innerHTML = DRAFT.body;
+    $('tools').innerHTML = toolbar('body');
+    const grow = t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+    ['title', 'excerpt'].forEach(id => { grow($(id)); $(id).addEventListener('input', () => grow($(id))); });
+    addEventListener('resize', () => ['title', 'excerpt'].forEach(id => grow($(id))));
+
+    let venue = '';
+    const TABS = {
+      details: { label: 'Details', html: () => `
+        <div><p class="field-label" id="type-l">Type</p><div class="pills" role="radiogroup" aria-labelledby="type-l">${TYPES.map(t => `<button type="button" role="radio" class="pill" aria-checked="${t === DRAFT.type}" tabindex="${t === DRAFT.type ? 0 : -1}">${t}</button>`).join('')}</div></div>
+        <div><label class="field-label" for="cat">Category</label><select class="field" id="cat">${CATEGORIES.map(c => `<option ${c === DRAFT.category ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+        <div><p class="field-label">Tags <span class="opt">(optional)</span></p>${tagbox('tags', DRAFT.tags)}</div>
+        <div><p class="field-label">Gallery <span class="opt">(optional)</span></p><button type="button" class="btn btn-day" data-later="Photo upload">${icon('plus', 18)}Add photos</button></div>
+        <div role="radiogroup" aria-labelledby="pub-l"><p class="field-label" id="pub-l">When it goes live</p>
+          <label class="flex items-center gap-3 min-h-11 text-[15px]"><input type="radio" name="pub" checked class="w-5 h-5 accent-[#0a1f17]"> As soon as it's approved</label>
+          <label class="flex items-center gap-3 min-h-11 text-[15px]"><input type="radio" name="pub" class="w-5 h-5 accent-[#0a1f17]"> On a date and time I choose</label></div>` },
+      event: { label: 'Event', fix: () => !venue, html: () => `
+        <div class="ask"><span class="font-semibold">Paolo asked for the venue.</span> Readers check time and place first.</div>
+        <div><label class="field-label" for="date">Date</label><input class="field" id="date" type="date" value="${DRAFT.event.date}"></div>
+        <div class="grid grid-cols-2 gap-3"><div><label class="field-label" for="start">Starts</label><input class="field" id="start" type="time" value="${DRAFT.event.start}"></div><div><label class="field-label" for="end">Ends</label><input class="field" id="end" type="time" value="${DRAFT.event.end}"></div></div>
+        <div><label class="field-label" for="venue">Venue</label><input class="field" id="venue" value="${esc(venue)}" placeholder="Computer Lab 3, Main building"></div>
+        <div><label class="field-label" for="limit">Who can join <span class="opt">(optional)</span></label><input class="field" id="limit" placeholder="Up to five students per school"></div>` },
+      review: { label: 'Review', count: () => THREAD.length, html: () => `
+        <div><p class="field-label">Reviewer</p><p class="text-[15px]"><span class="font-semibold">Paolo Cruz</span> reviews this again.</p></div>
+        <div class="border-t-[3px] border-ink pt-3"><h2 class="t-h2">Changes requested</h2>${THREAD.map(c => `<div class="comment"><p class="who">${c.who} <span class="when">· ${c.when}</span></p><p class="text">${esc(c.text)}</p></div>`).join('')}</div>
+        <div><label class="field-label" for="reply">Reply <span class="opt">(optional)</span></label><textarea class="field" id="reply" placeholder="Added the venue and the deadline."></textarea></div>` },
+    };
+    let cur = 'event';   // opens on the tab with something to fix
+    function tabs() {
+      $('tabs').innerHTML = Object.entries(TABS).map(([k, t]) => {
+        const extra = t.fix && t.fix() ? `<span class="n" aria-label="1 to fix">1</span>` : t.count ? `<span class="n" aria-label="${t.count()} comment">${t.count()}</span>` : '';
+        return `<button type="button" role="tab" id="tab-${k}" aria-controls="panel" aria-selected="${k === cur}" tabindex="${k === cur ? 0 : -1}" data-tab="${k}">${t.label}${extra}</button>`;
+      }).join('');
+      $('panel').setAttribute('aria-labelledby', 'tab-' + cur);
+    }
+    function panel() {
+      $('panel').innerHTML = TABS[cur].html();
+      const v = $('venue'); if (v) v.addEventListener('input', () => { venue = v.value.trim(); tabs(); });
+    }
+    $('tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { cur = b.dataset.tab; tabs(); panel(); $('tab-' + cur).focus(); } });
+    $('tabs').addEventListener('keydown', e => {
+      if (!['ArrowRight', 'ArrowLeft'].includes(e.key)) return;
+      const keys = Object.keys(TABS), i = keys.indexOf(cur);
+      cur = keys[(i + (e.key === 'ArrowRight' ? 1 : keys.length - 1)) % keys.length]; tabs(); panel(); $('tab-' + cur).focus();
+    });
+    document.addEventListener('click', e => {
+      const p = e.target.closest('.pill'); if (p) { [...p.parentNode.children].forEach(x => { x.setAttribute('aria-checked', String(x === p)); x.tabIndex = x === p ? 0 : -1; }); touched(); }
+      if (e.target.closest('#send, #send-m')) toast(venue ? 'Sent to Paolo Cruz for review.' : 'Add the venue Paolo asked for first. It is in the Event tab.');
+    });
+    tabs(); panel();
+  </script>
+</body>
+</html>

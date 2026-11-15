@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My articles B, the filed table · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Structure B: the filed table. A ruled filter column on the left (status,
+     * type, category, each a plain list with counts) beside one dense table
+     * that uses the full width. Built for finding one article among many.
+     */
+    .filed { margin-top: 32px; display: grid; gap: 24px; }
+    @media (min-width: 1024px) { .filed { grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; } }
+    .facets summary { list-style: none; cursor: pointer; }
+    .facets summary::-webkit-details-marker { display: none; }
+    @media (min-width: 1024px) { .facets summary { display: none; } .facets { position: sticky; top: 24px; } }
+    .facet { border-top: 3px solid var(--color-ink); padding-top: 10px; }
+    .facet + .facet { margin-top: 28px; }
+    .facet h2 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .opt { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 15px; cursor: pointer; }
+    .opt .n { margin-left: auto; font-size: 13px; color: var(--color-ink-muted); }
+    .opt input[type="radio"] { appearance: none; width: 18px; height: 18px; border-radius: 999px; border: 1px solid var(--color-ink-faint); background: var(--color-card); flex: none; }
+    .opt input[type="radio"]:checked { border: 6px solid var(--color-ink); }
+    .opt input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--color-ink-faint); background: var(--color-card) center / 14px no-repeat; flex: none; }
+    .opt input[type="checkbox"]:checked { background-color: var(--color-ink); border-color: var(--color-ink);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eff2ee' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-10'/%3E%3C/svg%3E"); }
+    .opt input:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+
+    .tbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .search { position: relative; flex: 1 1 280px; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-ink-muted); pointer-events: none; }
+    .search .field { padding-left: 44px; }
+    .tbl-wrap { margin-top: 16px; background: var(--color-card); border-radius: var(--radius-sm); overflow-x: auto; }
+    .tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .tbl th { position: sticky; top: 0; background: var(--color-card); text-align: left; font-size: 13px; font-weight: 600; color: var(--color-ink-muted); padding: 14px 12px; border-bottom: 1px solid var(--color-rule); white-space: nowrap; }
+    .tbl td { padding: 10px 12px; border-top: 1px solid var(--color-rule); vertical-align: middle; }
+    .tbl tbody tr:first-child td { border-top: 0; }
+    .tbl tbody tr:hover td { background: var(--color-card-hover); }
+    .tbl th:first-child, .tbl td:first-child { padding-left: 20px; }
+    .tbl .thumb { width: 60px; height: 40px; border-radius: 4px; object-fit: cover; object-position: 50% 40%; background: var(--color-paper); flex: none; }
+    .tbl .thumb.none { display: grid; place-items: center; color: var(--color-ink-faint); }
+    .tbl .muted { color: var(--color-ink-muted); white-space: nowrap; }
+    .tbl .c-type { display: none; }  /* type already sits under the title */
+    @media (max-width: 1535px) { .tbl .c-rev { display: none; } }
+    @media (max-width: 767px) {
+      .tbl thead { display: none; }
+      .tbl, .tbl tbody, .tbl tr { display: block; }
+      .tbl tr { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; padding: 14px 8px 14px 16px; border-top: 1px solid var(--color-rule); }
+      .tbl tbody tr:first-child { border-top: 0; }
+      .tbl td { display: none; padding: 0; border: 0; }
+      .tbl td.c-title, .tbl td.c-more { display: block; }
+      .tbl td:first-child { padding-left: 0; }
+      .m-meta { display: flex !important; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 8px; }
+    }
+    .m-meta { display: none; }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head">
+        <div>
+          <h1 class="t-section">My articles</h1>
+          <p class="ov-sub" id="sub"></p>
+        </div>
+        <a href="#new" class="btn btn-primary hidden lg:inline-flex" id="new-btn"></a>
+      </header>
+
+      <div class="filed">
+        <details class="facets" id="facets" open data-component="FilterColumn">
+          <summary class="btn btn-day w-full lg:hidden">Filters</summary>
+          <div class="mt-4 lg:mt-0" id="facet-body"></div>
+        </details>
+
+        <section aria-labelledby="results" data-component="FiledTable">
+          <h2 id="results" class="sr-only">Articles</h2>
+          <div class="tbar">
+            <div class="search">
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+              <label class="sr-only" for="q">Search your articles</label>
+              <input class="field" id="q" type="search" placeholder="Search titles, like hackathon" autocomplete="off">
+            </div>
+            <div class="flex items-center gap-3"><label for="sort" class="text-[14px] text-ink-muted">Sort</label>
+            <select id="sort" class="select"><option value="edited">Last edited</option><option value="title">Title, A to Z</option><option value="event">Event date</option></select></div>
+          </div>
+          <p id="count" class="mt-3 text-[13px] text-ink-muted" role="status"></p>
+          <div class="tbl-wrap" id="table"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const { $, esc, icon, badge, STATUS, ARTICLES, plainDate, edited, mount, toast } = window.Desk;
+    mount({ current: 'articles', title: 'My articles', action: { label: 'New article', href: '#new', icon: 'plus' } });
+    $('new-btn').innerHTML = icon('plus', 18) + 'New article';
+    document.querySelectorAll('[href="#new"]').forEach(a => a.setAttribute('data-later', 'The article editor'));
+    if (matchMedia('(max-width: 1023px)').matches) $('facets').removeAttribute('open');
+
+    const st = { status: 'all', types: new Set(), cats: new Set(), q: '', sort: 'edited' };
+    const uniq = k => [...new Set(ARTICLES.map(a => a[k]))].sort();
+    const count = f => ARTICLES.filter(f).length;
+
+    function facets() {
+      const statuses = ['all', 'draft', 'in_review', 'approved', 'published', 'archived'];
+      $('facet-body').innerHTML = `
+        <fieldset class="facet"><legend class="sr-only">Status</legend><h2 aria-hidden="true">Status</h2>
+          ${statuses.map(s => `<label class="opt"><input type="radio" name="status" value="${s}" ${st.status === s ? 'checked' : ''}>${s === 'all' ? 'All' : STATUS[s]}<span class="n">${s === 'all' ? ARTICLES.length : count(a => a.status === s)}</span></label>`).join('')}</fieldset>
+        <fieldset class="facet"><legend class="sr-only">Type</legend><h2 aria-hidden="true">Type</h2>
+          ${uniq('type').map(t => `<label class="opt"><input type="checkbox" name="type" value="${t}" ${st.types.has(t) ? 'checked' : ''}>${t}<span class="n">${count(a => a.type === t)}</span></label>`).join('')}</fieldset>
+        <fieldset class="facet"><legend class="sr-only">Category</legend><h2 aria-hidden="true">Category</h2>
+          ${uniq('category').map(c => `<label class="opt"><input type="checkbox" name="cat" value="${c}" ${st.cats.has(c) ? 'checked' : ''}>${c}<span class="n">${count(a => a.category === c)}</span></label>`).join('')}</fieldset>
+        <button type="button" class="link text-[14px] mt-5" id="clear">Clear filters</button>`;
+    }
+    $('facet-body').addEventListener('change', e => {
+      const t = e.target;
+      if (t.name === 'status') st.status = t.value;
+      if (t.name === 'type') t.checked ? st.types.add(t.value) : st.types.delete(t.value);
+      if (t.name === 'cat') t.checked ? st.cats.add(t.value) : st.cats.delete(t.value);
+      table();
+    });
+    $('facet-body').addEventListener('click', e => { if (e.target.id === 'clear') { st.status = 'all'; st.types.clear(); st.cats.clear(); st.q = ''; $('q').value = ''; facets(); table(); } });
+    $('q').addEventListener('input', () => { st.q = $('q').value.trim(); table(); });
+    $('sort').addEventListener('change', () => { st.sort = $('sort').value; table(); });
+
+    const thumb = a => a.cover ? `<img class="thumb" src="${a.cover}" alt="" loading="lazy">` : `<span class="thumb none">${icon('articles', 18)}</span>`;
+    const statusMeta = a => a.changes ? `<span class="flag">Changes requested</span>` : a.status === 'approved' ? `Goes live ${esc(a.publish_at)}` : '';
+
+    function table() {
+      let list = ARTICLES.filter(a => (st.status === 'all' || a.status === st.status) && (!st.types.size || st.types.has(a.type)) && (!st.cats.size || st.cats.has(a.category)) && a.title.toLowerCase().includes(st.q.toLowerCase()));
+      list.sort(st.sort === 'title' ? (x, y) => x.title.localeCompare(y.title) : st.sort === 'event' ? (x, y) => (y.event_starts_at || '').localeCompare(x.event_starts_at || '') : (x, y) => y.updated_at.localeCompare(x.updated_at));
+      $('sub').innerHTML = `${ARTICLES.length} articles<span class="dot-sep"></span>showing ${list.length}`;
+      $('count').textContent = `${list.length} ${list.length === 1 ? 'article' : 'articles'}${st.status !== 'all' ? `, ${STATUS[st.status].toLowerCase()}` : ''}`;
+      $('table').innerHTML = list.length ? `<table class="tbl"><thead><tr><th>Title</th><th>Status</th><th class="c-type">Type</th><th>Event</th><th class="c-rev">Reviewer</th><th>Last edited</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>
+        ${list.map(a => `<tr data-component="FiledRow">
+          <td class="c-title"><div class="flex items-center gap-3">${thumb(a)}<div class="min-w-0"><a href="#edit" data-later="The article editor" class="row-link t-row">${esc(a.title)}</a>
+            <p class="meta mt-0.5"><span class="type">${a.type}</span><span class="dot-sep"></span>${esc(a.category)}</p></div></div>
+            <div class="m-meta">${badge(a.status)}<span class="meta">Edited ${edited(a.updated_at, a.time)}</span></div></td>
+          <td>${badge(a.status)}${statusMeta(a) ? `<p class="meta mt-1">${statusMeta(a)}</p>` : ''}</td>
+          <td class="c-type muted">${a.type}</td>
+          <td class="muted">${a.event_starts_at ? plainDate(a.event_starts_at) : '<span aria-label="No event date">None</span>'}</td>
+          <td class="c-rev muted">${esc(a.reviewer || 'Not chosen yet')}</td>
+          <td class="muted">${edited(a.updated_at, a.time).replace(/^./, c => c.toUpperCase())}</td>
+          <td class="c-more"><button type="button" class="icon-btn on-day" aria-label="More actions for ${esc(a.title)}" data-more>${icon('more', 20)}</button></td>
+        </tr>`).join('')}</tbody></table>`
+        : `<div class="p-8"><p class="t-row">No articles match these filters.</p><p class="mt-1 text-[15px] text-ink-muted">Remove a filter or try a shorter word.</p></div>`;
+    }
+    $('table').addEventListener('click', e => { if (e.target.closest('[data-more]')) toast('The row menu works as on the current My articles page.'); });
+    facets(); table();
+  </script>
+</body>
+</html>

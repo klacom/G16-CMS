@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About — ICG</title>
+  <meta name="description" content="The Integrated Communications Group reports on Pamantasan ng Lungsod ng Pasig and keeps its record of stories and events.">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="public-site.css">
+  <script src="public-data.js"></script>
+  <style>
+    ::selection { background: var(--color-marigold); color: var(--color-on-marigold); }
+    :focus-visible { outline: 2px solid var(--color-marigold); outline-offset: 3px; border-radius: 4px; }
+    .on-paper :focus-visible, .on-marigold :focus-visible { outline-color: var(--color-ink); }
+    .display { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.005em; line-height: 0.96; }
+    .balance { text-wrap: balance; }
+    .ghost-btn:hover { background: rgba(246,241,231,.08); }
+
+    /* Type roles (DESIGN.md) */
+    .t-page { font-size: 56px; }                                         /* display-page-sm */
+    .t-feature { font-size: 24px; line-height: 1.2; font-weight: 700; } /* title-feature-sm */
+    .t-section { font-size: 22px; line-height: 1.2; font-weight: 700; }
+    .t-item { font-size: 17px; line-height: 1.3; font-weight: 700; }
+    .t-step { font-size: 44px; }                                         /* numeral-time */
+    .t-lead { font-size: 16px; line-height: 1.5; }
+    @media (min-width: 640px) { .t-page { font-size: 72px; } }
+    @media (min-width: 1024px) {
+      .t-page { font-size: 112px; } .t-feature { font-size: 32px; line-height: 1.15; } .t-section { font-size: 28px; }
+      .t-item { font-size: 22px; } .t-step { font-size: 72px; } .t-lead { font-size: 18px; }
+    }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 bg-marigold text-marigold-on px-4 py-2 rounded-pill font-semibold">Skip to content</a>
+
+  <header class="sticky top-0 z-40 bg-night text-on-dark border-b border-line" data-component="SiteHeader">
+    <div class="max-w-container mx-auto px-4 lg:px-16 h-[76px] lg:h-[92px] flex items-center justify-between">
+      <a href="home.html" class="flex items-center gap-3" aria-label="ICG home">
+        <span class="font-display text-[30px] lg:text-[40px] leading-none">ICG</span>
+        <span class="hidden sm:flex flex-col text-[12px] leading-tight">
+          <span class="font-semibold">Integrated Communications Group</span>
+          <span class="text-on-dark-muted">Pamantasan ng Lungsod ng Pasig</span>
+        </span>
+      </a>
+      <nav aria-label="Main" class="hidden lg:block">
+        <ul class="flex items-center gap-8 text-[15px] font-medium">
+          <li><a href="home.html" class="hover:text-marigold">Home</a></li>
+          <li><a href="calendar.html" class="hover:text-marigold">Calendar</a></li>
+          <li><a href="archive.html" class="hover:text-marigold">Archive</a></li>
+          <li><a href="about.html" aria-current="page" class="relative font-bold after:absolute after:left-1/2 after:-translate-x-1/2 after:-bottom-2 after:h-[3px] after:w-[22px] after:bg-marigold after:rounded">About</a></li>
+          <li><a href="#" class="hover:text-marigold">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="flex items-center gap-1 lg:gap-3">
+        <a href="archive.html#search" class="ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Search">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </a>
+        <a href="#" class="hidden lg:inline-flex items-center h-11 px-5 rounded-pill border font-semibold text-[14px] ghost-btn" style="border-color: rgba(246,241,231,.5)">Log in</a>
+        <button type="button" class="lg:hidden ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Open menu" aria-expanded="false">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Head -->
+    <section class="bg-night text-on-dark" aria-labelledby="page-title" data-component="AboutHead">
+      <div class="max-w-container mx-auto px-4 lg:px-16 pt-10 lg:pt-16 pb-[120px] lg:pb-[220px] grid lg:grid-cols-[1fr_520px] gap-6 lg:gap-16 items-end">
+        <h1 id="page-title" class="display t-page">About ICG</h1>
+        <p class="t-lead max-w-[560px]">The Integrated Communications Group reports on Pamantasan ng Lungsod ng Pasig and keeps its record: every story, event and announcement, kept by date so anyone can find it later.</p>
+      </div>
+    </section>
+    <figure class="max-w-container mx-auto px-4 lg:px-16 -mt-[96px] lg:-mt-[180px]" data-component="LeadPhoto">
+      <img src="../../gallery/497925340_1123740813103575_2729152394313884247_n.jpg" alt="Students and faculty fill the university auditorium, making heart signs with their hands" class="w-full aspect-[16/10] lg:aspect-[21/9] object-cover rounded-sm" style="object-position: 50% 40%">
+      <figcaption class="on-paper mt-3 text-[13px] text-ink-muted">The second-semester student assembly in the university auditorium. Photo by the ICG photo desk.</figcaption>
+    </figure>
+
+    <!-- What we do -->
+    <section class="on-paper" aria-labelledby="do-heading" data-component="WhatWeDo">
+      <div class="max-w-container mx-auto px-4 lg:px-16 pt-14 lg:pt-20 pb-14 lg:pb-20">
+        <h2 id="do-heading" class="t-feature">What we do</h2>
+        <div class="mt-6 lg:mt-8 grid lg:grid-cols-3 gap-0 lg:gap-12">
+          <article class="py-6 lg:py-0 lg:pt-6 border-t-[3px] border-ink">
+            <h3 class="t-item">We report on campus</h3>
+            <p class="mt-3 text-[16px] leading-normal text-ink-muted max-w-[60ch]">News from every college, written by student reporters and checked by editors before it goes up. Sports, academics, student government and the people behind them.</p>
+            <a href="article.html" class="mt-4 inline-block text-[15px] font-semibold text-amber underline underline-offset-4">Read the latest news</a>
+          </article>
+          <article class="py-6 lg:py-0 lg:pt-6 border-t-[3px] border-ink">
+            <h3 class="t-item">We keep the calendar</h3>
+            <p class="mt-3 text-[16px] leading-normal text-ink-muted max-w-[60ch]">Every confirmed event goes on one public calendar with its time and place, so students can plan their week and add events to their phones.</p>
+            <a href="calendar.html" class="mt-4 inline-block text-[15px] font-semibold text-amber underline underline-offset-4">Open the calendar</a>
+          </article>
+          <article class="py-6 lg:py-0 lg:pt-6 border-t-[3px] border-ink">
+            <h3 class="t-item">We keep the record</h3>
+            <p class="mt-3 text-[16px] leading-normal text-ink-muted max-w-[60ch]">Nothing is lost when the semester ends. Stories and events stay in the archive, searchable by day, month and year, back to 2019.</p>
+            <a href="archive.html" class="mt-4 inline-block text-[15px] font-semibold text-amber underline underline-offset-4">Browse the archive</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it gets on the record (a real sequence, so it is numbered) -->
+    <section class="bg-night text-on-dark" aria-labelledby="how-heading" data-component="ProcessSteps">
+      <div class="max-w-container mx-auto px-4 lg:px-16 py-14 lg:py-20">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
+          <h2 id="how-heading" class="t-feature">How a story gets on the record</h2>
+          <p class="text-[15px] text-on-dark-muted max-w-[46ch]">Usually two to three school days from submission to publication.</p>
+        </div>
+        <ol class="mt-8 grid lg:grid-cols-4 border-t border-line">
+          <li class="py-6 lg:py-8 lg:pr-8 border-b lg:border-b-0 border-line">
+            <span class="display t-step text-marigold" aria-hidden="true">1</span>
+            <h3 class="mt-3 font-bold text-[17px] lg:text-[20px] leading-snug">A college or organization sends it in</h3>
+            <p class="mt-2 text-[15px] text-on-dark-muted leading-normal">The date, time, place, a short description and photos, through the submission form.</p>
+          </li>
+          <li class="py-6 lg:py-8 lg:px-8 border-b lg:border-b-0 lg:border-l border-line">
+            <span class="display t-step text-marigold" aria-hidden="true">2</span>
+            <h3 class="mt-3 font-bold text-[17px] lg:text-[20px] leading-snug">A writer turns it into a story</h3>
+            <p class="mt-2 text-[15px] text-on-dark-muted leading-normal">They confirm the facts with the organizers and write it up in plain language.</p>
+          </li>
+          <li class="py-6 lg:py-8 lg:px-8 border-b lg:border-b-0 lg:border-l border-line">
+            <span class="display t-step text-marigold" aria-hidden="true">3</span>
+            <h3 class="mt-3 font-bold text-[17px] lg:text-[20px] leading-snug">Reviewers approve it</h3>
+            <p class="mt-2 text-[15px] text-on-dark-muted leading-normal">At least one reviewer checks accuracy, photo consent and tone before anything goes live.</p>
+          </li>
+          <li class="py-6 lg:py-8 lg:pl-8 lg:border-l border-line">
+            <span class="display t-step text-marigold" aria-hidden="true">4</span>
+            <h3 class="mt-3 font-bold text-[17px] lg:text-[20px] leading-snug">It is published and dated</h3>
+            <p class="mt-2 text-[15px] text-on-dark-muted leading-normal">It appears on the front page and the calendar, then stays in the archive for good.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- People + standards -->
+    <section class="on-paper" aria-label="People and standards">
+      <div class="max-w-container mx-auto px-4 lg:px-16 py-14 lg:py-20 grid lg:grid-cols-2 gap-14 lg:gap-20">
+        <div data-component="Desks">
+          <h2 class="t-feature">Who does the work</h2>
+          <p class="mt-3 text-[16px] text-ink-muted max-w-[56ch]">ICG is run by students with faculty advisers, and built with students of BSIT-3C and the university's MIS office.</p>
+          <dl class="mt-6 border-t-[3px] border-ink divide-y divide-rule">
+            <div class="py-4 grid sm:grid-cols-[180px_1fr] gap-1 sm:gap-6"><dt class="font-bold text-[17px]">Editors</dt><dd class="text-[16px] text-ink-muted">Assign stories, edit them and decide what runs on the front page.</dd></div>
+            <div class="py-4 grid sm:grid-cols-[180px_1fr] gap-1 sm:gap-6"><dt class="font-bold text-[17px]">Writers</dt><dd class="text-[16px] text-ink-muted">Cover events and write stories and announcements.</dd></div>
+            <div class="py-4 grid sm:grid-cols-[180px_1fr] gap-1 sm:gap-6"><dt class="font-bold text-[17px]">Reviewers</dt><dd class="text-[16px] text-ink-muted">Check every story for accuracy and consent before it is published.</dd></div>
+            <div class="py-4 grid sm:grid-cols-[180px_1fr] gap-1 sm:gap-6"><dt class="font-bold text-[17px]">Photo desk</dt><dd class="text-[16px] text-ink-muted">Photographs events and keeps the photo archive.</dd></div>
+            <div class="py-4 grid sm:grid-cols-[180px_1fr] gap-1 sm:gap-6"><dt class="font-bold text-[17px]">Correspondents</dt><dd class="text-[16px] text-ink-muted">One contact in each college who sends in what is happening there.</dd></div>
+          </dl>
+        </div>
+
+        <div data-component="Standards">
+          <h2 class="t-feature">What you can expect from us</h2>
+          <ul class="mt-6 border-t-[3px] border-ink divide-y divide-rule">
+            <li class="py-4"><h3 class="font-bold text-[17px]">Every item has a date</h3><p class="mt-1 text-[16px] text-ink-muted">Stories show when they were published and events show when they happen.</p></li>
+            <li class="py-4"><h3 class="font-bold text-[17px]">We ask before we photograph</h3><p class="mt-1 text-[16px] text-ink-muted">Photos of students need their consent. Ask us and we will take a photo down.</p></li>
+            <li class="py-4"><h3 class="font-bold text-[17px]">We fix mistakes in the open</h3><p class="mt-1 text-[16px] text-ink-muted">Corrections are added to the story with the date they were made. <a href="#" class="font-semibold text-amber underline underline-offset-4">Report a correction</a></p></li>
+            <li class="py-4"><h3 class="font-bold text-[17px]">The record stays public</h3><p class="mt-1 text-[16px] text-ink-muted">Anyone can read and search the archive. No account needed.</p></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to action on marigold -->
+    <section class="on-marigold bg-marigold text-marigold-on" aria-labelledby="cta-heading" data-component="CtaBand">
+      <div class="max-w-container mx-auto px-4 lg:px-16 py-12 lg:py-16 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div>
+          <h2 id="cta-heading" class="t-feature">Have an event or a story for us?</h2>
+          <p class="mt-2 text-[16px] max-w-[56ch]">Send it at least three school days ahead and we will put it on the calendar.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a href="#" class="inline-flex justify-center items-center h-12 px-7 rounded-pill bg-ink text-paper font-bold text-[15px] hover:bg-surface">Submit an event</a>
+          <a href="#" class="inline-flex justify-center items-center h-12 px-7 rounded-pill border border-ink font-bold text-[15px] hover:bg-ink hover:text-paper transition-colors">Contact the desk</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-night text-on-dark" data-component="SiteFooter">
+    <div class="max-w-container mx-auto px-4 lg:px-16 pt-12 lg:pt-14 pb-8">
+      <div class="grid gap-10 lg:grid-cols-[420px_1fr_1fr] lg:gap-16">
+        <div>
+          <p class="font-display text-[44px] lg:text-[56px] leading-none">ICG</p>
+          <p class="mt-3 text-[15px] text-on-dark-muted leading-relaxed max-w-[44ch]">The news and events record of Pamantasan ng Lungsod ng Pasig, published by the Integrated Communications Group.</p>
+        </div>
+        <nav aria-label="Footer">
+          <h2 class="text-[14px] font-bold text-marigold">Sections</h2>
+          <ul class="mt-3 space-y-2 text-[15px]"><li><a href="calendar.html" class="hover:underline underline-offset-4">Calendar</a></li><li><a href="archive.html" class="hover:underline underline-offset-4">Archive</a></li><li><a href="about.html" class="hover:underline underline-offset-4">About</a></li></ul>
+        </nav>
+        <div class="text-[15px] space-y-2">
+          <h2 class="text-[14px] font-bold text-marigold">Visit</h2>
+          <p class="pt-1">Alcalde Jose Street, Kapasigan, Pasig City</p>
+          <p>Monday to Friday, 8 AM to 5 PM</p>
+          <p><a href="#" class="underline underline-offset-4">Send us a message</a></p>
+        </div>
+      </div>
+      <div class="mt-10 pt-5 border-t border-line flex flex-col sm:flex-row gap-3 justify-between text-[13px]">
+        <p class="text-on-dark-muted">© 2026 Integrated Communications Group</p>
+        <p class="flex gap-5 font-semibold"><a href="#" class="hover:text-marigold">Facebook</a><a href="#" class="hover:text-marigold">Instagram</a><a href="#" class="hover:text-marigold">Email us</a></p>
+      </div>
+    </div>
+  </footer>
+  <script src="public-site.js"></script>
+</body>
+</html>

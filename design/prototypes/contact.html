@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact — ICG</title>
+  <meta name="description" content="Send the Integrated Communications Group a question, an event, a correction or a photo takedown request.">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="public-site.css">
+  <script src="public-data.js"></script>
+  <style>
+    ::selection { background: var(--color-marigold); color: var(--color-on-marigold); }
+    :focus-visible { outline: 2px solid var(--color-marigold); outline-offset: 3px; border-radius: 4px; }
+    .on-paper :focus-visible { outline-color: var(--color-ink); }
+    .display { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.005em; line-height: 0.96; }
+    .ghost-btn:hover { background: rgba(246,241,231,.08); }
+
+    /* Type roles (DESIGN.md) */
+    .t-page { font-size: 56px; }
+    .t-feature { font-size: 24px; line-height: 1.2; font-weight: 700; }
+    .t-lead { font-size: 16px; line-height: 1.5; }
+    @media (min-width: 640px) { .t-page { font-size: 72px; } }
+    @media (min-width: 1024px) { .t-page { font-size: 112px; } .t-feature { font-size: 32px; line-height: 1.15; } .t-lead { font-size: 18px; } }
+
+    /* Fields (DESIGN.md: Inputs / Fields, day) */
+    .field-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .field-label .opt { font-weight: 400; color: var(--color-ink-muted); }
+    .field { width: 100%; min-height: 48px; padding: 12px 14px; font-size: 16px; color: var(--color-ink); background: var(--color-card);
+             border: 1px solid var(--color-ink-faint); border-radius: var(--radius-sm); transition: border-color 150ms ease, box-shadow 150ms ease; }
+    .field::placeholder { color: var(--color-ink-muted); }
+    .field:hover { border-color: var(--color-ink); }
+    .field:focus { outline: none; border-color: var(--color-ink); box-shadow: 0 0 0 2px var(--color-ink); }
+    .field[aria-invalid="true"] { border-color: var(--color-error); box-shadow: 0 0 0 1px var(--color-error); }
+    .field[aria-invalid="true"]:focus { box-shadow: 0 0 0 2px var(--color-error); }
+    textarea.field { min-height: 160px; resize: vertical; line-height: 1.5; }
+    select.field { appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230a1f17' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .field-error { display: none; margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--color-error); }
+    .field-error.show { display: flex; gap: 6px; align-items: flex-start; }
+    .help { margin-top: 6px; font-size: 13px; color: var(--color-ink-muted); }
+
+    /* Anything we move focus to lands below the sticky header */
+    #success, #error-summary, .field, .topic { scroll-margin-top: 112px; }
+    .topic[aria-checked="true"] { background: var(--color-ink); color: var(--color-paper); border-color: var(--color-ink); }
+    .topic:hover:not([aria-checked="true"]) { background: var(--color-card-hover); border-color: var(--color-ink); }
+    @media (prefers-reduced-motion: reduce) { .field { transition: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 bg-marigold text-marigold-on px-4 py-2 rounded-pill font-semibold">Skip to content</a>
+
+  <header class="sticky top-0 z-40 bg-night text-on-dark border-b border-line" data-component="SiteHeader">
+    <div class="max-w-container mx-auto px-4 lg:px-16 h-[76px] lg:h-[92px] flex items-center justify-between">
+      <a href="home.html" class="flex items-center gap-3" aria-label="ICG home">
+        <span class="font-display text-[30px] lg:text-[40px] leading-none">ICG</span>
+        <span class="hidden sm:flex flex-col text-[12px] leading-tight">
+          <span class="font-semibold">Integrated Communications Group</span>
+          <span class="text-on-dark-muted">Pamantasan ng Lungsod ng Pasig</span>
+        </span>
+      </a>
+      <nav aria-label="Main" class="hidden lg:block">
+        <ul class="flex items-center gap-8 text-[15px] font-medium">
+          <li><a href="home.html" class="hover:text-marigold">Home</a></li>
+          <li><a href="calendar.html" class="hover:text-marigold">Calendar</a></li>
+          <li><a href="archive.html" class="hover:text-marigold">Archive</a></li>
+          <li><a href="about.html" class="hover:text-marigold">About</a></li>
+          <li><a href="contact.html" aria-current="page" class="relative font-bold after:absolute after:left-1/2 after:-translate-x-1/2 after:-bottom-2 after:h-[3px] after:w-[22px] after:bg-marigold after:rounded">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="flex items-center gap-1 lg:gap-3">
+        <a href="archive.html#search" class="ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Search">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </a>
+        <a href="#" class="hidden lg:inline-flex items-center h-11 px-5 rounded-pill border font-semibold text-[14px] ghost-btn" style="border-color: rgba(246,241,231,.5)">Log in</a>
+        <button type="button" class="lg:hidden ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Open menu" aria-expanded="false">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="bg-night text-on-dark" aria-labelledby="page-title" data-component="ContactHead">
+      <div class="max-w-container mx-auto px-4 lg:px-16 pt-10 lg:pt-16 pb-10 lg:pb-14 grid lg:grid-cols-[1fr_520px] gap-6 lg:gap-16 items-end">
+        <h1 id="page-title" class="display t-page">Contact</h1>
+        <p class="t-lead max-w-[560px]">Questions, events to list, corrections or a photo you want taken down. A person on the ICG desk reads every message and replies within two school days.</p>
+      </div>
+    </section>
+
+    <div class="on-paper max-w-container mx-auto px-4 lg:px-16 py-10 lg:py-16 grid lg:grid-cols-[1fr_400px] gap-12 lg:gap-[72px] items-start">
+
+      <!-- Form -->
+      <section aria-labelledby="form-heading" class="min-w-0" data-component="ContactForm">
+        <div id="form-wrap">
+          <h2 id="form-heading" class="t-feature">Send us a message</h2>
+          <p class="mt-2 text-[15px] text-ink-muted">All fields are required unless marked optional.</p>
+
+          <div id="error-summary" class="hidden mt-6 p-4 rounded-sm bg-error-soft border border-error" role="alert" tabindex="-1" data-component="ErrorSummary">
+            <p class="font-bold text-error">Check the highlighted fields</p>
+            <ul id="error-list" class="mt-2 space-y-1 text-[15px]"></ul>
+          </div>
+
+          <form id="form" class="mt-7 space-y-6" novalidate>
+            <fieldset>
+              <legend class="field-label">What is this about?</legend>
+              <div id="topics" role="radiogroup" aria-label="Topic" class="flex flex-wrap gap-2"></div>
+            </fieldset>
+
+            <div class="grid sm:grid-cols-2 gap-6">
+              <div>
+                <label class="field-label" for="first">First name</label>
+                <input class="field" id="first" name="first" autocomplete="given-name" required>
+                <p class="field-error" id="first-err"></p>
+              </div>
+              <div>
+                <label class="field-label" for="last">Last name</label>
+                <input class="field" id="last" name="last" autocomplete="family-name" required>
+                <p class="field-error" id="last-err"></p>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-6">
+              <div>
+                <label class="field-label" for="email">Email</label>
+                <input class="field" id="email" name="email" type="email" autocomplete="email" placeholder="juan.delacruz@plpasig.edu.ph" required>
+                <p class="field-error" id="email-err"></p>
+              </div>
+              <div>
+                <label class="field-label" for="phone">Phone <span class="opt">(optional)</span></label>
+                <input class="field" id="phone" name="phone" type="tel" autocomplete="tel" placeholder="0917 123 4567">
+              </div>
+            </div>
+
+            <!-- Shown only for "Submit an event" -->
+            <div id="event-fields" class="hidden space-y-6 pt-6 border-t border-rule" data-component="EventFields">
+              <p class="text-[17px] font-bold">Event details</p>
+              <div>
+                <label class="field-label" for="ev-title">Event name</label>
+                <input class="field" id="ev-title" name="ev-title">
+                <p class="field-error" id="ev-title-err"></p>
+              </div>
+              <div class="grid sm:grid-cols-3 gap-6">
+                <div>
+                  <label class="field-label" for="ev-date">Date</label>
+                  <input class="field" id="ev-date" name="ev-date" type="date" min="2026-11-17">
+                  <p class="field-error" id="ev-date-err"></p>
+                </div>
+                <div>
+                  <label class="field-label" for="ev-time">Start time</label>
+                  <input class="field" id="ev-time" name="ev-time" type="time">
+                  <p class="field-error" id="ev-time-err"></p>
+                </div>
+                <div>
+                  <label class="field-label" for="ev-place">Place</label>
+                  <input class="field" id="ev-place" name="ev-place" placeholder="University auditorium">
+                  <p class="field-error" id="ev-place-err"></p>
+                </div>
+              </div>
+              <p class="help">Send events at least three school days ahead so we can review them in time.</p>
+            </div>
+
+            <div>
+              <label class="field-label" for="subject">Subject</label>
+              <input class="field" id="subject" name="subject" required>
+              <p class="field-error" id="subject-err"></p>
+            </div>
+
+            <div>
+              <label class="field-label" for="message">Message</label>
+              <textarea class="field" id="message" name="message" maxlength="2000" aria-describedby="msg-count" required></textarea>
+              <div class="flex justify-between gap-4">
+                <p class="field-error" id="message-err"></p>
+                <p id="msg-count" class="help ml-auto tabular-nums">0 of 2,000 characters</p>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 pt-2">
+              <button type="submit" id="send" class="inline-flex justify-center items-center gap-2 h-12 px-8 rounded-pill bg-marigold text-marigold-on font-bold text-[15px] hover:bg-marigold-bright disabled:bg-disabled-bg disabled:text-disabled-text">Send message</button>
+              <p class="text-[13px] text-ink-muted max-w-[46ch]">We only use your details to reply to this message.</p>
+            </div>
+          </form>
+        </div>
+
+        <!-- Success state -->
+        <div id="success" class="hidden bg-night text-on-dark rounded-sm p-6 sm:p-10" role="status" tabindex="-1" data-component="SuccessPanel">
+          <span class="inline-grid place-items-center w-12 h-12 rounded-pill bg-marigold text-marigold-on" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>
+          </span>
+          <h2 class="mt-5 t-feature">Message sent</h2>
+          <p id="success-text" class="mt-3 text-[16px] max-w-[56ch]"></p>
+          <button type="button" id="again" class="mt-7 inline-flex items-center h-12 px-6 rounded-pill border font-bold text-[15px] ghost-btn" style="border-color: rgba(246,241,231,.6)">Send another message</button>
+        </div>
+      </section>
+
+      <!-- Visit + direct contacts -->
+      <aside class="flex flex-col gap-8" aria-label="Other ways to reach us">
+        <section class="bg-night text-on-dark rounded-sm p-6 lg:p-7" aria-labelledby="visit-heading" data-component="VisitPanel">
+          <h2 id="visit-heading" class="text-[20px] lg:text-[22px] font-bold">Visit the ICG desk</h2>
+          <ul class="mt-4 space-y-3 text-[15px]">
+            <li class="flex gap-3"><svg aria-hidden="true" class="shrink-0 mt-0.5" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b335" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span>Pamantasan ng Lungsod ng Pasig<br>Alcalde Jose Street, Kapasigan, Pasig City</span></li>
+            <li class="flex gap-3"><svg aria-hidden="true" class="shrink-0 mt-0.5" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b335" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Monday to Friday, 8:00 AM to 5:00 PM<br><span class="text-on-dark-muted">Closed on holidays and during semester break</span></span></li>
+          </ul>
+          <a href="https://www.google.com/maps/search/?api=1&query=Pamantasan+ng+Lungsod+ng+Pasig" class="mt-6 inline-flex items-center gap-2 h-11 px-5 rounded-pill border font-semibold text-[14px] ghost-btn" style="border-color: rgba(246,241,231,.6)" rel="noopener" target="_blank">
+            Open in Google Maps
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+          </a>
+        </section>
+
+        <section aria-labelledby="direct-heading" data-component="DirectContacts">
+          <h2 id="direct-heading" class="text-[20px] lg:text-[22px] font-bold pb-3 border-b border-ink">Write to us directly</h2>
+          <dl class="divide-y divide-rule">
+            <div class="py-4"><dt class="text-[13px] text-ink-muted">General questions</dt><dd class="mt-1"><a href="#" class="font-semibold text-amber underline underline-offset-4">icg@plpasig.edu.ph</a></dd></div>
+            <div class="py-4"><dt class="text-[13px] text-ink-muted">Events and the calendar</dt><dd class="mt-1"><a href="#" class="font-semibold text-amber underline underline-offset-4">events.icg@plpasig.edu.ph</a></dd></div>
+            <div class="py-4"><dt class="text-[13px] text-ink-muted">Phone</dt><dd class="mt-1 font-semibold">(02) 8643-1014</dd></div>
+          </dl>
+          <p class="mt-2 text-[13px] text-ink-muted">Placeholder addresses until ICG confirms its official ones.</p>
+        </section>
+
+        <section aria-labelledby="follow-heading" data-component="FollowLinks">
+          <h2 id="follow-heading" class="text-[20px] lg:text-[22px] font-bold pb-3 border-b border-ink">Follow ICG</h2>
+          <div class="mt-4 flex gap-3">
+            <a href="#" class="inline-flex items-center h-11 px-5 rounded-pill border border-ink font-semibold text-[14px] hover:bg-ink hover:text-paper transition-colors">Facebook</a>
+            <a href="#" class="inline-flex items-center h-11 px-5 rounded-pill border border-ink font-semibold text-[14px] hover:bg-ink hover:text-paper transition-colors">Instagram</a>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="bg-night text-on-dark" data-component="SiteFooter">
+    <div class="max-w-container mx-auto px-4 lg:px-16 pt-12 lg:pt-14 pb-8">
+      <div class="grid gap-10 lg:grid-cols-[420px_1fr_1fr] lg:gap-16">
+        <div>
+          <p class="font-display text-[44px] lg:text-[56px] leading-none">ICG</p>
+          <p class="mt-3 text-[15px] text-on-dark-muted leading-relaxed max-w-[44ch]">The news and events record of Pamantasan ng Lungsod ng Pasig, published by the Integrated Communications Group.</p>
+        </div>
+        <nav aria-label="Footer">
+          <h2 class="text-[14px] font-bold text-marigold">Sections</h2>
+          <ul class="mt-3 space-y-2 text-[15px]"><li><a href="calendar.html" class="hover:underline underline-offset-4">Calendar</a></li><li><a href="archive.html" class="hover:underline underline-offset-4">Archive</a></li><li><a href="about.html" class="hover:underline underline-offset-4">About</a></li></ul>
+        </nav>
+        <div class="text-[15px] space-y-2">
+          <h2 class="text-[14px] font-bold text-marigold">Visit</h2>
+          <p class="pt-1">Alcalde Jose Street, Kapasigan, Pasig City</p>
+          <p>Monday to Friday, 8 AM to 5 PM</p>
+          <p><a href="contact.html" class="underline underline-offset-4">Send us a message</a></p>
+        </div>
+      </div>
+      <div class="mt-10 pt-5 border-t border-line flex flex-col sm:flex-row gap-3 justify-between text-[13px]">
+        <p class="text-on-dark-muted">© 2026 Integrated Communications Group</p>
+        <p class="flex gap-5 font-semibold"><a href="#" class="hover:text-marigold">Facebook</a><a href="#" class="hover:text-marigold">Instagram</a><a href="#" class="hover:text-marigold">Email us</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const TOPICS = [
+      ['question', 'A question'],
+      ['account', 'Request an account'],
+      ['event', 'Submit an event'],
+      ['correction', 'Report a correction'],
+      ['photo', 'Remove a photo'],
+      ['partner', 'Partnership or press'],
+    ];
+    const ERR_ICON = '<svg aria-hidden="true" class="shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>';
+    const requestedTopic = new URLSearchParams(location.search).get('topic');
+    let topic = TOPICS.some(([value]) => value === requestedTopic) ? requestedTopic : 'question';
+
+    // ---------- Topic radios ----------
+    const topicsEl = document.getElementById('topics');
+    function renderTopics() {
+      topicsEl.innerHTML = TOPICS.map(([v, l]) => `<button type="button" role="radio" class="topic h-11 px-4 rounded-pill border border-ink-faint bg-card text-[14px] font-semibold" style="border-color: var(--color-ink-faint)" data-v="${v}" aria-checked="${v === topic}" tabindex="${v === topic ? 0 : -1}">${l}</button>`).join('');
+      document.getElementById('event-fields').classList.toggle('hidden', topic !== 'event');
+      const subject = document.getElementById('subject');
+      subject.placeholder = { question: 'What would you like to know?', account: 'ICG account request', event: 'Event listing request', correction: 'Which story needs correcting?', photo: 'Which photo should we remove?', partner: 'Organization and request' }[topic];
+    }
+    topicsEl.addEventListener('click', e => { const b = e.target.closest('.topic'); if (!b) return; topic = b.dataset.v; renderTopics(); topicsEl.querySelector(`[data-v="${topic}"]`).focus(); });
+    topicsEl.addEventListener('keydown', e => {
+      const i = TOPICS.findIndex(t => t[0] === topic);
+      const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!d) return;
+      e.preventDefault(); topic = TOPICS[(i + d + TOPICS.length) % TOPICS.length][0]; renderTopics(); topicsEl.querySelector(`[data-v="${topic}"]`).focus();
+    });
+    renderTopics();
+
+    // ---------- Character count ----------
+    const msg = document.getElementById('message');
+    msg.addEventListener('input', () => { document.getElementById('msg-count').textContent = `${msg.value.length.toLocaleString()} of 2,000 characters`; });
+
+    // ---------- Validation ----------
+    const rules = () => {
+      const r = [
+        ['first', 'Enter your first name'],
+        ['last', 'Enter your last name'],
+        ['email', v => !v ? 'Enter your email address' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Enter an email address like name@plpasig.edu.ph' : ''],
+        ['subject', 'Enter a subject'],
+        ['message', v => !v ? 'Write your message' : v.length < 20 ? 'Add a little more detail (at least 20 characters)' : ''],
+      ];
+      if (topic === 'event') r.splice(3, 0,
+        ['ev-title', 'Enter the event name'], ['ev-date', 'Choose the event date'], ['ev-time', 'Choose a start time'], ['ev-place', 'Enter where the event is held']);
+      return r;
+    };
+    const labels = { first: 'First name', last: 'Last name', email: 'Email', subject: 'Subject', message: 'Message', 'ev-title': 'Event name', 'ev-date': 'Date', 'ev-time': 'Start time', 'ev-place': 'Place' };
+    function check(id, rule) {
+      const el = document.getElementById(id), v = el.value.trim();
+      const msgText = typeof rule === 'function' ? rule(v) : (v ? '' : rule);
+      const err = document.getElementById(id + '-err');
+      el.setAttribute('aria-invalid', msgText ? 'true' : 'false');
+      if (msgText) { err.innerHTML = ERR_ICON + `<span>${msgText}</span>`; err.classList.add('show'); el.setAttribute('aria-describedby', id + '-err' + (id === 'message' ? ' msg-count' : '')); }
+      else { err.classList.remove('show'); err.textContent = ''; if (id === 'message') el.setAttribute('aria-describedby', 'msg-count'); else el.removeAttribute('aria-describedby'); }
+      return msgText;
+    }
+    // Re-check a field as soon as it is corrected
+    document.getElementById('form').addEventListener('input', e => {
+      if (e.target.getAttribute('aria-invalid') !== 'true') return;
+      const rule = rules().find(r => r[0] === e.target.id); if (rule) check(...rule);
+    });
+
+    const summary = document.getElementById('error-summary');
+    document.getElementById('form').addEventListener('submit', e => {
+      e.preventDefault();
+      const errors = rules().map(([id, rule]) => [id, check(id, rule)]).filter(([, m]) => m);
+      if (errors.length) {
+        document.getElementById('error-list').innerHTML = errors.map(([id, m]) => `<li><a href="#${id}" class="text-error font-semibold underline underline-offset-4">${labels[id]}: ${m}</a></li>`).join('');
+        summary.classList.remove('hidden'); summary.focus();
+        return;
+      }
+      summary.classList.add('hidden');
+      const send = document.getElementById('send');
+      send.disabled = true; send.textContent = 'Sending…';
+      setTimeout(() => {
+        document.getElementById('form-wrap').classList.add('hidden');
+        const ok = document.getElementById('success');
+        document.getElementById('success-text').textContent = topic === 'event'
+          ? `Thanks. We will review “${document.getElementById('ev-title').value.trim()}” and reply to ${document.getElementById('email').value.trim()} within two school days.`
+          : `Thanks. We will reply to ${document.getElementById('email').value.trim()} within two school days.`;
+        ok.classList.remove('hidden'); ok.focus();
+      }, 900);
+    });
+    document.getElementById('error-list').addEventListener('click', e => { const a = e.target.closest('a'); if (!a) return; e.preventDefault(); document.querySelector(a.getAttribute('href')).focus(); });
+    document.getElementById('again').addEventListener('click', () => {
+      document.getElementById('form').reset(); msg.dispatchEvent(new Event('input'));
+      const send = document.getElementById('send'); send.disabled = false; send.textContent = 'Send message';
+      document.getElementById('success').classList.add('hidden'); document.getElementById('form-wrap').classList.remove('hidden');
+      document.getElementById('first').focus();
+    });
+  </script>
+  <script src="public-site.js"></script>
+</body>
+</html>

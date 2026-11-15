@@ -17,6 +17,16 @@
 
 ---
 
+## Project identity
+
+The rebuild is **ICG — Integrated Communications Group**, PLP's news and events
+record. Its personality is the campus chronicler: observant, welcoming, dependable,
+and lively. **Campus life, on the record.**
+
+Read [the identity guide](IDENTITY.md) for voice and tone, and [the design system](DESIGN.md)
+for the Campus Marquee visual direction. The PHP documentation below describes the
+legacy project.
+
 ## ✨ Key Features
 
 <div align="center">

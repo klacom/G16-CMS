@@ -1,46 +1,88 @@
 /*
- * ICG design tokens — single source for the Next.js build.
+ * ICG design tokens — single source for prototypes and the Next.js build.
+ * The full rules for using them live in /DESIGN.md (the design system). If a value
+ * changes here, change it in DESIGN.md's frontmatter too, and vice versa.
  *
- * Chosen 2026-11-14 in Figma ("Home — Final" page):
- *   Layout: Variant A. Hero: Cinematic (no story-card row).
- *   Palette: Midnight & Marigold. Type: Anton (display) + Public Sans (text).
+ * Palette: Evergreen & Marigold (client request, confirmed 2026-11-15; replaced Midnight).
  *
- * Contrast (WCAG AA needs 4.5:1 for body text):
- *   on midnight:  text 16.4 · muted 7.5 · marigold 10.0
- *   on paper:     ink 16.8 · ink-muted 5.4 · amber 5.4 · marigold 1.7 (NEVER text on paper)
- *   on marigold:  midnight 10.0
+ * Contrast (WCAG AA: 4.5:1 body text, 3:1 large text 24px+ / 19px bold):
+ *   on night:          text 16.0 · muted 9.0 · marigold 9.8   (night-end: 13.3 · 7.5 · 8.1)
+ *   on surface:        text 11.3 · muted 6.4 · marigold 6.9
+ *   on surface-raised: text 9.5 · muted 5.3 · marigold 5.8
+ *   on paper:          ink 15.2 · ink-muted 5.4 · amber 5.3 · error 5.8 · ink-faint 3.5 (large text only)
+ *                      marigold ~1.7 → NEVER text on paper or card
+ *   on card (white):   ink 17.2 · ink-muted 6.1 · amber 5.9 · ink-faint 4.0
+ *   on marigold:       on-marigold 10.0 · ink 9.3
+ *   desk (dashboard):  badges: ink on paper 15.2 (draft) · ink on rule 12.3 (in review)
+ *                      text-on-dark on surface-raised 9.5 (approved) · paper on ink 15.2 (published) · ink-muted on card 6.1 (archived)
+ *                      ink on text-on-dark 15.3 (nav count) · ink-faint border on card 4.0 (draft badge)
+ *                      amber / ink-muted on card-hover 5.6 / 5.8 (hovered rows)
  */
 @import url("https://fonts.googleapis.com/css2?family=Anton&family=Public+Sans:wght@400;500;600;700&display=swap");
 
 :root {
-  /* Dark surfaces: hero, This week strip, announcements, footer */
-  --color-midnight: #0c1422;
-  --color-surface: #16233a;
-  --color-line: #25344f;
+  /* Night surfaces: header, hero fade, This week strip, page heads, panels, footer */
+  --color-night: #071a14;            /* Evergreen Night: gradient start, solid fallback */
+  --color-night-end: #0d2c21;        /* Forest: gradient end */
+  --gradient-night: linear-gradient(135deg, var(--color-night) 0%, var(--color-night-end) 100%);
+  --night-rgb: 7, 26, 20;            /* for photo fades and scrims: rgba(var(--night-rgb), .9) */
+  --night-end-rgb: 13, 44, 33;       /* translucent gradient end (solid header after scroll) */
+  --color-surface: #12392b;          /* hover on night surfaces */
+  --color-surface-raised: #194634;   /* selected (non-today) day on night surfaces */
+  --color-line: #22503d;             /* dividers on night surfaces */
   --color-text-on-dark: #f6f1e7;
-  --color-muted-on-dark: #9aa6bd;
+  --color-muted-on-dark: #a3bdb0;
 
-  /* Accent */
-  --color-marigold: #f5b335;     /* on dark, or as a fill (buttons, today, pills) */
+  /* The accent */
+  --color-marigold: #f5b335;         /* today, the primary action, selected filters */
+  --color-marigold-bright: #ffc552;  /* primary button hover */
   --color-on-marigold: #1a1206;
 
-  /* Light surfaces: body sections */
-  --color-paper: #f7f4ee;
-  --color-ink: #0c1422;
-  --color-ink-muted: #5b6475;
-  --color-amber: #8a5a00;        /* links and labels on paper */
-  --color-rule: #ddd7cc;
+  /* Day surfaces: reading content */
+  --color-paper: #eff2ee;            /* page background (sage mist) */
+  --color-card: #ffffff;             /* panels, calendar cells */
+  --color-card-hover: #f7f9f6;
+  --color-ink: #0a1f17;
+  --ink-rgb: 10, 31, 23;             /* for thin ink borders: rgba(var(--ink-rgb), .3) */
+  --color-ink-muted: #56655d;
+  --color-ink-faint: #74837b;        /* out-of-month day numbers, field borders; large text only */
+  --color-amber: #8a5a00;            /* links and labels on paper/card */
+  --color-rule: #d3ddd5;             /* dividers on paper/card */
+
+  /* Status (functional only, never decoration) */
+  --color-error: #b3261e;
+  --color-error-soft: #fdecea;
+
+  /* Disabled */
+  --color-disabled-bg: #26443a;
+  --color-disabled-text: #8aa196;
 
   /* Type */
-  --font-display: "Anton", Impact, "Arial Narrow", sans-serif;   /* headlines, day numerals, section titles (uppercase) */
+  --font-display: "Anton", "Arial Narrow", sans-serif;  /* hero headlines, page titles, dates and numerals only */
   --font-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  /* Shape and space */
-  --radius-sm: 6px;
-  --radius-pill: 999px;
+  /* Shape */
+  --radius-xs: 4px;                  /* calendar event chips, focus rings */
+  --radius-sm: 6px;                  /* photos, panels, cards */
+  --radius-pill: 999px;              /* buttons, chips, category pills, icon buttons */
+
+  /* Space */
   --container: 1440px;
-  --page-padding: 64px;
-  --gutter: 16px;                /* mobile side padding */
+  --page-padding: 64px;              /* desktop side padding (lg and up) */
+  --gutter: 16px;                    /* mobile side padding */
+
+  /* Sign-in brand graphic: decorative Night Line numerals on Night;
+     Marigold marks the illustrative today cell. */
+  --signin-band-height: 110px;        /* compact brand band below 768px */
+  --signin-motion-duration: 12s;      /* ambient SVG cycle; static under reduced motion */
+
+  /* The desk (dashboard, Operate mode) */
+  --dash-sidebar: 264px;              /* night sidebar, 1024px and up */
+  --dash-topbar: 56px;                /* night top bar below 1024px */
+  --dash-content: 1240px;             /* max width of the Mist work area, left-aligned */
 }
 
 html { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-body); }
+
+/* Every night band carries the Evergreen gradient (DESIGN.md: The Night Gradient Rule). */
+.bg-night { background-color: var(--color-night); background-image: var(--gradient-night); color: var(--color-text-on-dark); }

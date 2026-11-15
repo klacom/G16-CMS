@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit article · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="public-data.js"></script>
+  <script src="desk.js"></script>
+  <script src="desk-editor.js"></script>
+  <style>
+    /*
+     * Article editor: ready for review (chosen 2026-11-15). You edit the article in the order a reader meets
+     * it (type and category, title, summary, the "when it happens" block, cover,
+     * story). Beside it, ruled columns hold what review needs: a live checklist
+     * that ticks itself as you fix things, then the conversation with the reviewer,
+     * where each request can be marked fixed.
+     */
+    .ready-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; padding: 24px 16px 48px; }
+    @media (min-width: 1024px) { .ready-layout { grid-template-columns: minmax(0, 1fr) 360px; gap: 48px; padding: 40px; } }
+    .doc { background: var(--color-card); border-radius: var(--radius-sm); padding: 24px 16px 48px; }
+    @media (min-width: 768px) { .doc { padding: 40px 48px 64px; } }
+    .doc-inner { max-width: 760px; margin: 0 auto; }
+    .sel-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .inline-sel { appearance: none; height: 36px; padding: 0 34px 0 14px; border-radius: 999px; border: 1px solid var(--color-ink-faint); font-size: 14px; font-weight: 600; color: var(--color-ink);
+      background: var(--color-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230a1f17' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center; }
+    .inline-sel:hover { border-color: var(--color-ink); }
+    .t-input { width: 100%; border: 0; resize: none; background: transparent; outline: none; color: var(--color-ink); overflow: hidden; }
+    .t-input::placeholder { color: var(--color-ink-muted); }
+    .t-title::placeholder { color: var(--color-ink-faint); }   /* large text: 4.0:1 on Card White */
+    .t-input:focus-visible, .rte:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 6px; border-radius: 4px; }
+    .t-title { margin-top: 20px; font-size: 24px; line-height: 1.2; font-weight: 700; }
+    @media (min-width: 768px) { .t-title { font-size: 32px; line-height: 1.15; } }
+    .t-excerpt { margin-top: 12px; font-size: 18px; line-height: 1.5; color: var(--color-ink-muted); }
+    .event-block { margin-top: 28px; padding: 20px; background: var(--color-paper); border-radius: var(--radius-sm); display: grid; gap: 16px; }
+    @media (min-width: 768px) { .event-block { grid-template-columns: 1fr 1fr 1fr; } .event-block .wide { grid-column: 1 / -1; } }
+    .event-block h2 { grid-column: 1 / -1; }
+    .doc .drop { margin-top: 28px; aspect-ratio: 21 / 9; }
+    .tools-row { position: sticky; top: 64px; z-index: 5; margin: 28px 0 20px; padding: 4px 0; background: var(--color-card); border-top: 1px solid var(--color-rule); border-bottom: 1px solid var(--color-rule); }
+    @media (max-width: 1023px) { .tools-row { top: 120px; } }
+    .review-col { display: grid; gap: 32px; align-content: start; }
+    @media (min-width: 1024px) { .review-col { position: sticky; top: 104px; max-height: calc(100svh - 120px); overflow-y: auto; } }
+    .ruled { border-top: 3px solid var(--color-ink); padding-top: 12px; }
+    .check { display: flex; align-items: flex-start; gap: 12px; width: 100%; min-height: 44px; padding: 8px 0; text-align: left; font-size: 15px; }
+    .check + .check { border-top: 1px solid var(--color-rule); }
+    .check .mk { flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 999px; border: 1px solid var(--color-ink-faint); display: grid; place-items: center; background: var(--color-card); color: transparent; }
+    .check[data-done="true"] .mk { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+    .check[data-done="true"] .lb { color: var(--color-ink-muted); }
+    .check .why { display: block; font-size: 13px; color: var(--color-ink-muted); }
+    .check[data-done="false"][data-asked] .why { color: var(--color-ink); font-weight: 600; }
+    button.check:hover .lb { text-decoration: underline; text-underline-offset: 4px; }
+    .left-count { font-size: 15px; font-weight: 600; color: var(--color-ink-muted); }
+    .req { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 14px; }
+    .req + .req { border-top: 1px solid var(--color-rule); }
+    .fixed { color: var(--color-ink-muted); text-decoration: line-through; }
+    .rte:empty::before { content: attr(data-placeholder); color: var(--color-ink-muted); }
+    .notice { padding: 12px 14px; background: var(--color-card); border-radius: var(--radius-sm); font-size: 14px; }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div id="bar"></div>
+    <div class="ready-layout">
+      <article class="doc" aria-label="Article" data-component="ArticleDocument">
+        <div class="doc-inner">
+          <div class="sel-row">
+            <label class="sr-only" for="type">Type</label><select id="type" class="inline-sel"></select>
+            <label class="sr-only" for="cat">Category</label><select id="cat" class="inline-sel"></select>
+          </div>
+          <label for="title" class="sr-only">Title</label>
+          <textarea id="title" class="t-input t-title" rows="1" placeholder="Title, in plain words"></textarea>
+          <label for="excerpt" class="sr-only">Summary</label>
+          <textarea id="excerpt" class="t-input t-excerpt" rows="2" placeholder="One or two sentences readers see first"></textarea>
+
+          <section class="event-block" aria-labelledby="when-h" data-component="EventBlock">
+            <h2 id="when-h" class="t-h2">When it happens</h2>
+            <div><label class="field-label" for="date">Date</label><input class="field" id="date" type="date"></div>
+            <div><label class="field-label" for="start">Starts</label><input class="field" id="start" type="time"></div>
+            <div><label class="field-label" for="end">Ends</label><input class="field" id="end" type="time"></div>
+            <div class="wide"><label class="field-label" for="venue">Venue</label><input class="field" id="venue" placeholder="Computer Lab 3, Main building"></div>
+          </section>
+
+          <button type="button" class="drop w-full" id="cover" data-later="Photo upload"></button>
+          <div class="tools-row" id="tools"></div>
+          <div class="rte" id="body" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Story"></div>
+
+          <div class="mt-10 pt-6 border-t border-rule"><p class="field-label">Tags <span class="opt">(optional)</span></p><div id="tagwrap"></div></div>
+        </div>
+      </article>
+
+      <aside class="review-col" aria-label="Review" data-component="ReviewColumn">
+        <section class="ruled" aria-labelledby="check-h" data-component="ReadyChecklist">
+          <div class="flex items-baseline justify-between gap-3"><h2 id="check-h" class="t-h2">Before you send</h2><span class="left-count" id="left" role="status" aria-live="polite"></span></div>
+          <div id="checks" class="mt-2"></div>
+        </section>
+        <section class="ruled" aria-labelledby="conv-h" data-component="ReviewConversation">
+          <h2 id="conv-h" class="t-h2"></h2>
+          <div id="thread"></div>
+          <div id="reqs" class="mt-1"></div>
+          <label for="reply" class="field-label mt-5">Reply to Paolo <span class="opt">(optional)</span></label>
+          <textarea id="reply" class="field" placeholder="Added the venue and the deadline. Thanks!"></textarea>
+        </section>
+      </aside>
+    </div>
+    <div id="macts"></div>
+  </main>
+
+  <script>
+    const { $, esc, icon, mount, toast } = window.Desk;
+    const { DRAFT, THREAD, CATEGORIES, TYPES, bar, mobileActs, toolbar, tagbox, touched } = window.Editor;
+    const { ARTICLES, badge } = window.Desk;
+
+    /* Which article: ?id= (defaults to the code camp draft Paolo sent back). */
+    const id = new URLSearchParams(location.search).get('id') || 'a2';
+    const a = id === 'new' ? { id: 'new', status: 'draft', title: '', type: 'News', category: 'Academic', reviewer: null, cover: null }
+      : ARTICLES.find(x => x.id === id) || ARTICLES.find(x => x.id === 'a2');
+    const sample = a.id === 'a2';
+    const pub = window.ICGDemo && window.ICGDemo.find ? window.ICGDemo.find(a.title) : null;
+    function to24(t) {
+      const m = /(\d+):(\d+) (AM|PM|NN)/.exec(t || ''); if (!m) return '';
+      let h = +m[1] % 12; if (m[3] === 'PM') h += 12; if (m[3] === 'NN') h = 12;
+      return `${String(h).padStart(2, '0')}:${m[2]}`;
+    }
+    const art = sample ? { ...DRAFT, thread: THREAD } : {
+      title: a.title, type: a.type, category: a.category, excerpt: (pub && pub.summary) || '', tags: [],
+      event: { date: a.event_starts_at || '', start: to24(a.event_time), end: to24(a.event_end), venue: a.place || '' },
+      reviewer: a.reviewer, body: pub && pub.summary ? `<p>${esc(pub.summary)}</p>` : '', thread: [],
+    };
+    // Editing a published article starts a new draft; editing one in review takes it back.
+    const shownStatus = ['published', 'archived', 'in_review'].includes(a.status) ? 'draft' : a.status;
+    const NOTICE = {
+      published: 'You are editing a new draft. The published version stays on the site until this one is approved.',
+      archived: 'You are editing a new draft of an archived article.',
+      in_review: `This was with ${a.reviewer}. Editing takes it back to your drafts until you send it again.`,
+      approved: `${a.reviewer} approved this. If you change it, it needs approval again.`,
+    }[a.status];
+
+    mount({ current: 'articles', title: 'Edit draft' });
+    $('bar').innerHTML = bar({ status: shownStatus });
+    if (a.id === 'new') { document.querySelector('.editbar h1').textContent = 'New article'; document.title = 'New article · ICG desk'; $('saved').textContent = 'Not saved yet'; }
+    $('macts').innerHTML = mobileActs();
+    $('type').innerHTML = TYPES.map(t => `<option ${t === art.type ? 'selected' : ''}>${t}</option>`).join('');
+    $('cat').innerHTML = CATEGORIES.map(c => `<option ${c === art.category ? 'selected' : ''}>${c}</option>`).join('');
+    $('title').value = art.title; $('excerpt').value = art.excerpt;
+    $('body').innerHTML = art.body; $('body').dataset.placeholder = 'Start the story here. Lead with what happens, when and where.';
+    $('date').value = art.event.date; $('start').value = art.event.start; $('end').value = art.event.end; $('venue').value = art.event.venue;
+    $('when-h').closest('.event-block').hidden = art.type !== 'Event';
+    $('cover').innerHTML = a.cover
+      ? `<img src="${a.cover}" alt="" class="w-full h-full object-cover rounded-sm" style="object-position:50% 40%">`
+      : `${icon('plus', 22)}<span><span class="font-semibold text-ink">Add a cover photo</span><br>Landscape, at least 2400px wide</span>`;
+    if (a.cover) { $('cover').classList.add('!p-0', '!border-0', 'overflow-hidden'); $('cover').setAttribute('aria-label', 'Change the cover photo'); }
+    $('tools').innerHTML = toolbar('body');
+    $('tagwrap').innerHTML = tagbox('tags', art.tags);
+    const grow = t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+    ['title', 'excerpt'].forEach(f => { grow($(f)); $(f).addEventListener('input', () => grow($(f))); });
+    addEventListener('resize', () => ['title', 'excerpt'].forEach(f => grow($(f))));
+    $('type').addEventListener('change', () => { $('when-h').closest('.event-block').hidden = $('type').value !== 'Event'; checks(); });
+    if (NOTICE) $('checks').insertAdjacentHTML('beforebegin', `<p class="notice mt-3">${esc(NOTICE)}</p>`);
+
+    const asked = { deadline: false };   // requests the writer marked fixed
+    const reviewer = art.reviewer || 'Paolo Cruz';
+    const deadlineInStory = () => /deadline|sign-ups close|sign up by/i.test($('body').textContent);
+    const isEvent = () => $('type').value === 'Event';
+    const ITEMS = () => [
+      { id: 'title', label: 'Title', done: !!$('title').value.trim() },
+      { id: 'excerpt', label: 'Summary, under 200 characters', done: !!$('excerpt').value.trim() && $('excerpt').value.length <= 200 },
+      { id: 'type', label: 'Type and category', done: true },
+      { id: 'date', label: 'Event date and time', done: !!$('date').value && !!$('start').value, skip: !isEvent() },
+      { id: 'venue', label: 'Venue', done: !!$('venue').value.trim(), why: sample ? 'Paolo asked for this' : '', asked: sample, skip: !isEvent() },
+      { id: 'body', label: sample ? 'Sign-up deadline in the story' : 'The story', done: sample ? (deadlineInStory() || asked.deadline) : $('body').textContent.trim().length > 40, why: sample ? 'Paolo asked for this' : '', asked: sample },
+      { id: 'cover', label: 'Cover photo', done: !!a.cover, why: a.cover ? '' : 'Recommended, not required', optional: true },
+    ].filter(i => !i.skip);
+    function checks() {
+      const items = ITEMS(), left = items.filter(i => !i.done && !i.optional).length;
+      $('left').textContent = left ? `${left} left` : 'Ready';
+      $('checks').innerHTML = items.map(i => `<button type="button" class="check" data-go="${i.id}" data-done="${i.done}" ${i.asked ? 'data-asked' : ''}>
+        <span class="mk" aria-hidden="true">${icon('approved', 16).replace('<circle cx="12" cy="12" r="8"/>', '')}</span>
+        <span><span class="lb">${i.label}</span><span class="sr-only">${i.done ? ', done' : ', not done'}</span>${i.why ? `<span class="why">${i.why}</span>` : ''}</span></button>`).join('');
+      if (sample) {
+        const reqs = [['venue', 'Add the venue', !!$('venue').value.trim()], ['deadline', 'Add the sign-up deadline', deadlineInStory() || asked.deadline]];
+        $('reqs').innerHTML = reqs.map(([k, l, d]) => `<div class="req"><span class="${d ? 'fixed' : ''}">${l}</span>${d ? '<span class="text-[13px] font-semibold">Fixed</span>' : `<button type="button" class="btn btn-day !h-11 !px-4 !text-[13px]" data-fix="${k}">${k === 'venue' ? 'Go to venue' : 'Mark as fixed'}</button>`}</div>`).join('');
+      }
+      return left;
+    }
+    // Review column: the conversation when there is one, otherwise who reviews it.
+    if (art.thread.length) {
+      $('conv-h').textContent = `${reviewer} asked for changes`;
+      $('thread').innerHTML = art.thread.map(c => `<div class="comment"><p class="who">${c.who} <span class="when">· ${c.when}</span></p><p class="text">${esc(c.text)}</p></div>`).join('');
+    } else {
+      $('conv-h').textContent = 'Review';
+      $('thread').innerHTML = `<div class="mt-3"><label class="field-label" for="rev">Reviewer</label><select class="field" id="rev">${['Paolo Cruz', 'Bea Villanueva'].map(n => `<option ${n === reviewer ? 'selected' : ''}>${n}</option>`).join('')}</select><p class="field-hint">An ICG editor reads it before it goes live.</p></div><p class="mt-4 text-[14px] text-ink-muted">No comments yet.</p>`;
+      document.querySelector('label[for="reply"]').innerHTML = 'Note to the reviewer <span class="opt">(optional)</span>';
+      $('reply').placeholder = 'Anything the reviewer should know, like who to ask about the photos';
+    }
+    $('checks').addEventListener('click', e => {
+      const b = e.target.closest('[data-go]'); if (!b) return;
+      const el = $(b.dataset.go); el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); el.focus({ preventScroll: true });
+    });
+    $('reqs').addEventListener('click', e => {
+      const b = e.target.closest('[data-fix]'); if (!b) return;
+      if (b.dataset.fix === 'venue') { $('venue').focus(); return; }   // a field can't be marked fixed while empty
+      asked[b.dataset.fix] = true; checks(); toast('Marked as fixed. Paolo sees it when you send.');
+    });
+    ['title', 'excerpt', 'venue', 'date', 'start'].forEach(f => $(f).addEventListener('input', checks));
+    $('body').addEventListener('input', checks);
+
+    // Sending: blocked with a pointer to the checklist, or the article moves to In review.
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#send, #send-m')) return;
+      const left = checks();
+      if (left) { toast(`${left} ${left === 1 ? 'thing' : 'things'} left before you send. See "Before you send".`); return; }
+      const who = ($('rev') && $('rev').value) || reviewer;
+      $('bar-badge').innerHTML = badge('in_review');
+      $('saved').textContent = `Sent to ${who} at 10:07 AM`;
+      document.querySelectorAll('#send, #send-m').forEach(b => { b.disabled = true; b.textContent = 'Sent for review'; b.classList.add('!bg-disabled-bg', '!text-disabled-text'); });
+      toast(`Sent to ${who} for review. Their reply will show in your inbox.`);
+    });
+    checks();
+  </script>
+</body>
+</html>

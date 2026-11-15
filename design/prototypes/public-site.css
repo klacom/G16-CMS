@@ -1,0 +1,43 @@
+/* Shared navigation for the public prototype walkthrough. Values use DESIGN.md. */
+[hidden] { display:none !important; }
+.public-header-row { max-width: var(--container); margin-inline:auto; padding-inline:16px; height:76px; position:relative; display:flex; align-items:center; justify-content:space-between; gap:16px; color:var(--color-text-on-dark); }
+.public-brand { display:flex; align-items:center; gap:12px; flex-shrink:0; }
+.public-brand-mark { font-family:var(--font-display); font-size:30px; line-height:1; }
+.public-brand-name { display:none; font-size:12px; line-height:1.4; }
+.public-brand-name span { display:block; color:var(--color-muted-on-dark); }
+.public-nav { display:none; }
+.public-nav ul { display:flex; align-items:center; gap:20px; font-size:15px; font-weight:500; }
+.public-nav a { position:relative; display:flex; align-items:center; min-height:44px; }
+.public-nav a:hover { color:var(--color-marigold); }
+.public-nav a[aria-current] { font-weight:700; }
+.public-nav a[aria-current]::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:22px; height:3px; border-radius:var(--radius-pill); background:var(--color-marigold); }
+.public-actions { display:flex; align-items:center; gap:8px; }
+.public-icon { display:grid; place-items:center; width:44px; height:44px; border-radius:var(--radius-pill); }
+.public-icon:hover { background:var(--color-surface); }
+.public-login { display:none; align-items:center; justify-content:center; height:44px; padding-inline:24px; border:1px solid var(--color-muted-on-dark); border-radius:var(--radius-pill); font-size:14px; font-weight:600; }
+.public-login:hover { background:var(--color-surface); }
+.public-menu { width:100%; max-width:none; max-height:100svh; height:100svh; margin:0; padding:24px 16px; border:0; color:var(--color-text-on-dark); background:var(--color-night); }
+.public-menu::backdrop { background:var(--color-night); }
+.public-menu-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; }
+.public-menu nav { display:grid; }
+.public-menu nav a { min-height:56px; display:flex; align-items:center; border-bottom:1px solid var(--color-line); font-size:22px; font-weight:600; }
+.public-menu nav a[aria-current] { color:var(--color-marigold); }
+.public-menu .public-login { display:flex; margin-top:32px; }
+html:has(.public-menu[open]) { overflow:hidden; }
+.public-footer-links { display:flex; flex-wrap:wrap; gap:8px 24px; }
+.public-footer-links a { display:inline-flex; align-items:center; min-height:44px; }
+.public-footer-links a:hover { text-decoration:underline; text-underline-offset:4px; }
+.public-message { display:block; margin-top:12px; font-size:14px; line-height:1.5; }
+.public-story-meta { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; font-size:14px; }
+#search, #results-heading, #day-title, [id^='topic'] { scroll-margin-top:124px; }
+[role="group"][aria-label="Type"] { max-width:100%; overflow-x:auto; }
+[role="group"][aria-label="Type"] .seg { flex-shrink:0; }
+@media (min-width:640px) { .public-brand-name { display:block; } }
+@media (min-width:1024px) {
+  .public-header-row { height:92px; padding-inline:64px; }
+  .public-brand-mark { font-size:40px; }
+  .public-brand-name { display:none; }
+  .public-nav, .public-login { display:flex; }
+  .public-menu-toggle { display:none; }
+}
+@media (min-width:1440px) { .public-brand-name { display:block; } }

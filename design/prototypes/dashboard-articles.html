@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My articles · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * My articles: the proof sheet (chosen 2026-11-15). Your articles as cover
+     * photos, grouped under ruled month heads by when you last worked on them,
+     * so the list reads like your own archive (DESIGN.md: Proof sheet).
+     */
+    .controls { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .controls .find { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .controls .find .search { flex: 1 1 280px; max-width: 480px; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: -2px; padding: 2px; }
+    .chips::-webkit-scrollbar { display: none; }
+    .search { position: relative; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-ink-muted); pointer-events: none; }
+    .search .field { padding-left: 44px; }
+
+    .month { margin-top: 40px; }
+    .month-head { border-top: 3px solid var(--color-ink); padding-top: 12px; display: flex; align-items: baseline; gap: 10px; }
+    .month-head .count { font-size: 15px; font-weight: 600; color: var(--color-ink-muted); }
+    .wall { margin-top: 16px; display: grid; gap: 24px 20px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+    /* Proof card: the title is a stretched link; the actions button sits above it. */
+    .proof { position: relative; }
+    .proof .stretch::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+    .proof .stretch:focus-visible { outline: none; }
+    .proof:has(.stretch:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: 4px; border-radius: var(--radius-sm); }
+    .proof .cover { position: relative; aspect-ratio: 3 / 2; border-radius: var(--radius-sm); overflow: hidden; background: var(--color-card); }
+    .proof .cover img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .proof:hover .cover img { transform: scale(1.03); }
+    .proof:hover .t-row { text-decoration: underline; text-underline-offset: 4px; }
+    .proof .on-cover { position: absolute; left: 10px; bottom: 10px; }
+    .proof .badge[data-status="draft"], .proof .badge[data-status="archived"] { background: var(--color-card); }
+    .proof .badge[data-status="archived"] { padding-left: 8px; }
+    .no-cover { height: 100%; display: grid; place-content: center; justify-items: center; gap: 6px; font-size: 13px; color: var(--color-ink-muted); }
+    .no-cover svg { color: var(--color-ink-faint); }
+    .proof .no-cover ~ .on-cover .badge[data-status="draft"] { background: var(--color-paper); }
+    .proof .body { position: relative; padding: 12px 48px 0 0; }
+    .proof .foot { margin-top: 8px; font-size: 13px; color: var(--color-ink-muted); }
+    .proof .more { position: absolute; z-index: 2; top: 4px; right: -6px; }
+    .proof .badge-inline { display: none; }
+
+    /* Phones: a compact row (thumbnail beside the text) so the sheet stays short. */
+    @media (max-width: 639px) {
+      .wall { grid-template-columns: 1fr; gap: 0; background: var(--color-card); border-radius: var(--radius-sm); }
+      .proof { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 14px 8px 14px 14px; }
+      .proof + .proof { border-top: 1px solid var(--color-rule); }
+      .proof .cover { align-self: start; background: var(--color-paper); }
+      .proof .no-cover span { display: none; }
+      .proof .on-cover { display: none; }
+      .proof .badge-inline { display: block; margin-top: 8px; }
+      .proof .body { padding: 0 44px 0 0; position: static; }
+      .proof .badge-inline .badge[data-status="draft"] { background: var(--color-paper); }
+      .proof .more { top: 6px; right: 0; }
+      .proof:has(.stretch:focus-visible) { outline-offset: -2px; border-radius: 0; }
+    }
+    @media (max-width: 379px) { .proof { grid-template-columns: 88px minmax(0, 1fr); } }
+    .proof .meta { overflow-wrap: anywhere; }
+
+    .menu { position: absolute; right: 0; z-index: 40; min-width: 210px; padding: 6px; background: var(--color-card); border: 1px solid var(--color-ink); border-radius: var(--radius-sm); }
+    .menu button { display: flex; width: 100%; align-items: center; min-height: 44px; padding: 0 12px; border-radius: var(--radius-xs); font-size: 15px; font-weight: 500; text-align: left; }
+    .menu button:hover, .menu button:focus-visible { background: var(--color-card-hover); outline-offset: -2px; }
+    dialog { padding: 0; border: 0; background: transparent; max-width: calc(100vw - 32px); }
+    dialog::backdrop { background: rgba(var(--night-rgb), .6); }
+    .panel-note { margin-top: 40px; padding: 32px; background: var(--color-card); border-radius: var(--radius-sm); }
+    .ph-cover { aspect-ratio: 3 / 2; border-radius: var(--radius-sm); background: var(--color-rule); }
+    @media (prefers-reduced-motion: reduce) { .proof .cover img { transition: none; } .proof:hover .cover img { transform: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <a href="#page-heading" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] bg-marigold text-marigold-on px-4 py-2 rounded-pill font-semibold">Skip to content</a>
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head">
+        <div>
+          <h1 class="t-section" id="page-heading" tabindex="-1">My articles</h1>
+          <p class="ov-sub" id="sub"></p>
+        </div>
+        <a href="dashboard-editor.html?id=new" class="btn btn-primary hidden lg:inline-flex" id="new-btn"></a>
+      </header>
+
+      <div class="controls" data-component="ArticleFilters">
+        <div class="chips" role="group" aria-label="Filter by status" id="chips"></div>
+        <div class="find">
+        <div class="search" role="search">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <label class="sr-only" for="q" id="q-label">Search your articles</label>
+          <input class="field" id="q" type="search" placeholder="Search titles, like hackathon" autocomplete="off">
+        </div>
+        <div class="flex items-center gap-3">
+          <label for="group" class="text-[14px] text-ink-muted shrink-0">Group by</label>
+          <select id="group" class="select"><option value="edited">Month edited</option><option value="event">Event month</option></select>
+        </div>
+        </div>
+      </div>
+
+      <p id="results-count" class="sr-only" role="status" aria-live="polite"></p>
+      <div id="months" data-component="ProofSheet"></div>
+      <button type="button" class="btn btn-day mt-8 hidden" id="older"></button>
+    </div>
+  </main>
+
+  <dialog id="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-text" data-component="ConfirmDialog">
+    <div class="bg-card rounded-sm p-6 w-[440px] max-w-full">
+      <h2 id="confirm-title" class="t-panel"></h2>
+      <p id="confirm-text" class="mt-2 text-[15px] text-ink-muted"></p>
+      <div class="mt-6 flex flex-wrap justify-end gap-2">
+        <button type="button" class="btn btn-day" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn !h-11 !px-5 !text-[14px] bg-ink text-paper hover:bg-surface" id="confirm-ok"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const { $, esc, icon, badge, STATUS, ARTICLES, MONTHS, parse, plainDate, edited, role, mount, toast } = window.Desk;
+    const isAdmin = role === 'admin';
+    mount({ current: 'articles', title: isAdmin ? 'Articles' : 'My articles', action: { label: 'New article', href: 'dashboard-editor.html?id=new', icon: 'plus' } });
+    $('new-btn').innerHTML = icon('plus', 18) + 'New article';
+    if (isAdmin) { $('page-heading').textContent = 'Articles'; $('q-label').textContent = 'Search all articles'; document.title = 'Articles · ICG desk'; }
+
+    const params = new URLSearchParams(location.search);
+    const ORDER = ['all', 'draft', 'in_review', 'approved', 'published', 'archived'];
+    const MONTHS_SHOWN = 3;   // older months load on demand
+    let data = params.get('empty') ? [] : ARTICLES.map(a => ({ ...a, writer: 'Lea Mendoza' }));
+    const st = {
+      status: ORDER.includes(params.get('status')) ? params.get('status') : 'all',
+      q: params.get('q') || '',
+      group: params.get('group') === 'event' ? 'event' : 'edited',
+      all: false,
+    };
+    $('q').value = st.q; $('group').value = st.group;
+
+    // Filters write to the URL so a view can be shared and survives a reload.
+    function syncUrl() {
+      const p = new URLSearchParams();
+      if (role !== 'writer') p.set('role', role);
+      if (st.status !== 'all') p.set('status', st.status);
+      if (st.q) p.set('q', st.q);
+      if (st.group !== 'edited') p.set('group', st.group);
+      ['empty', 'state'].forEach(k => params.get(k) && p.set(k, params.get(k)));
+      history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p : ''));
+    }
+
+    const foot = a => a.changes ? `<span class="flag">Changes requested</span> by ${esc(a.changes.by)}`
+      : a.status === 'in_review' ? `With ${esc(a.reviewer)}`
+      : a.status === 'approved' ? `Goes live ${esc(a.publish_at)}`
+      : `${a.status === 'archived' ? 'Archived' : 'Edited'} ${edited(a.updated_at, a.time)}`;
+
+    const proof = a => `<article class="proof" data-id="${a.id}" data-component="ProofCard">
+      <div class="cover">${a.cover ? `<img src="${a.cover}" alt="" loading="lazy">` : `<div class="no-cover">${icon('articles', 22)}<span>No cover photo yet</span></div>`}<div class="on-cover">${badge(a.status)}</div></div>
+      <div class="body">
+        <p class="meta"><span class="type">${a.type}</span><span class="dot-sep"></span>${esc(a.category)}${a.event_starts_at ? `<span class="dot-sep"></span>${plainDate(a.event_starts_at)}` : ''}</p>
+        <h3 class="t-row mt-1"><a href="dashboard-editor.html?id=${a.id}" class="stretch">${esc(a.title)}</a></h3>
+        <p class="foot">${foot(a)}${isAdmin ? `<span class="dot-sep"></span>By ${esc(a.writer)}` : ''}</p>
+        <div class="badge-inline">${badge(a.status)}</div>
+        <button type="button" class="icon-btn on-day more" aria-label="More actions for ${esc(a.title)}" aria-haspopup="menu" aria-expanded="false" data-more="${a.id}">${icon('more', 20)}</button>
+      </div></article>`;
+
+    function render() {
+      syncUrl(); closeMenu();
+      const counts = s => s === 'all' ? data.length : data.filter(a => a.status === s).length;
+      $('chips').innerHTML = ORDER.map(s => `<button type="button" class="chip" data-s="${s}" aria-pressed="${s === st.status}">${s === 'all' ? 'All' : STATUS[s]}<span class="count">${counts(s)}</span></button>`).join('');
+      const needs = data.filter(a => a.changes).length;
+      $('sub').innerHTML = `${data.length} ${data.length === 1 ? 'article' : 'articles'}${needs ? `<span class="dot-sep"></span>${needs} needs you` : ''}${isAdmin ? '<span class="dot-sep"></span>every writer' : ''}`;
+      $('older').classList.add('hidden');
+
+      const s = params.get('state');
+      if (s === 'loading') {
+        $('months').innerHTML = `<div class="month" aria-hidden="true"><div class="month-head"><div class="ph w-40"></div></div><div class="wall">${[0, 1, 2, 3].map(() => '<div><div class="ph-cover"></div><div class="ph w-1/3 mt-4 !h-[10px]"></div><div class="ph w-4/5 mt-2"></div></div>').join('')}</div></div><p class="sr-only">Loading your articles…</p>`;
+        return;
+      }
+      if (s === 'error') {
+        $('months').innerHTML = `<div class="panel-note !bg-error-soft" role="alert"><p class="font-bold text-error">Your articles didn't load</p><p class="mt-1 text-[15px]">Check your connection, then try again. Nothing you saved is lost.</p><button type="button" class="btn btn-day mt-4" onclick="location.search=''">Try again</button></div>`;
+        return;
+      }
+      if (!data.length) {
+        $('months').innerHTML = `<div class="panel-note" data-component="EmptyState"><p class="t-item">You haven't written anything yet.</p><p class="mt-2 text-[15px] text-ink-muted max-w-[52ch]">Start a story, an event or an announcement. It stays a draft until you send it to an editor for review.</p><a href="dashboard-editor.html?id=new" class="btn btn-primary mt-5">${icon('plus', 18)}New article</a></div>`;
+        return;
+      }
+
+      let list = data.filter(a => (st.status === 'all' || a.status === st.status) && a.title.toLowerCase().includes(st.q.toLowerCase()));
+      const keyOf = a => st.group === 'event' ? (a.event_starts_at || '') : a.updated_at;
+      if (st.group === 'event') list = list.filter(a => a.event_starts_at);
+      list.sort((x, y) => keyOf(y).localeCompare(keyOf(x)) || (y.updated_at + y.time).localeCompare(x.updated_at + x.time));
+      const groups = [];
+      list.forEach(a => {
+        const d = parse(keyOf(a)), k = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+        (groups.find(g => g.k === k) || (groups.push({ k, items: [] }), groups[groups.length - 1])).items.push(a);
+      });
+      $('results-count').textContent = `${list.length} ${list.length === 1 ? 'article' : 'articles'}`;
+      if (!groups.length) {
+        const what = st.q ? `Nothing matches “${esc(st.q)}”` : st.group === 'event' ? 'None of these are events' : `No articles are ${STATUS[st.status].toLowerCase()}`;
+        $('months').innerHTML = `<div class="panel-note" data-component="EmptyState"><p class="t-item">${what}.</p><p class="mt-2 text-[15px] text-ink-muted">Try a shorter word, or look in all your articles.</p><button type="button" class="btn btn-day mt-5" id="clear">Clear filters</button></div>`;
+        return;
+      }
+      const shown = st.all ? groups : groups.slice(0, MONTHS_SHOWN);
+      $('months').innerHTML = shown.map(g => `<section class="month" aria-labelledby="m-${g.k.replace(' ', '-')}">
+          <div class="month-head"><h2 class="t-h2" id="m-${g.k.replace(' ', '-')}">${g.k}</h2><span class="count">${g.items.length}</span></div>
+          <div class="wall">${g.items.map(proof).join('')}</div></section>`).join('');
+      const rest = groups.length - shown.length;
+      if (rest > 0) { $('older').textContent = `Show ${rest} older ${rest === 1 ? 'month' : 'months'}`; $('older').classList.remove('hidden'); }
+    }
+
+    $('chips').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (!b) return; st.status = b.dataset.s; render(); $('chips').querySelector(`[data-s="${st.status}"]`).focus(); });
+    let t; $('q').addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => { st.q = $('q').value.trim(); render(); }, 150); });
+    $('group').addEventListener('change', () => { st.group = $('group').value; render(); });
+    $('months').addEventListener('click', e => { if (e.target.id === 'clear') { st.status = 'all'; st.q = ''; st.group = 'edited'; $('q').value = ''; $('group').value = 'edited'; render(); $('q').focus(); } });
+    $('older').addEventListener('click', () => {
+      const count = document.querySelectorAll('.month').length;
+      st.all = true; render();
+      const next = document.querySelectorAll('.month')[count]?.querySelector('h2');
+      if (next) { next.setAttribute('tabindex', '-1'); next.focus(); }
+    });
+
+    /* Card menu: actions depend on the status. */
+    let openMenu = null;
+    function closeMenu(focusBack) {
+      if (!openMenu) return;
+      const btn = document.querySelector(`[data-more="${openMenu.dataset.for}"]`);
+      openMenu.remove(); openMenu = null;
+      if (btn) { btn.setAttribute('aria-expanded', 'false'); if (focusBack) btn.focus(); }
+    }
+    $('months').addEventListener('click', e => {
+      const btn = e.target.closest('[data-more]'); if (!btn) return;
+      const wasOpen = openMenu && openMenu.dataset.for === btn.dataset.more;
+      closeMenu(); if (wasOpen) return;
+      const a = data.find(x => x.id === btn.dataset.more);
+      const items = [['edit', a.status === 'published' ? 'Edit (starts a new draft)' : 'Edit']];
+      if (a.status === 'published') items.push(['view', 'View on the site'], ['archive', 'Archive']);
+      if (a.status === 'draft') items.push(['delete', 'Delete draft']);
+      if (a.status === 'in_review') items.push(['withdraw', 'Take back from review']);
+      if (a.status === 'archived') items.push(['restore', 'Restore']);
+      const m = document.createElement('div');
+      m.className = 'menu'; m.setAttribute('role', 'menu'); m.dataset.for = a.id; m.setAttribute('aria-label', `Actions for ${a.title}`);
+      m.innerHTML = items.map(([k, l]) => `<button type="button" role="menuitem" tabindex="-1" data-act="${k}">${l}</button>`).join('');
+      const card = btn.closest('.proof');
+      const r = btn.getBoundingClientRect(), cr = card.getBoundingClientRect();
+      m.style.top = (r.bottom - cr.top + 4) + 'px';
+      card.appendChild(m); openMenu = m;
+      btn.setAttribute('aria-expanded', 'true');
+      m.querySelector('button').focus();
+    });
+    document.addEventListener('click', e => { if (openMenu && !e.target.closest('.menu,[data-more]')) closeMenu(); });
+    document.addEventListener('keydown', e => {
+      if (!openMenu) return;
+      const items = [...openMenu.querySelectorAll('[role=menuitem]')], i = items.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); closeMenu(true); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      else if (e.key === 'Tab') closeMenu();
+    });
+
+    /* Dialogs only for what can't be undone or affects other people. */
+    const ask = (title, text, ok) => new Promise(res => {
+      $('confirm-title').textContent = title; $('confirm-text').textContent = text; $('confirm-ok').textContent = ok;
+      const d = $('confirm'); d.showModal(); $('confirm-cancel').focus();
+      const done = v => { d.close(); res(v); };
+      $('confirm-ok').onclick = () => done(true); $('confirm-cancel').onclick = () => done(false);
+      d.oncancel = e => { e.preventDefault(); done(false); };
+    });
+    const setStatus = (a, s) => { a.status = s; a.updated_at = '2026-11-15'; a.time = '10:05 AM'; if (s !== 'draft') delete a.changes; };
+    $('months').addEventListener('click', async e => {
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      const a = data.find(x => x.id === openMenu.dataset.for), act = b.dataset.act;
+      closeMenu();
+      const back = () => document.querySelector(`[data-more="${a.id}"]`)?.focus();
+      if (act === 'edit') { location.href = `dashboard-editor.html?id=${a.id}`; return; }
+      if (act === 'view') { location.href = a.slug ? `article.html?id=${a.slug}` : 'archive.html'; return; }
+      if (act === 'archive') {
+        if (!await ask('Archive this story?', 'It comes off the home page and calendar right away. You can restore it later from Archived.', 'Archive')) { back(); return; }
+        const prev = { status: a.status, updated_at: a.updated_at, time: a.time };
+        setStatus(a, 'archived'); render(); toast(`“${a.title}” is archived.`, () => { Object.assign(a, prev); render(); });
+      }
+      if (act === 'delete') {
+        if (!await ask('Delete this draft?', "It's gone for good, including its photos and comments. This can't be undone.", 'Delete draft')) { back(); return; }
+        data = data.filter(x => x !== a); render(); toast('Draft deleted.');
+      }
+      if (act === 'withdraw') {
+        if (!await ask('Take this back from review?', `${a.reviewer} won't be able to review it until you send it again. It goes back to your drafts.`, 'Take back')) { back(); return; }
+        setStatus(a, 'draft'); render(); toast(`“${a.title}” is back in your drafts.`);
+      }
+      if (act === 'restore') {
+        const prev = { status: a.status, updated_at: a.updated_at, time: a.time };
+        setStatus(a, 'published'); render(); toast(`“${a.title}” is restored.`, () => { Object.assign(a, prev); render(); });
+      }
+      $('page-heading').focus();
+    });
+
+    render();
+  </script>
+</body>
+</html>

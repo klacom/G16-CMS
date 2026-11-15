@@ -1,0 +1,612 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-14T00:00:00Z",
+  "title": "Design System: ICG — Integrated Communications Group",
+  "extensions": {
+    "colorMeta": {
+      "night": {
+        "role": "neutral",
+        "displayName": "Evergreen Night",
+        "canonical": "#071a14",
+        "tonalRamp": [
+          "#17352c",
+          "#25624f",
+          "#2f9273",
+          "#36c698",
+          "#67cfae",
+          "#97d9c4",
+          "#c4e6db",
+          "#eef7f4"
+        ]
+      },
+      "night-end": {
+        "role": "neutral",
+        "displayName": "Forest",
+        "canonical": "#0d2c21",
+        "tonalRamp": [
+          "#18342a",
+          "#27604c",
+          "#328f6e",
+          "#3ac291",
+          "#6acca9",
+          "#99d7c1",
+          "#c5e5da",
+          "#eef6f3"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Night Surface",
+        "canonical": "#12392b",
+        "tonalRamp": [
+          "#19342a",
+          "#285f4b",
+          "#348d6d",
+          "#3dbf90",
+          "#6ccaa8",
+          "#9ad6c0",
+          "#c6e4d9",
+          "#eef6f3"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Raised Night",
+        "canonical": "#194634",
+        "tonalRamp": [
+          "#1a3329",
+          "#2a5d48",
+          "#388969",
+          "#43b98a",
+          "#70c6a3",
+          "#9dd3bd",
+          "#c7e3d8",
+          "#eff6f3"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Night Line",
+        "canonical": "#22503d",
+        "tonalRamp": [
+          "#1c3128",
+          "#2e5947",
+          "#3e8367",
+          "#4bb086",
+          "#76bfa1",
+          "#a1cfbc",
+          "#c9e1d7",
+          "#eff5f3"
+        ]
+      },
+      "text-on-dark": {
+        "role": "neutral",
+        "displayName": "Marquee White",
+        "canonical": "#f6f1e7",
+        "tonalRamp": [
+          "#322a1a",
+          "#5c4b2b",
+          "#886e39",
+          "#b69145",
+          "#c4a972",
+          "#d2c19e",
+          "#e2dac8",
+          "#f6f3ef"
+        ]
+      },
+      "muted-on-dark": {
+        "role": "neutral",
+        "displayName": "Night Muted",
+        "canonical": "#a3bdb0",
+        "tonalRamp": [
+          "#222b26",
+          "#3b4c43",
+          "#526f61",
+          "#69927e",
+          "#8caa9b",
+          "#afc1b8",
+          "#d0dad5",
+          "#f1f3f2"
+        ]
+      },
+      "marigold": {
+        "role": "primary",
+        "displayName": "Marquee Marigold",
+        "canonical": "#f5b335",
+        "tonalRamp": [
+          "#3e2e0f",
+          "#735213",
+          "#ae7913",
+          "#efa10d",
+          "#edb449",
+          "#ebc884",
+          "#f0ddbb",
+          "#f9f4eb"
+        ]
+      },
+      "marigold-bright": {
+        "role": "primary",
+        "displayName": "Lit Marigold",
+        "canonical": "#ffc552",
+        "tonalRamp": [
+          "#402f0c",
+          "#78550e",
+          "#b77d0b",
+          "#fba701",
+          "#f5b940",
+          "#f1cb7f",
+          "#f2dfb8",
+          "#faf5eb"
+        ]
+      },
+      "on-marigold": {
+        "role": "primary",
+        "displayName": "Lamp Black",
+        "canonical": "#1a1206",
+        "tonalRamp": [
+          "#372a16",
+          "#654a22",
+          "#966b2b",
+          "#cc8d30",
+          "#d3a662",
+          "#dcbf94",
+          "#e7d9c3",
+          "#f7f3ee"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Sage Mist",
+        "canonical": "#eff2ee",
+        "tonalRamp": [
+          "#252a23",
+          "#404a3c",
+          "#5b6c55",
+          "#758e6d",
+          "#95a78f",
+          "#b4c0b0",
+          "#d3d9d1",
+          "#f2f3f1"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "card-hover": {
+        "role": "neutral",
+        "displayName": "Card Hover",
+        "canonical": "#f7f9f6",
+        "tonalRamp": [
+          "#252b21",
+          "#404e39",
+          "#5b724f",
+          "#759765",
+          "#95ad89",
+          "#b4c3ad",
+          "#d3dbcf",
+          "#f2f4f1"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#0a1f17",
+        "tonalRamp": [
+          "#193429",
+          "#285f4a",
+          "#348d6b",
+          "#3ebe8d",
+          "#6cc9a6",
+          "#9bd5bf",
+          "#c6e4d9",
+          "#eef6f3"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#56655d",
+        "tonalRamp": [
+          "#242826",
+          "#3f4843",
+          "#5a6760",
+          "#74887d",
+          "#94a29a",
+          "#b3bdb8",
+          "#d3d7d5",
+          "#f2f3f2"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Ink Faint",
+        "canonical": "#74837b",
+        "tonalRamp": [
+          "#252826",
+          "#404743",
+          "#5b6660",
+          "#76857d",
+          "#95a09a",
+          "#b5bbb8",
+          "#d3d7d5",
+          "#f2f3f2"
+        ]
+      },
+      "amber": {
+        "role": "primary",
+        "displayName": "Amber Ink",
+        "canonical": "#8a5a00",
+        "tonalRamp": [
+          "#402e0c",
+          "#78540e",
+          "#b77b0b",
+          "#fba401",
+          "#f5b640",
+          "#f1c97f",
+          "#f2deb8",
+          "#faf5eb"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Mist Rule",
+        "canonical": "#d3ddd5",
+        "tonalRamp": [
+          "#232a24",
+          "#3d4a3f",
+          "#566c5a",
+          "#6e8e74",
+          "#8fa694",
+          "#b1bfb4",
+          "#d1d9d3",
+          "#f1f3f2"
+        ]
+      },
+      "error": {
+        "role": "status",
+        "displayName": "Error Red",
+        "canonical": "#b3261e",
+        "tonalRamp": [
+          "#391614",
+          "#69221e",
+          "#9e2a23",
+          "#d72e25",
+          "#db615a",
+          "#e1948f",
+          "#eac3c0",
+          "#f8eded"
+        ]
+      },
+      "error-soft": {
+        "role": "status",
+        "displayName": "Error Wash",
+        "canonical": "#fdecea",
+        "tonalRamp": [
+          "#3c1511",
+          "#6f2118",
+          "#a8281a",
+          "#e52c17",
+          "#e66050",
+          "#e79389",
+          "#edc2bd",
+          "#f9edec"
+        ]
+      },
+      "disabled-bg": {
+        "role": "neutral",
+        "displayName": "Disabled Background",
+        "canonical": "#26443a",
+        "tonalRamp": [
+          "#1f2e29",
+          "#345248",
+          "#487969",
+          "#5aa189",
+          "#81b4a3",
+          "#a8c8bd",
+          "#cdddd8",
+          "#f0f4f3"
+        ]
+      },
+      "disabled-text": {
+        "role": "neutral",
+        "displayName": "Disabled Text",
+        "canonical": "#8aa196",
+        "tonalRamp": [
+          "#232926",
+          "#3e4944",
+          "#576a61",
+          "#708b7e",
+          "#91a59b",
+          "#b2beb8",
+          "#d2d8d5",
+          "#f1f3f2"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display-hero": {
+        "displayName": "Display, hero",
+        "purpose": "Hero headline only, uppercase. 84/60/44px."
+      },
+      "display-page": {
+        "displayName": "Display, page",
+        "purpose": "Page titles that are a date, e.g. NOVEMBER 2026. 112/72/56px."
+      },
+      "numeral-strip": {
+        "displayName": "Numeral, strip",
+        "purpose": "Week strip day numbers; other numeral-* steps cover times, years, agenda and calendar cells."
+      },
+      "headline-date": {
+        "displayName": "Headline, date",
+        "purpose": "A day's programme heading, e.g. SATURDAY, NOVEMBER 14."
+      },
+      "title-section": {
+        "displayName": "Title, section",
+        "purpose": "Coming up, Latest news, Announcements."
+      },
+      "title-item": {
+        "displayName": "Title, item",
+        "purpose": "One story or event headline."
+      },
+      "body-lead": {
+        "displayName": "Body, lead",
+        "purpose": "Hero description."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, 65 to 75 characters per line."
+      },
+      "body-sm": {
+        "displayName": "Body, small",
+        "purpose": "Details, places, buttons, links, chips."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Weekday names and TODAY only, uppercase."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Dates under items, footnotes."
+      }
+    },
+    "shadows": [],
+    "overlays": [
+      {
+        "name": "hero-fade-desktop",
+        "value": "linear-gradient(90deg, rgba(12,20,34,.96) 0%, rgba(12,20,34,.86) 34%, rgba(12,20,34,.45) 58%, rgba(12,20,34,0) 78%), linear-gradient(180deg, rgba(12,20,34,0) 55%, rgba(12,20,34,1) 100%)",
+        "purpose": "Fades the hero photo into midnight behind the headline and into the week strip."
+      },
+      {
+        "name": "hero-fade-mobile",
+        "value": "linear-gradient(180deg, rgba(12,20,34,.55) 0%, rgba(12,20,34,.25) 16%, rgba(12,20,34,.7) 34%, rgba(12,20,34,.94) 50%, rgba(12,20,34,1) 82%)",
+        "purpose": "Mobile hero: text sits in the lower half."
+      },
+      {
+        "name": "hero-soften",
+        "value": "backdrop-filter: blur(7px) saturate(.85); mask-image: linear-gradient(90deg, #000 0%, #000 42%, transparent 66%)",
+        "purpose": "Quiets posters and signage behind the headline."
+      },
+      {
+        "name": "header-scrim",
+        "value": "linear-gradient(180deg, rgba(12,20,34,.78) 0%, rgba(12,20,34,.35) 60%, rgba(12,20,34,0) 100%)",
+        "purpose": "Keeps the transparent header readable over bright photos."
+      },
+      {
+        "name": "header-solid",
+        "value": "background: rgba(12,20,34,.94); backdrop-filter: blur(10px); box-shadow: 0 1px 0 #25344f",
+        "purpose": "Header after 40px of scroll."
+      }
+    ],
+    "focus": [
+      {
+        "name": "focus-night",
+        "value": "outline: 2px solid #f5b335; outline-offset: 3px"
+      },
+      {
+        "name": "focus-day",
+        "value": "outline: 2px solid #0c1422; outline-offset: 3px"
+      }
+    ],
+    "motion": [
+      {
+        "name": "signin-ambient",
+        "value": "12s ease-in-out",
+        "purpose": "Decorative sign-in Marquee board; pausable, static under reduced motion."
+      },
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Hero photo crossfade, 500ms."
+      },
+      {
+        "name": "state",
+        "value": "150ms ease",
+        "purpose": "Hover on cells, buttons, chips."
+      },
+      {
+        "name": "header",
+        "value": "250ms ease",
+        "purpose": "Header turning solid on scroll."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce disables transitions and smooth scroll",
+        "purpose": "Always respected."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "container",
+        "value": "1440px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action per view: marigold pill.",
+      "html": "<button class=\"ds-btn-primary\">See event details</button>",
+      "css": ".ds-btn-primary{height:48px;padding:0 28px;border:0;border-radius:999px;background:var(--color-marigold);color:var(--color-on-marigold);font:700 15px/1 'Public Sans',system-ui,sans-serif;cursor:pointer;transition:background-color 150ms ease}.ds-btn-primary:hover{background:var(--color-marigold-bright)}.ds-btn-primary:focus-visible{outline:2px solid var(--color-ink);outline-offset:3px}.ds-btn-primary:disabled{background:var(--color-disabled-bg);color:var(--color-disabled-text);cursor:not-allowed}"
+    },
+    {
+      "name": "Secondary Button (night)",
+      "kind": "button",
+      "refersTo": "button-secondary-night",
+      "description": "Second action on night surfaces, usually with an icon.",
+      "html": "<div class=\"ds-night\"><button class=\"ds-btn-night\"><svg aria-hidden=\"true\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/></svg>Add to calendar</button></div>",
+      "css": ".ds-night{background:var(--color-midnight);padding:24px}.ds-btn-night{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 24px;border-radius:999px;border:1px solid rgba(246,241,231,.6);background:transparent;color:var(--color-text-on-dark);font:700 15px/1 'Public Sans',system-ui,sans-serif;cursor:pointer;transition:background-color 150ms ease}.ds-btn-night:hover{background:rgba(246,241,231,.08)}.ds-btn-night:focus-visible{outline:2px solid var(--color-marigold);outline-offset:3px}"
+    },
+    {
+      "name": "Secondary Button (day)",
+      "kind": "button",
+      "refersTo": "button-secondary-day",
+      "description": "Second action on day surfaces; fills ink on hover.",
+      "html": "<button class=\"ds-btn-day\">See the full November calendar</button>",
+      "css": ".ds-btn-day{height:48px;padding:0 22px;border-radius:999px;border:1px solid var(--color-ink);background:transparent;color:var(--color-ink);font:600 15px/1 'Public Sans',system-ui,sans-serif;cursor:pointer;transition:background-color 150ms ease,color 150ms ease}.ds-btn-day:hover{background:var(--color-ink);color:var(--color-paper)}.ds-btn-day:focus-visible{outline:2px solid var(--color-ink);outline-offset:3px}"
+    },
+    {
+      "name": "Filter Chips",
+      "kind": "chip",
+      "refersTo": "filter-chip",
+      "description": "Category filters on night surfaces; selected is marigold.",
+      "html": "<div class=\"ds-night ds-chips\"><button class=\"ds-chip\" aria-pressed=\"true\">All</button><button class=\"ds-chip\" aria-pressed=\"false\">Academic</button><button class=\"ds-chip\" aria-pressed=\"false\">Sports</button></div>",
+      "css": ".ds-night{background:var(--color-midnight);padding:24px}.ds-chips{display:flex;gap:8px}.ds-chip{height:40px;padding:0 16px;border-radius:999px;border:1px solid rgba(246,241,231,.35);background:transparent;color:var(--color-text-on-dark);font:600 14px/1 'Public Sans',system-ui,sans-serif;cursor:pointer}.ds-chip:hover{background:var(--color-surface)}.ds-chip[aria-pressed=\"true\"]{background:var(--color-marigold);border-color:var(--color-marigold);color:var(--color-on-marigold)}.ds-chip:focus-visible{outline:2px solid var(--color-marigold);outline-offset:3px}"
+    },
+    {
+      "name": "This Week Strip",
+      "kind": "custom",
+      "refersTo": "day-cell",
+      "description": "Signature element: big Anton numerals, today in marigold.",
+      "html": "<div class=\"ds-strip\"><button class=\"ds-day\"><span class=\"ds-wd\">Fri</span><span class=\"ds-num\">13</span><span class=\"ds-ev ds-none\">No events</span></button><button class=\"ds-day ds-today\"><span class=\"ds-wd\">Today</span><span class=\"ds-num\">14</span><span class=\"ds-ev\">3 events</span></button><button class=\"ds-day\" aria-pressed=\"true\"><span class=\"ds-wd\">Sun</span><span class=\"ds-num\">15</span><span class=\"ds-ev\">1 event</span></button></div>",
+      "css": ".ds-strip{display:flex;background:var(--color-midnight)}.ds-day{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:150px;padding:24px 18px;border:0;border-left:1px solid var(--color-line);background:transparent;color:var(--color-text-on-dark);text-align:left;cursor:pointer;transition:background-color 150ms ease}.ds-day:hover{background:var(--color-surface)}.ds-day[aria-pressed=\"true\"]{background:var(--color-surface-raised);box-shadow:inset 0 0 0 2px var(--color-marigold)}.ds-wd{font:600 13px/1.3 'Public Sans',system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted-on-dark)}.ds-num{font:400 88px/.96 Anton,'Arial Narrow',sans-serif}.ds-ev{font:600 13px/1.3 'Public Sans',system-ui,sans-serif;color:var(--color-marigold)}.ds-ev.ds-none{font-weight:400;color:var(--color-muted-on-dark)}.ds-today,.ds-today:hover{background:var(--color-marigold);color:var(--color-on-marigold)}.ds-today .ds-wd,.ds-today .ds-ev{color:var(--color-on-marigold)}.ds-day:focus-visible{outline:2px solid var(--color-marigold);outline-offset:-4px}"
+    },
+    {
+      "name": "Event Row",
+      "kind": "custom",
+      "refersTo": "calendar-cell",
+      "description": "One event in a list: Anton time, title, category pill and place.",
+      "html": "<a class=\"ds-row\" href=\"#\"><span><span class=\"ds-time\">9:00</span><span class=\"ds-ampm\">AM</span></span><span><span class=\"ds-title\">Intercollegiate debate qualifiers</span><span class=\"ds-meta\"><span class=\"ds-pill\">Academic</span><span>Audio-visual room</span></span></span></a>",
+      "css": ".ds-row{display:grid;grid-template-columns:110px 1fr;gap:32px;padding:24px 0;border-bottom:1px solid var(--color-rule);color:var(--color-ink);text-decoration:none;background:var(--color-paper)}.ds-time{display:block;font:400 44px/.96 Anton,'Arial Narrow',sans-serif}.ds-ampm{display:block;margin-top:4px;font:600 13px/1 'Public Sans',system-ui,sans-serif;color:var(--color-ink-muted)}.ds-title{display:block;font:700 22px/1.3 'Public Sans',system-ui,sans-serif}.ds-row:hover .ds-title{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}.ds-meta{display:flex;gap:12px;align-items:center;margin-top:8px;font:500 14px/1.4 'Public Sans',system-ui,sans-serif;color:var(--color-ink-muted)}.ds-pill{padding:2px 10px;border:1px solid rgba(12,20,34,.3);border-radius:999px;font-size:12px;font-weight:600;color:var(--color-ink)}.ds-row:focus-visible{outline:2px solid var(--color-ink);outline-offset:3px}"
+    },
+    {
+      "name": "News Card",
+      "kind": "card",
+      "refersTo": "panel-day",
+      "description": "Photo, title, then category and date below the title.",
+      "html": "<a class=\"ds-news\" href=\"#\"><span class=\"ds-photo\"></span><span class=\"ds-ntitle\">PLP and the city sign a scholarship partnership for 500 students</span><span class=\"ds-nmeta\"><b>Campus</b><i></i>November 10</span></a>",
+      "css": ".ds-news{display:block;width:400px;color:var(--color-ink);text-decoration:none}.ds-photo{display:block;aspect-ratio:5/3;border-radius:6px;background:var(--color-rule)}.ds-ntitle{display:block;margin-top:12px;font:700 21px/1.3 'Public Sans',system-ui,sans-serif}.ds-news:hover .ds-ntitle{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}.ds-nmeta{display:flex;align-items:center;gap:10px;margin-top:8px;font:400 13px/1 'Public Sans',system-ui,sans-serif;color:var(--color-ink-muted)}.ds-nmeta b{color:var(--color-amber)}.ds-nmeta i{width:3px;height:3px;border-radius:50%;background:var(--color-ink-muted)}.ds-news:focus-visible{outline:2px solid var(--color-ink);outline-offset:3px}"
+    },
+    {
+      "name": "Site Header",
+      "kind": "nav",
+      "refersTo": "panel-night",
+      "description": "Midnight header with Anton wordmark, nav and a marigold current-page bar.",
+      "html": "<header class=\"ds-header\"><span class=\"ds-mark\">ICG</span><nav><a href=\"#\" aria-current=\"page\">Home</a><a href=\"#\">News</a><a href=\"#\">Calendar</a><a href=\"#\">Archive</a></nav><a class=\"ds-login\" href=\"#\">Log in</a></header>",
+      "css": ".ds-header{display:flex;align-items:center;justify-content:space-between;height:92px;padding:0 64px;background:var(--color-midnight);color:var(--color-text-on-dark);border-bottom:1px solid var(--color-line)}.ds-mark{font:400 40px/1 Anton,'Arial Narrow',sans-serif}.ds-header nav{display:flex;gap:32px}.ds-header nav a{position:relative;color:inherit;text-decoration:none;font:500 15px/1 'Public Sans',system-ui,sans-serif}.ds-header nav a:hover{color:var(--color-marigold)}.ds-header nav a[aria-current]{font-weight:700}.ds-header nav a[aria-current]::after{content:'';position:absolute;left:50%;bottom:-8px;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:var(--color-marigold)}.ds-login{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:999px;border:1px solid rgba(246,241,231,.5);color:inherit;text-decoration:none;font:600 14px/1 'Public Sans',system-ui,sans-serif}.ds-header a:focus-visible{outline:2px solid var(--color-marigold);outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Campus Marquee",
+    "overview": "ICG is the campus marquee of Pamantasan ng Lungsod ng Pasig: an evergreen night board lit in marigold that tells you what is happening today, what is coming, and what already happened. The top of every page is loud and cinematic. That means a full-bleed photograph fading into evergreen night, condensed headlines set in capitals, and day numerals big enough to read across a room. Below that, the page turns calm and orderly. Light surfaces, even rows and clear dates make it read like an official record you can trust.\n\nThe system is built around dates. Every story and every event carries its day, and the calendar is never more than one click away. The \"This week\" strip of huge numerals under the hero is the signature element; the same numerals reappear in the calendar, the agenda and \"On this day\". The tone is energetic for students without being childish, and civic enough to be the university's record of itself.\n\nIt is flat and graphic. Depth comes from the change between night surfaces (the evergreen gradient) and day surfaces (sage mist and white), never from shadows. One accent, marigold, carries all the light in the system, so it is used sparingly.",
+    "keyCharacteristics": [
+      "Night at the top (hero, strip, page heads), day for reading (lists, cards, articles).",
+      "One accent: marigold means \"today\", \"the main action\" or \"selected\".",
+      "Anton in capitals only for loud moments: hero headlines, page titles, dates and numerals.",
+      "Public Sans for everything people read or press.",
+      "Real PLP photographs, never stock or illustration.",
+      "Flat surfaces, pill-shaped controls, nearly square photos and panels."
+    ],
+    "rules": [
+      {
+        "name": "The One Marigold Rule",
+        "body": "Marigold means one of three things: today, the main action, or selected. If an element is none of those, it is not marigold. Category pills are neutral outlines for this reason.",
+        "section": "colors"
+      },
+      {
+        "name": "The Night Gradient Rule",
+        "body": "The Evergreen gradient is the only decorative gradient in the system. It appears on night bands and panels, always at 135° from `night` to `night-end`, never on text, buttons, cards on day surfaces or anything marigold. Photo fades are functional and use solid Evergreen Night.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never on Paper Rule",
+        "body": "Marigold is never text on Mist or Card White (1.7:1). Use Amber Ink for links and labels on day surfaces, and keep marigold for fills there.",
+        "section": "colors"
+      },
+      {
+        "name": "The Contrast Floor Rule",
+        "body": "Body text is at least 4.5:1 against its surface; large text (24px and up, or 19px bold) at least 3:1. The verified pairs are listed at the top of `design/tokens.css`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Loud Top, Calm Lists Rule",
+        "body": "Anton appears only in the hero headline, page titles, date headings and numerals (days, times, years). Section titles, item titles and everything people read are Public Sans. If Anton shows up in a paragraph, a button or a list item title, it's wrong.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Eyebrow Rule",
+        "body": "Never put a small label above a heading. Category, place and date go under the title, in that item's meta line.",
+        "section": "typography"
+      },
+      {
+        "name": "The Plain Date Rule",
+        "body": "Write dates out in full: \"November 14\" (add the year in heroes and archives), \"Saturday, November 14\". Times are \"9:00 AM\", \"12:00 NN\", \"4:00 PM\". Ranges use \"to\" (\"9:00 AM to 12:00 NN\"), never a dash. Short weekday labels are three letters in capitals (MON).",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Marquee Rule",
+        "body": "No box shadows, no glows, no glassy cards. If something needs to stand apart, change its surface (night/day/card) or add a 1px rule.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Pressable Outline Rule",
+        "body": "On day surfaces, a pill with a 1px outline is something you press (buttons, filter chips, pagination, topic choices). Things that only report a state, such as status badges and counts, are filled and borderless, and are smaller (24px) than the smallest button (44px).",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do open every page with a night band and set the reading content on Mist or Card White.",
+      "Do show a date on every story and event, and link to the calendar from every page.",
+      "Do keep marigold to today, the one primary action per view, and selected filters (The One Marigold Rule).",
+      "Do use Amber Ink for links on day surfaces and marigold for links on night surfaces.",
+      "Do make every tap target at least 44×44px and keep at least 8px between targets.",
+      "Do give every control hover, focus, selected and disabled states, with the focus rings described above.",
+      "Do write sentence-case copy in plain words, and name buttons by their action (\"Add to calendar\", not \"Submit\").",
+      "Do respect reduced motion: crossfades (500ms, cubic-bezier(0.16, 1, 0.3, 1)) and hover transitions (150–250ms) switch off.",
+      "Do check every page at 390px and 1440px before calling it done."
+    ],
+    "donts": [
+      "Don't put Anton in buttons, paragraphs, nav links or item titles (The Loud Top, Calm Lists Rule).",
+      "Don't put a label or kicker above a heading (The No Eyebrow Rule).",
+      "Don't use marigold as text on Mist or Card White.",
+      "Don't add box shadows, glows, glassy cards or gradient text (The Flat Marquee Rule), and don't use any gradient other than the night gradient and photo fades.",
+      "Don't introduce a second accent color, or color-code categories. Error Red is for errors only.",
+      "Don't put a boxed card inside another card. Group with spacing, dividers and subheadings instead.",
+      "Don't use the bright PLP green (#1d5c3a) or the old Midnight navy, warm cream backgrounds or the old broadsheet look; those directions were tried and replaced. The green lives only in the deep Evergreen night surfaces.",
+      "Don't use Lundayan branding anywhere, or lorem ipsum.",
+      "Don't copy Manila Bulletin's masthead, logo or colors. It is a reference for the concept (a news and events record), not for the look.",
+      "Don't autoplay the hero carousel or give its arrows the same bordered style as the week buttons."
+    ]
+  }
+}

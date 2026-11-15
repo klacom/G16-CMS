@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My articles C, the status board · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Structure C: the status board. Every article sits in the lane of its state,
+     * left to right in the order work moves toward the public site. Archived is
+     * folded into a narrow strip at the end until you open it. Lanes are ruled
+     * columns; cards don't drag, because states change through review.
+     */
+    .tbar { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .search { position: relative; flex: 0 1 420px; min-width: 0; width: 100%; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-ink-muted); pointer-events: none; }
+    .search .field { padding-left: 44px; }
+    .board { margin-top: 28px; display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; margin-inline: -16px; padding: 0 16px 8px; scrollbar-width: none; }
+    .board::-webkit-scrollbar { display: none; }
+    .lane { flex: 0 0 84%; scroll-snap-align: start; min-width: 0; }
+    @media (min-width: 768px) { .lane { flex-basis: 44%; } }
+    @media (min-width: 1024px) {
+      .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 20px; overflow: visible; margin-inline: 0; padding-inline: 0; }
+      .board.open-archive { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
+    .lane-head { border-top: 3px solid var(--color-ink); padding: 12px 0 14px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .lane-head .count { font-size: 15px; font-weight: 600; color: var(--color-ink-muted); }
+    .lane-head .badge { transform: translateY(-2px); }
+    .lane-head .badge[data-status="draft"] { background: var(--color-card); }
+    .stack { display: grid; gap: 8px; }
+    .tile { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: 12px; background: var(--color-card); border-radius: var(--radius-sm); padding: 14px; color: inherit; transition: background-color 150ms ease; }
+    .tile.no-photo { grid-template-columns: minmax(0, 1fr); }
+    a.tile:hover { background: var(--color-card-hover); }
+    a.tile:hover .t-row { text-decoration: underline; text-underline-offset: 4px; }
+    .tile img { width: 64px; height: 44px; border-radius: 4px; object-fit: cover; object-position: 50% 40%; }
+    .tile .foot { margin-top: 8px; font-size: 13px; color: var(--color-ink-muted); }
+    .lane-empty { padding: 12px 0; font-size: 14px; color: var(--color-ink-muted); }
+    /* Folded archive strip (desktop) */
+    .fold { display: none; }
+    @media (min-width: 1024px) {
+      .fold { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 56px; border-top: 3px solid var(--color-ink); padding-top: 12px; }
+      .fold button { writing-mode: vertical-rl; transform: rotate(180deg); display: flex; align-items: center; gap: 10px; padding: 14px 0; min-width: 44px; border-radius: var(--radius-pill); font-size: 15px; font-weight: 700; }
+      .fold button:hover { background: var(--color-card); }
+      .lane.archive { display: none; }
+      .open-archive .lane.archive { display: block; }
+      .open-archive .fold { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { .tile { transition: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head">
+        <div>
+          <h1 class="t-section">My articles</h1>
+          <p class="ov-sub">11 articles, left to right in the order they move toward the site</p>
+        </div>
+        <a href="#new" class="btn btn-primary hidden lg:inline-flex" id="new-btn"></a>
+      </header>
+
+      <div class="tbar">
+        <div class="search">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <label class="sr-only" for="q">Search your articles</label>
+          <input class="field" id="q" type="search" placeholder="Search titles, like hackathon" autocomplete="off">
+        </div>
+        <p id="count" class="text-[13px] text-ink-muted" role="status"></p>
+      </div>
+
+      <div class="board" id="board" data-component="StatusBoard"></div>
+    </div>
+  </main>
+
+  <script>
+    const { $, esc, icon, badge, STATUS, ARTICLES, plainDate, edited, mount } = window.Desk;
+    mount({ current: 'articles', title: 'My articles', action: { label: 'New article', href: '#new', icon: 'plus' } });
+    $('new-btn').innerHTML = icon('plus', 18) + 'New article';
+    document.querySelectorAll('[href="#new"]').forEach(a => a.setAttribute('data-later', 'The article editor'));
+
+    let q = '';
+    const LANES = ['draft', 'in_review', 'approved', 'published', 'archived'];
+    const foot = a => a.changes ? `<span class="flag">Changes requested</span> by ${esc(a.changes.by)}`
+      : a.status === 'in_review' ? `With ${esc(a.reviewer)} since ${plainDate(a.sent)}`
+      : a.status === 'approved' ? `Goes live ${esc(a.publish_at)}`
+      : a.status === 'draft' ? `Edited ${edited(a.updated_at, a.time)}`
+      : `${a.status === 'archived' ? 'Archived' : 'Published'} ${plainDate(a.updated_at)}`;
+    const tile = a => `<a href="#edit" data-later="The article editor" class="tile ${a.cover ? '' : 'no-photo'}" data-component="StatusTile">
+      <div class="min-w-0"><p class="meta"><span class="type">${a.type}</span><span class="dot-sep"></span>${esc(a.category)}${a.event_starts_at ? `<span class="dot-sep"></span>${plainDate(a.event_starts_at)}` : ''}</p>
+        <p class="t-row mt-1">${esc(a.title)}</p><p class="foot">${foot(a)}</p></div>
+      ${a.cover ? `<img src="${a.cover}" alt="" loading="lazy">` : ''}</a>`;
+
+    function render() {
+      const list = ARTICLES.filter(a => a.title.toLowerCase().includes(q.toLowerCase()));
+      $('count').textContent = q ? `${list.length} of ${ARTICLES.length} match “${q}”` : '';
+      const open = $('board').classList.contains('open-archive');
+      $('board').innerHTML = LANES.map(s => {
+        const items = list.filter(a => a.status === s);
+        return `<section class="lane ${s === 'archived' ? 'archive' : ''}" aria-labelledby="lane-${s}">
+          <div class="lane-head"><h2 class="t-h2" id="lane-${s}">${STATUS[s]} <span class="count">${items.length}</span></h2>${badge(s)}</div>
+          <div class="stack">${items.length ? items.map(tile).join('') : `<p class="lane-empty">${q ? 'No matches here.' : 'Nothing here.'}</p>`}</div>
+          ${s === 'archived' ? '<button type="button" class="link text-[14px] mt-4 hidden lg:inline-block" data-fold>Fold archive</button>' : ''}
+        </section>`;
+      }).join('') + `<div class="fold"><button type="button" data-unfold aria-expanded="${open}" aria-controls="lane-archived">${icon('archived', 18)}Archived ${list.filter(a => a.status === 'archived').length}</button></div>`;
+    }
+    $('board').addEventListener('click', e => {
+      if (e.target.closest('[data-unfold]')) { $('board').classList.add('open-archive'); $('lane-archived').setAttribute('tabindex', '-1'); $('lane-archived').focus(); }
+      if (e.target.closest('[data-fold]')) { $('board').classList.remove('open-archive'); document.querySelector('[data-unfold]').focus(); }
+    });
+    $('q').addEventListener('input', () => { q = $('q').value.trim(); const open = $('board').classList.contains('open-archive'); render(); $('board').classList.toggle('open-archive', open); });
+    render();
+  </script>
+</body>
+</html>

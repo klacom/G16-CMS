@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reviews C, the review inbox · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script>window.DESK_ROLE = 'reviewer';</script>
+  <script src="desk.js"></script>
+  <script src="desk-review.js"></script>
+  <style id="rv-css"></style>
+  <style>
+    /*
+     * Reviews C: the review inbox. One page, two panes: the queue on a full-height
+     * Card White list on the left, the selected article on the right with the
+     * decision at its head. Moving to the next review never leaves the page.
+     * On phones the list and the review are two screens.
+     */
+    .inbox { display: grid; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 1024px) { .inbox { grid-template-columns: 380px minmax(0, 1fr); min-height: 100svh; } }
+    .list { background: var(--color-card); padding: 24px 0 32px; }
+    @media (min-width: 1024px) { .list { position: sticky; top: 0; height: 100svh; overflow-y: auto; } }
+    .list-head { padding: 0 16px 16px; }
+    @media (min-width: 1024px) { .list-head { padding: 16px 24px 16px; } }
+    .seg { margin-top: 16px; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--color-paper); }
+    .seg button { flex: 1; height: 40px; border-radius: 999px; font-size: 14px; font-weight: 600; }
+    .seg [aria-selected="true"] { background: var(--color-ink); color: var(--color-paper); }
+    .li { display: block; width: 100%; text-align: left; padding: 14px 16px; border-top: 1px solid var(--color-rule); color: inherit; }
+    @media (min-width: 1024px) { .li { padding: 14px 24px; } }
+    .li:hover { background: var(--color-card-hover); }
+    .li[aria-current="true"] { background: var(--color-paper); box-shadow: inset 0 0 0 2px var(--color-ink); }
+    .li .new { font-size: 12px; font-weight: 700; }
+    .li:focus-visible { outline-offset: -4px; border-radius: 0; }
+    .pane { min-width: 0; padding: 24px 16px 48px; }
+    @media (min-width: 1024px) { .pane { padding: 40px 48px 72px; } }
+    @media (max-width: 1023px) { .inbox.open .list { display: none; } .inbox:not(.open) .pane { display: none; } }
+    .pane-head { display: grid; gap: 16px; padding-bottom: 24px; border-bottom: 1px solid var(--color-rule); margin-bottom: 24px; }
+    @media (min-width: 1280px) { .pane-head { grid-template-columns: minmax(0, 1fr) auto; align-items: start; } }
+    .fixes { margin-bottom: 24px; padding: 16px 20px; background: var(--color-card); border-radius: var(--radius-sm); }
+    .fixes li { display: flex; gap: 10px; padding: 8px 0; font-size: 15px; }
+    .fixes li + li { border-top: 1px solid var(--color-rule); }
+    .fixes .mk { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 999px; background: var(--color-ink); color: var(--color-paper); display: grid; place-items: center; }
+    .pane .rv-doc { max-width: 900px; }
+    .pane .rv-title { display: none; }   /* the pane head already carries the title */
+    .ask-form { max-width: 520px; }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="inbox" id="inbox">
+      <section class="list" aria-labelledby="list-h" data-component="ReviewList">
+        <div class="list-head">
+          <h1 id="list-h" class="t-section">Reviews</h1>
+          <div class="seg" role="tablist" aria-label="Show" id="seg">
+            <button type="button" role="tab" aria-selected="true" data-tab="waiting" id="tab-waiting"></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="decided" id="tab-decided"></button>
+          </div>
+        </div>
+        <div id="items" role="tabpanel" aria-labelledby="tab-waiting"></div>
+      </section>
+      <section class="pane" id="pane" aria-label="Selected review" data-component="ReviewPane" tabindex="-1"></section>
+    </div>
+  </main>
+
+  <script>
+    const { $, esc, icon, badge, mount, toast, plainDate } = window.Desk;
+    const { REVIEWS, DECIDED, KIND, neededLine, articleHTML, decisionHTML, wireDecision, ASK_CSS } = window.Review;
+    $('rv-css').textContent = ASK_CSS;
+    mount({ current: 'reviews', title: 'Reviews' });
+
+    let tab = 'waiting';
+    let cur = new URLSearchParams(location.search).get('open') || 'r1';
+    const waiting = () => REVIEWS.filter(r => !r.done);
+
+    function list() {
+      $('tab-waiting').textContent = `Waiting ${waiting().length}`;
+      $('tab-decided').textContent = `Decided ${DECIDED.length}`;
+      $('items').setAttribute('aria-labelledby', 'tab-' + tab);
+      if (tab === 'decided') {
+        $('items').innerHTML = DECIDED.map(x => `<div class="li"><p class="meta">${x.what}<span class="dot-sep"></span>${plainDate(x.on)}</p><p class="t-row mt-1">${esc(x.title)}</p><div class="mt-2">${badge(x.status)}</div></div>`).join('');
+        return;
+      }
+      $('items').innerHTML = waiting().map(r => `<button type="button" class="li" data-id="${r.id}" aria-current="${r.id === cur}">
+        <p class="meta">${r.state === 'invited' ? '<span class="new">New request</span><span class="dot-sep"></span>' : ''}<span class="type">${r.type}</span><span class="dot-sep"></span>${esc(r.writer)}</p>
+        <p class="t-row mt-1">${esc(r.title)}</p>
+        <p class="meta mt-1">${r.round > 1 ? `Round ${r.round}, ${r.requests.length} of ${r.requests.length} fixed<span class="dot-sep"></span>` : ''}${neededLine(r)}</p></button>`).join('')
+        || '<p class="px-6 py-4 text-[15px] text-ink-muted">Nothing is waiting for you.</p>';
+    }
+
+    function pane(focus) {
+      const r = REVIEWS.find(x => x.id === cur && !x.done) || waiting()[0];
+      if (!r) { $('pane').innerHTML = '<p class="text-[16px] text-ink-muted">You are all caught up.</p>'; return; }
+      cur = r.id;
+      const head = `<div class="pane-head"><div class="min-w-0">
+          <button type="button" class="back lg:hidden inline-flex items-center gap-1 min-h-11 mb-2 text-[14px] font-semibold text-ink-muted" data-back>${icon('chevron', 18, 'style="transform:rotate(180deg)"')}All reviews</button>
+          <p class="meta">${KIND(r)}<span class="dot-sep"></span>${esc(r.writer)}<span class="dot-sep"></span>${neededLine(r)}</p>
+          <h2 class="t-section mt-1" id="pane-h" tabindex="-1">${esc(r.title)}</h2></div>
+        <div id="decide">${r.state === 'invited'
+          ? `<div class="flex flex-wrap gap-2"><button type="button" class="btn btn-primary" data-accept>Accept</button><button type="button" class="btn btn-day !h-12" data-decline>Decline</button></div>`
+          : decisionHTML(r)}</div></div>`;
+      const fixes = r.round > 1 ? `<section class="fixes" aria-labelledby="fx-h"><h3 id="fx-h" class="t-h2">${esc(r.writer.split(' ')[0])} fixed your ${r.requests.length} requests</h3>
+          <p class="meta mt-1">“${esc(r.note)}”</p><ul class="mt-2">${r.requests.map(q => `<li><span class="mk" aria-hidden="true">${icon('approved', 14).replace('<circle cx="12" cy="12" r="8"/>', '')}</span><span><span class="font-semibold">${esc(q.text)}.</span> <span class="text-ink-muted">${esc(q.fix)}</span></span></li>`).join('')}</ul></section>` : '';
+      const body = r.state === 'invited'
+        ? `<div class="rv-doc"><p class="meta"><span class="type">${r.type}</span><span class="dot-sep"></span>${esc(r.category)}</p><p class="rv-excerpt">${esc(r.excerpt)}</p><p class="mt-6 text-[15px] text-ink-muted">Accept to read the whole story. ${esc(r.writer.split(' ')[0])} asked you on ${plainDate(r.sent)}.</p></div>`
+        : articleHTML(r, { diff: r.round > 1 });
+      $('pane').innerHTML = head + fixes + body;
+      if (r.state !== 'invited') wireDecision($('decide'), r, st => {
+        r.done = true; list();
+        $('decide').innerHTML = `<p class="text-[15px] font-semibold">${st === 'approved' ? 'Approved.' : st === 'changes' ? 'Sent back.' : 'You stepped down.'}</p>${waiting().length ? '<button type="button" class="btn btn-day mt-3" data-next>Next review</button>' : ''}`;
+      });
+      if (focus) $('pane-h').focus();
+      document.title = `Review: ${r.title} · ICG desk`;
+    }
+
+    $('items').addEventListener('click', e => {
+      const b = e.target.closest('[data-id]'); if (!b) return;
+      cur = b.dataset.id; list(); pane(true); $('inbox').classList.add('open');
+      history.replaceState(null, '', `?open=${cur}`);
+    });
+    $('seg').addEventListener('click', e => {
+      const b = e.target.closest('[data-tab]'); if (!b) return;
+      tab = b.dataset.tab; document.querySelectorAll('#seg [role=tab]').forEach(t => t.setAttribute('aria-selected', String(t === b))); list();
+    });
+    $('pane').addEventListener('click', e => {
+      const r = REVIEWS.find(x => x.id === cur);
+      if (e.target.closest('[data-back]')) { $('inbox').classList.remove('open'); document.querySelector(`[data-id="${cur}"]`)?.focus(); }
+      if (e.target.closest('[data-accept]')) { r.state = 'accepted'; list(); pane(true); toast(`Accepted. You can read “${r.title}” now.`); }
+      if (e.target.closest('[data-decline]')) { r.done = true; list(); pane(true); toast(`Declined. ${r.writer.split(' ')[0]} will choose someone else.`); }
+      if (e.target.closest('[data-next]')) { cur = waiting()[0].id; list(); pane(true); }
+    });
+    if (new URLSearchParams(location.search).get('open')) $('inbox').classList.add('open');
+    list(); pane();
+  </script>
+</body>
+</html>

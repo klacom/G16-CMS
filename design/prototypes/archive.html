@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Archive — ICG</title>
+  <meta name="description" content="Every story, event and announcement from Pamantasan ng Lungsod ng Pasig, by year, month and day.">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="public-site.css">
+  <script src="public-data.js"></script>
+  <style>
+    ::selection { background: var(--color-marigold); color: var(--color-on-marigold); }
+    :focus-visible { outline: 2px solid var(--color-marigold); outline-offset: 3px; border-radius: 4px; }
+    .on-paper :focus-visible { outline-color: var(--color-ink); }
+    .display { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.005em; line-height: 0.96; }
+    .no-scrollbar { scrollbar-width: none; } .no-scrollbar::-webkit-scrollbar { display: none; }
+    .ghost-btn:hover { background: rgba(246,241,231,.08); }
+    .story:hover .story-title, .story:focus-visible .story-title { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+    /* Type roles (DESIGN.md) */
+    .t-page { font-size: 56px; }            /* display-page-sm */
+    .t-section { font-size: 22px; line-height: 1.2; font-weight: 700; }
+    .t-item { font-size: 17px; line-height: 1.3; font-weight: 700; }
+    .t-year { font-size: 30px; }            /* numeral-time-sm */
+    .t-day { font-size: 40px; }             /* numeral-agenda-sm */
+    @media (min-width: 640px) { .t-page { font-size: 72px; } }
+    @media (min-width: 1024px) {
+      .t-page { font-size: 112px; } .t-section { font-size: 28px; } .t-item { font-size: 22px; }
+      .t-year { font-size: 44px; } .t-day { font-size: 64px; }
+    }
+
+    .chip[aria-pressed="true"] { background: var(--color-marigold); color: var(--color-on-marigold); border-color: var(--color-marigold); }
+    .seg[aria-pressed="true"] { background: var(--color-text-on-dark); color: var(--color-ink); }
+    .year[aria-expanded="true"] .year-num { color: var(--color-ink); }
+    .year[aria-expanded="false"] .year-num { color: var(--color-ink-muted); }
+    .month[aria-pressed="true"] { background: var(--color-ink); color: var(--color-paper); }
+    .month[aria-pressed="true"] .month-count { color: var(--color-paper); }
+    .month:disabled { color: var(--color-ink-faint); cursor: default; }
+    .page-btn[aria-current="page"] { background: var(--color-marigold); color: var(--color-on-marigold); border-color: var(--color-marigold); }
+    mark { background: rgba(245,179,53,.45); color: inherit; padding: 0 2px; border-radius: var(--radius-xs); }
+    .search-field:focus-within { box-shadow: 0 0 0 2px var(--color-marigold); }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 bg-marigold text-marigold-on px-4 py-2 rounded-pill font-semibold">Skip to content</a>
+
+  <header class="sticky top-0 z-40 bg-night text-on-dark border-b border-line" data-component="SiteHeader">
+    <div class="max-w-container mx-auto px-4 lg:px-16 h-[76px] lg:h-[92px] flex items-center justify-between">
+      <a href="home.html" class="flex items-center gap-3" aria-label="ICG home">
+        <span class="font-display text-[30px] lg:text-[40px] leading-none">ICG</span>
+        <span class="hidden sm:flex flex-col text-[12px] leading-tight">
+          <span class="font-semibold">Integrated Communications Group</span>
+          <span class="text-on-dark-muted">Pamantasan ng Lungsod ng Pasig</span>
+        </span>
+      </a>
+      <nav aria-label="Main" class="hidden lg:block">
+        <ul class="flex items-center gap-8 text-[15px] font-medium">
+          <li><a href="home.html" class="hover:text-marigold">Home</a></li>
+          <li><a href="calendar.html" class="hover:text-marigold">Calendar</a></li>
+          <li><a href="archive.html" aria-current="page" class="relative font-bold after:absolute after:left-1/2 after:-translate-x-1/2 after:-bottom-2 after:h-[3px] after:w-[22px] after:bg-marigold after:rounded">Archive</a></li>
+          <li><a href="#" class="hover:text-marigold">About</a></li>
+          <li><a href="#" class="hover:text-marigold">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="flex items-center gap-1 lg:gap-3">
+        <a href="#search" class="ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Search the archive">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </a>
+        <a href="#" class="hidden lg:inline-flex items-center h-11 px-5 rounded-pill border font-semibold text-[14px] ghost-btn" style="border-color: rgba(246,241,231,.5)">Log in</a>
+        <button type="button" class="lg:hidden ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Open menu" aria-expanded="false">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page head: title, search, filters -->
+  <section class="bg-night text-on-dark" aria-labelledby="page-title" data-component="ArchiveHead">
+    <div class="max-w-container mx-auto px-4 lg:px-16 pt-8 lg:pt-12 pb-6 lg:pb-8">
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+        <div>
+          <h1 id="page-title" class="display t-page">The archive</h1>
+          <p class="mt-2 text-[15px] lg:text-[16px] text-on-dark-muted">Every story, event and announcement since 2019, kept by date.</p>
+        </div>
+        <form id="search" role="search" class="w-full lg:w-[520px]" onsubmit="return false">
+          <label for="q" class="block text-[14px] font-semibold mb-2">Search the archive</label>
+          <div class="search-field flex items-center gap-2 h-14 pl-4 pr-1.5 rounded-pill border bg-surface" style="border-color: rgba(246,241,231,.4)" data-component="SearchField">
+            <svg aria-hidden="true" class="shrink-0 text-on-dark-muted" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="q" type="search" autocomplete="off" placeholder="Debate, job fair, scholarship" class="flex-1 min-w-0 bg-transparent text-[16px] text-on-dark placeholder:text-on-dark-muted outline-none">
+            <button type="button" id="clear-q" class="hidden w-11 h-11 grid place-items-center rounded-pill ghost-btn" aria-label="Clear search">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
+            <button type="submit" id="go" class="h-11 px-5 rounded-pill bg-marigold text-marigold-on font-bold text-[14px] hover:bg-marigold-bright">Search</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="mt-7 lg:mt-9 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div id="filters" class="no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0 flex gap-2 overflow-x-auto" role="group" aria-label="Filter by category"></div>
+        <div class="flex self-start lg:self-auto p-1 rounded-pill border" style="border-color: rgba(246,241,231,.25)" role="group" aria-label="Type">
+          <button type="button" class="seg h-9 px-4 rounded-pill text-[14px] font-semibold" data-type="all" aria-pressed="true">All</button>
+          <button type="button" class="seg h-9 px-4 rounded-pill text-[14px] font-semibold" data-type="News" aria-pressed="false">News</button>
+          <button type="button" class="seg h-9 px-4 rounded-pill text-[14px] font-semibold" data-type="Event" aria-pressed="false">Events</button>
+          <button type="button" class="seg h-9 px-4 rounded-pill text-[14px] font-semibold" data-type="Announcement" aria-pressed="false">Announcements</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main" class="on-paper">
+    <div class="max-w-container mx-auto px-4 lg:px-16 py-8 lg:py-12 grid lg:grid-cols-[300px_1fr] gap-8 lg:gap-16 items-start">
+
+      <!-- Browse by date -->
+      <nav aria-labelledby="browse-heading" class="min-w-0 lg:sticky lg:top-[124px]" data-component="DateBrowser">
+        <h2 id="browse-heading" class="t-section">Browse by date</h2>
+        <!-- Mobile: years scroll sideways, months below -->
+        <ul id="years" class="mt-4 flex lg:block gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0 lg:border-t lg:border-ink"></ul>
+      </nav>
+
+      <!-- Results -->
+      <section aria-labelledby="results-heading" class="min-w-0" data-component="Results">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-4 border-b-[3px] border-ink">
+          <div>
+            <h2 id="results-heading" class="t-section" aria-live="polite"></h2>
+            <p id="results-sub" class="mt-1 text-[14px] text-ink-muted"></p>
+          </div>
+          <label class="flex items-center gap-2 text-[14px] font-medium">
+            <span class="text-ink-muted">Sort</span>
+            <select id="sort" class="h-11 pl-4 pr-9 rounded-pill border border-ink bg-card font-semibold appearance-none" style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230a1f17' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center;" data-component="Select">
+              <option value="desc">Newest first</option>
+              <option value="asc">Oldest first</option>
+            </select>
+          </label>
+        </div>
+        <ol id="results"></ol>
+        <nav id="pager" class="mt-8 flex flex-wrap items-center gap-2" aria-label="Pages" data-component="Pagination"></nav>
+      </section>
+    </div>
+  </main>
+
+  <footer class="bg-night text-on-dark" data-component="SiteFooter">
+    <div class="max-w-container mx-auto px-4 lg:px-16 pt-12 lg:pt-14 pb-8">
+      <div class="grid gap-10 lg:grid-cols-[420px_1fr_1fr] lg:gap-16">
+        <div>
+          <p class="font-display text-[44px] lg:text-[56px] leading-none">ICG</p>
+          <p class="mt-3 text-[15px] text-on-dark-muted leading-relaxed max-w-[44ch]">The news and events record of Pamantasan ng Lungsod ng Pasig, published by the Integrated Communications Group.</p>
+        </div>
+        <nav aria-label="Footer">
+          <h2 class="text-[14px] font-bold text-marigold">Sections</h2>
+          <ul class="mt-3 space-y-2 text-[15px]"><li><a href="calendar.html" class="hover:underline underline-offset-4">Calendar</a></li><li><a href="archive.html" class="hover:underline underline-offset-4">Archive</a></li><li><a href="#" class="hover:underline underline-offset-4">About</a></li></ul>
+        </nav>
+        <div class="text-[15px] space-y-2">
+          <h2 class="text-[14px] font-bold text-marigold">Visit</h2>
+          <p class="pt-1">Alcalde Jose Street, Kapasigan, Pasig City</p>
+          <p>Monday to Friday, 8 AM to 5 PM</p>
+          <p><a href="#" class="underline underline-offset-4">Send us a message</a></p>
+        </div>
+      </div>
+      <div class="mt-10 pt-5 border-t border-line flex flex-col sm:flex-row gap-3 justify-between text-[13px]">
+        <p class="text-on-dark-muted">© 2026 Integrated Communications Group</p>
+        <p class="flex gap-5 font-semibold"><a href="#" class="hover:text-marigold">Facebook</a><a href="#" class="hover:text-marigold">Instagram</a><a href="#" class="hover:text-marigold">Email us</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ---------- Prototype data: a deterministic archive from a pool of real-sounding items ----------
+    const CATS = ['Academic','Student life','Sports','Community','Campus','Careers'];
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const YEARS = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019];
+    const LAST = { y: 2026, m: 10, d: 14 };            // today: November 14, 2026
+    const items = (y,m) => ICGDemo.archiveMonth(y,m);
+
+    // ---------- State ----------
+    const initialParams=new URLSearchParams(location.search);
+    const initialYear=Number(initialParams.get('year')), initialMonth=Number(initialParams.get('month'));
+    const state = {year:YEARS.includes(initialYear)?initialYear:2026,month:initialMonth>=1&&initialMonth<=12?initialMonth-1:10,q:(initialParams.get('q')||'').slice(0,160),cats:new Set(CATS.includes(initialParams.get('cat'))?[initialParams.get('cat')]:CATS),type:['News','Event','Announcement'].includes(initialParams.get('type'))?initialParams.get('type'):'all',sort:'desc',page:1};
+    const PER_PAGE = 12;
+    const matches = it => state.cats.has(it.cat) && (state.type === 'all' || it.type === state.type) && (!state.q || it.title.toLowerCase().includes(state.q.toLowerCase()));
+
+    // ---------- Filters ----------
+    const filtersEl = document.getElementById('filters');
+    function renderFilters() {
+      const all = state.cats.size === CATS.length;
+      const chip = (c, on) => `<button type="button" class="chip shrink-0 h-10 px-4 rounded-pill border text-[14px] font-semibold hover:bg-surface" style="border-color: rgba(246,241,231,.35)" data-cat="${c}" aria-pressed="${on}">${c}</button>`;
+      filtersEl.innerHTML = chip('All', all) + CATS.map(c => chip(c, !all && state.cats.has(c))).join('');
+    }
+    filtersEl.addEventListener('click', e => {
+      const b = e.target.closest('.chip'); if (!b) return; const c = b.dataset.cat;
+      if (c === 'All') CATS.forEach(x => state.cats.add(x));
+      else if (state.cats.size === CATS.length) { state.cats.clear(); state.cats.add(c); }
+      else { state.cats.has(c) ? state.cats.delete(c) : state.cats.add(c); if (!state.cats.size) CATS.forEach(x => state.cats.add(x)); }
+      state.page = 1; render();
+    });
+    document.querySelectorAll('.seg').forEach(s => s.addEventListener('click', () => { state.type = s.dataset.type; state.page = 1; render(); }));
+
+    // ---------- Date browser ----------
+    const yearsEl = document.getElementById('years');
+    function renderYears() {
+      yearsEl.innerHTML = YEARS.map(y => {
+        const open = y === state.year;
+        const total = MONTHS.reduce((s, _, m) => s + items(y, m).filter(matches).length, 0);
+        const months = MONTHS.map((name, m) => {
+          const n = items(y, m).filter(matches).length;
+          return `<button type="button" class="month h-14 rounded-xs border border-rule bg-card hover:border-ink flex flex-col items-center justify-center text-[13px] font-semibold" data-y="${y}" data-m="${m}" aria-pressed="${open && m === state.month && !state.q}" ${n ? '' : 'disabled'} aria-label="${name} ${y}, ${n} item${n === 1 ? '' : 's'}">
+            <span>${name.slice(0, 3)}</span><span class="month-count text-[12px] font-normal ${n ? 'text-ink-muted' : ''}">${n || '—'}</span></button>`;
+        }).join('');
+        return `<li class="shrink-0 lg:border-b lg:border-rule">
+          <button type="button" class="year w-full flex items-baseline justify-between gap-6 px-4 lg:px-0 py-2 lg:py-3 rounded-pill lg:rounded-none border lg:border-0 ${open ? 'border-ink' : 'border-rule'}" data-y="${y}" aria-expanded="${open}">
+            <span class="year-num display t-year">${y}</span><span class="text-[13px] text-ink-muted whitespace-nowrap">${total} items</span>
+          </button>
+          ${open ? `<div class="hidden lg:grid grid-cols-4 gap-1.5 pb-4">${months}</div>` : ''}
+        </li>`;
+      }).join('');
+      // Mobile month row
+      let mobile = document.getElementById('mobile-months');
+      if (!mobile) { mobile = document.createElement('div'); mobile.id = 'mobile-months'; mobile.className = 'lg:hidden mt-3 grid grid-cols-6 gap-1.5'; yearsEl.after(mobile); }
+      mobile.innerHTML = MONTHS.map((name, m) => { const n = items(state.year, m).filter(matches).length;
+        return `<button type="button" class="month h-12 rounded-xs border border-rule bg-card flex flex-col items-center justify-center text-[12px] font-semibold" data-y="${state.year}" data-m="${m}" aria-pressed="${m === state.month && !state.q}" ${n ? '' : 'disabled'} aria-label="${name} ${state.year}, ${n} items"><span>${name.slice(0, 3)}</span><span class="month-count text-[12px] font-normal ${n ? 'text-ink-muted' : ''}">${n || '—'}</span></button>`; }).join('');
+    }
+    document.addEventListener('click', e => {
+      const y = e.target.closest('.year');
+      if (y) { state.year = +y.dataset.y; const ms = MONTHS.map((_, m) => m).filter(m => items(state.year, m).length); state.month = ms[ms.length - 1]; state.q = ''; document.getElementById('q').value = ''; state.page = 1; render(); return; }
+      const mo = e.target.closest('.month');
+      if (mo && !mo.disabled) { state.year = +mo.dataset.y; state.month = +mo.dataset.m; state.q = ''; document.getElementById('q').value = ''; state.page = 1; render(); document.getElementById('results-heading').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
+    });
+
+    // ---------- Search ----------
+    const q = document.getElementById('q'), clearBtn = document.getElementById('clear-q');
+    q.value=state.q;clearBtn.classList.toggle('hidden',!state.q);
+    const runSearch = () => { state.q = q.value.trim(); state.page = 1; clearBtn.classList.toggle('hidden', !q.value); render(); };
+    document.getElementById('go').addEventListener('click', runSearch);
+    q.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
+    q.addEventListener('input', () => clearBtn.classList.toggle('hidden', !q.value));
+    clearBtn.addEventListener('click', () => { q.value = ''; runSearch(); q.focus(); });
+    document.getElementById('sort').addEventListener('change', e => { state.sort = e.target.value; render(); });
+
+    // ---------- Results ----------
+    const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const hl = t => state.q ? esc(t).replace(new RegExp(`(${state.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig'), '<mark>$1</mark>') : esc(t);
+    function resultList() {
+      let list = state.q
+        ? MONTHS.flatMap((_, m) => items(state.year, m)).filter(matches)
+        : items(state.year, state.month).filter(matches);
+      list = list.slice().sort((a, b) => state.sort === 'desc' ? b.date - a.date : a.date - b.date);
+      return list;
+    }
+    function renderResults() {
+      const list = resultList();
+      const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+      state.page = Math.min(state.page, pages);
+      const slice = list.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE);
+      document.getElementById('results-heading').textContent = state.q ? `Results for “${state.q}” in ${state.year}` : `${MONTHS[state.month]} ${state.year}`;
+      const filtered = state.cats.size !== CATS.length || state.type !== 'all';
+      document.getElementById('results-sub').textContent = `${list.length} item${list.length === 1 ? '' : 's'}${filtered ? ' with the selected filters' : ''}`;
+
+      const groups = [];
+      for (const it of slice) { const g = groups.find(g => +g.date === +it.date); g ? g.items.push(it) : groups.push({ date: it.date, items: [it] }); }
+      document.getElementById('results').innerHTML = groups.length ? groups.map(g => `
+        <li class="grid grid-cols-[64px_1fr] lg:grid-cols-[104px_1fr] gap-4 lg:gap-8 py-6 border-b border-rule">
+          <div>
+            <span class="display t-day block">${g.date.getDate()}</span>
+            <span class="block mt-1 text-[12px] lg:text-[13px] font-semibold uppercase tracking-[.06em] text-ink-muted">${g.date.toLocaleDateString('en-US', { weekday: 'short' })}${state.q ? ', ' + MONTHS[g.date.getMonth()].slice(0, 3) : ''}</span>
+          </div>
+          <ul class="divide-y divide-rule">${g.items.map(it => `
+            <li class="py-3 first:pt-0 last:pb-0">
+              <a href="${ICGDemo.href(it)}" class="story grid ${it.photo ? 'grid-cols-[1fr_96px] lg:grid-cols-[1fr_160px]' : ''} gap-4 lg:gap-6 items-start" data-component="ResultRow">
+                <span class="min-w-0">
+                  <span class="story-title t-item block">${hl(it.title)}</span>
+                  <span class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-ink-muted">
+                    <span class="font-bold text-amber">${it.type === 'Event' ? 'Event' : it.type === 'Announcement' ? 'Announcement' : 'News'}</span>
+                    <span class="px-2.5 py-0.5 rounded-pill border text-[12px] font-semibold text-ink" style="border-color: rgba(var(--ink-rgb),.3)">${it.cat}</span>
+                    <span>${MONTHS[it.date.getMonth()]} ${it.date.getDate()}, ${it.date.getFullYear()}</span>
+                  </span>
+                </span>
+                ${it.photo ? `<img src="../../gallery/${it.photo}" alt="" loading="lazy" class="w-full aspect-[3/2] object-cover rounded-sm" style="object-position: 50% 40%">` : ''}
+              </a>
+            </li>`).join('')}
+          </ul>
+        </li>`).join('')
+        : `<li class="py-10" data-component="EmptyState">
+             <p class="t-item">${state.q ? `Nothing in ${state.year} matches “${esc(state.q)}”.` : 'Nothing matches these filters this month.'}</p>
+             <p class="mt-2 text-[16px] text-ink-muted max-w-[60ch]">Try a shorter word, another year, or clear the filters.</p>
+             <button type="button" id="reset" class="mt-5 inline-flex items-center h-12 px-6 rounded-pill border border-ink font-semibold text-[15px] hover:bg-ink hover:text-paper transition-colors">Clear search and filters</button>
+           </li>`;
+      const reset = document.getElementById('reset');
+      if (reset) reset.addEventListener('click', () => { state.q = ''; q.value = ''; clearBtn.classList.add('hidden'); CATS.forEach(c => state.cats.add(c)); state.type = 'all'; render(); });
+
+      // Pagination
+      const pager = document.getElementById('pager');
+      if (pages < 2) { pager.innerHTML = ''; return; }
+      const btn = (p, label, attrs = '') => `<button type="button" class="page-btn min-w-[44px] h-11 px-3 rounded-pill border border-ink text-[15px] font-semibold hover:bg-ink hover:text-paper disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink" data-p="${p}" ${attrs}>${label}</button>`;
+      pager.innerHTML = btn(state.page - 1, 'Previous', state.page === 1 ? 'disabled' : '')
+        + Array.from({ length: pages }, (_, i) => btn(i + 1, i + 1, i + 1 === state.page ? 'aria-current="page"' : `aria-label="Page ${i + 1}"`)).join('')
+        + btn(state.page + 1, 'Next', state.page === pages ? 'disabled' : '')
+        + `<span class="ml-2 text-[14px] text-ink-muted">Page ${state.page} of ${pages}</span>`;
+    }
+    document.getElementById('pager').addEventListener('click', e => {
+      const b = e.target.closest('.page-btn'); if (!b || b.disabled) return;
+      state.page = +b.dataset.p; renderResults();
+      document.getElementById('results-heading').scrollIntoView({ block: 'start' });
+    });
+
+    function render() {
+      renderFilters();
+      document.querySelectorAll('.seg').forEach(s => s.setAttribute('aria-pressed', String(s.dataset.type === state.type)));
+      renderYears(); renderResults();
+      const url=new URL(location.href);url.search='';
+      if(state.q)url.searchParams.set('q',state.q);
+      if(state.type!=='all')url.searchParams.set('type',state.type);
+      if(state.cats.size===1)url.searchParams.set('cat',[...state.cats][0]);
+      url.searchParams.set('year',state.year);url.searchParams.set('month',state.month+1);
+      history.replaceState(null,'',url);
+
+    }
+    render();
+  </script>
+  <script src="public-site.js"></script>
+</body>
+</html>

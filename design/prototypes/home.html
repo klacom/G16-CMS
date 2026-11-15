@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home — ICG</title>
+  <meta name="description" content="News and events record of Pamantasan ng Lungsod ng Pasig, published by the Integrated Communications Group.">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="public-site.css">
+  <script src="public-data.js"></script>
+  <style>
+    ::selection { background: var(--color-marigold); color: var(--color-on-marigold); }
+    :focus-visible { outline: 2px solid var(--color-marigold); outline-offset: 3px; border-radius: 4px; }
+    .on-paper :focus-visible { outline-color: var(--color-ink); }
+    .display { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.005em; line-height: 0.96; }
+    .balance { text-wrap: balance; }
+    .no-scrollbar { scrollbar-width: none; } .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    /* Hero layers */
+    .hero-photo { transition: opacity 500ms cubic-bezier(.16,1,.3,1); }
+    .hero-shade { background:
+        linear-gradient(90deg, rgba(var(--night-rgb),.96) 0%, rgba(var(--night-rgb),.86) 34%, rgba(var(--night-rgb),.45) 58%, rgba(var(--night-rgb),0) 78%),
+        linear-gradient(180deg, rgba(var(--night-rgb),0) 55%, rgba(var(--night-rgb),1) 100%); }
+    /* Fix 2: soften busy background detail (posters, signage) behind the logo and headline */
+    @media (max-width: 1023px) {
+      .hero-shade { background: linear-gradient(180deg, rgba(var(--night-rgb),.55) 0%, rgba(var(--night-rgb),.25) 16%, rgba(var(--night-rgb),.7) 34%, rgba(var(--night-rgb),.94) 50%, rgba(var(--night-rgb),1) 82%); }
+      .hero-soften { -webkit-mask-image: linear-gradient(180deg, transparent 20%, var(--color-night) 42%); mask-image: linear-gradient(180deg, transparent 20%, var(--color-night) 42%); }
+    }
+    .hero-soften { backdrop-filter: blur(7px) saturate(.85); -webkit-backdrop-filter: blur(7px) saturate(.85);
+      -webkit-mask-image: linear-gradient(90deg, var(--color-night) 0%, var(--color-night) 42%, transparent 66%); mask-image: linear-gradient(90deg, var(--color-night) 0%, var(--color-night) 42%, transparent 66%); }
+    /* Fix 1: scrim behind the transparent header, then a solid bar once you scroll */
+    .nav-scrim { background: linear-gradient(180deg, rgba(var(--night-rgb),.78) 0%, rgba(var(--night-rgb),.35) 60%, rgba(var(--night-rgb),0) 100%); }
+    .site-header.is-solid { background: linear-gradient(135deg, rgba(var(--night-rgb),.94), rgba(var(--night-end-rgb),.94)); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 1px 0 var(--color-line); }
+    .site-header { transition: background-color 250ms ease, box-shadow 250ms ease; }
+
+    .day[aria-pressed="true"]:not(.is-today) { background: var(--color-surface-raised); box-shadow: inset 0 0 0 2px var(--color-marigold); }
+    .day:not(.is-today):hover { background: var(--color-surface); }
+    .story:hover .story-title, .story:focus-visible .story-title { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+    .ghost-btn:hover { background: rgba(246,241,231,.08); }
+    @media (prefers-reduced-motion: reduce) { .hero-photo, .site-header { transition: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 bg-marigold text-marigold-on px-4 py-2 rounded-pill font-semibold">Skip to content</a>
+
+  <!-- Header -->
+  <header id="site-header" class="site-header fixed inset-x-0 top-0 z-40" data-component="SiteHeader">
+    <div class="nav-scrim absolute inset-x-0 top-0 h-40 pointer-events-none" aria-hidden="true"></div>
+    <div class="relative max-w-container mx-auto px-4 lg:px-16 h-[76px] lg:h-[92px] flex items-center justify-between text-on-dark">
+      <a href="home.html" class="flex items-center gap-3" aria-label="ICG home">
+        <span class="font-display text-[30px] lg:text-[40px] leading-none">ICG</span>
+        <span class="hidden sm:flex flex-col text-[12px] leading-tight">
+          <span class="font-semibold">Integrated Communications Group</span>
+          <span class="text-on-dark-muted">Pamantasan ng Lungsod ng Pasig</span>
+        </span>
+      </a>
+      <nav aria-label="Main" class="hidden lg:block">
+        <ul class="flex items-center gap-8 text-[15px] font-medium">
+          <li><a href="home.html" aria-current="page" class="relative font-bold after:absolute after:left-1/2 after:-translate-x-1/2 after:-bottom-2 after:h-[3px] after:w-[22px] after:bg-marigold after:rounded">Home</a></li>
+          <li><a href="#" class="hover:text-marigold">Calendar</a></li>
+          <li><a href="#" class="hover:text-marigold">Archive</a></li>
+          <li><a href="#" class="hover:text-marigold">About</a></li>
+          <li><a href="#" class="hover:text-marigold">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="flex items-center gap-1 lg:gap-3">
+        <button type="button" class="ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Search">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <a href="#" class="hidden lg:inline-flex items-center h-11 px-5 rounded-pill border border-on-dark/50 font-semibold text-[14px] ghost-btn" style="border-color: rgba(246,241,231,.5)">Log in</a>
+        <button type="button" class="lg:hidden ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Open menu" aria-expanded="false">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative bg-night text-on-dark overflow-hidden" aria-roledescription="carousel" aria-label="Featured" data-component="HeroCarousel">
+    <div class="relative h-[760px] lg:h-[720px]">
+      <img id="hero-img" class="hero-photo absolute inset-0 w-full h-full object-cover" src="../../gallery/497925340_1123740813103575_2729152394313884247_n.jpg" alt="Students and faculty fill the university auditorium, making heart signs with their hands" style="object-position: 50% 38%">
+      <div class="hero-soften absolute inset-0" aria-hidden="true"></div>
+      <div class="hero-shade absolute inset-0" aria-hidden="true"></div>
+
+      <div class="relative h-full max-w-container mx-auto px-4 lg:px-16 flex flex-col justify-end pb-24 lg:pb-28">
+        <div id="hero-slide" class="max-w-[660px]" aria-live="polite">
+          <h1 id="hero-title" class="display balance text-[44px] sm:text-[60px] lg:text-[84px]"></h1>
+          <p id="hero-dek" class="mt-5 text-[16px] lg:text-[18px] leading-relaxed max-w-[560px]"></p>
+          <ul id="hero-meta" class="mt-5 flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2 text-[14px] lg:text-[15px] font-semibold"></ul>
+          <div id="hero-actions" class="mt-7 flex flex-col sm:flex-row gap-3"></div>
+        </div>
+      </div>
+
+      <!-- Fix 3: slider arrows flank the progress dashes, borderless, unlike the week buttons -->
+      <div class="absolute inset-x-0 bottom-6 lg:bottom-8">
+        <div class="max-w-container mx-auto px-4 lg:px-16 flex items-center gap-2" data-component="CarouselControls">
+          <button type="button" id="hero-prev" class="ghost-btn w-11 h-11 grid place-items-center rounded-pill -ml-3" aria-label="Previous featured story">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <div id="hero-dashes" class="flex items-center gap-1.5" aria-hidden="true"></div>
+          <button type="button" id="hero-next" class="ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Next featured story">
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+          <span id="hero-count" class="ml-1 text-[13px] font-semibold text-on-dark-muted tabular-nums"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- This week strip -->
+  <section class="bg-night text-on-dark border-t border-line" aria-labelledby="week-heading" data-component="WeekStrip">
+    <div class="max-w-container mx-auto lg:px-16 lg:flex">
+      <div class="px-4 lg:px-0 lg:pr-7 py-5 lg:py-7 lg:w-[220px] shrink-0 flex lg:flex-col items-center lg:items-start justify-between gap-3">
+        <div>
+          <h2 id="week-heading" class="display text-[28px] lg:text-[40px]">This week</h2>
+          <p class="mt-1 text-[14px] text-on-dark-muted">November 9 to 15</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" class="w-9 h-9 grid place-items-center rounded-pill border hover:bg-surface" style="border-color: rgba(246,241,231,.4)" aria-label="Previous week">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <button type="button" class="w-9 h-9 grid place-items-center rounded-pill border hover:bg-surface" style="border-color: rgba(246,241,231,.4)" aria-label="Next week">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+          <a href="#" class="ml-1 text-[14px] font-semibold text-marigold hover:underline underline-offset-4">Calendar</a>
+        </div>
+      </div>
+      <div id="week" role="group" aria-label="Pick a day" class="no-scrollbar flex lg:grid lg:grid-cols-7 overflow-x-auto border-t lg:border-t-0 border-line flex-1"></div>
+    </div>
+  </section>
+
+  <main id="main" class="on-paper">
+    <div class="max-w-container mx-auto px-4 lg:px-16 pt-10 lg:pt-[72px] pb-16 lg:pb-20 grid lg:grid-cols-[1fr_400px] gap-14 lg:gap-[72px]">
+
+      <!-- Programme -->
+      <section aria-labelledby="day-heading" data-component="Programme">
+        <div class="flex items-end justify-between gap-4 pb-4 border-b-[3px] border-ink">
+          <h2 id="day-heading" class="display text-[30px] lg:text-[52px]"></h2>
+          <p id="day-count" class="text-[14px] lg:text-[15px] font-semibold text-ink-muted whitespace-nowrap"></p>
+        </div>
+        <ul id="day-events" aria-live="polite"></ul>
+
+        <h2 class="mt-14 pb-3 text-[22px] lg:text-[28px] font-bold border-b border-ink">Coming up</h2>
+        <ul id="upcoming"></ul>
+
+        <a href="#" class="mt-8 inline-flex items-center gap-2 h-12 px-6 rounded-pill border border-ink font-semibold text-[15px] hover:bg-ink hover:text-paper transition-colors">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          See the full November calendar
+        </a>
+      </section>
+
+      <!-- Latest news + announcements -->
+      <aside aria-labelledby="news-heading" class="flex flex-col gap-8" data-component="LatestNews">
+        <div class="flex items-end justify-between">
+          <h2 id="news-heading" class="text-[22px] lg:text-[28px] font-bold">Latest news</h2>
+          <a href="#" class="text-[15px] font-semibold text-amber hover:underline underline-offset-4">All news</a>
+        </div>
+        <div id="news" class="flex flex-col gap-8"></div>
+
+        <section class="bg-night text-on-dark rounded-sm p-6 lg:p-7" aria-labelledby="ann-heading" data-component="Announcements">
+          <h2 id="ann-heading" class="text-[20px] lg:text-[22px] font-bold">Announcements</h2>
+          <ul class="mt-3 divide-y divide-line">
+            <li class="py-3.5"><a href="#" class="story block"><span class="story-title font-semibold leading-snug">Midterm exam schedule is posted</span><span class="block mt-1 text-[13px] text-on-dark-muted">November 13</span></a></li>
+            <li class="py-3.5"><a href="#" class="story block"><span class="story-title font-semibold leading-snug">Library open until 8 PM during exam weeks</span><span class="block mt-1 text-[13px] text-on-dark-muted">November 11</span></a></li>
+            <li class="py-3.5"><a href="#" class="story block"><span class="story-title font-semibold leading-snug">Claim lost items at the security office by November 20</span><span class="block mt-1 text-[13px] text-on-dark-muted">November 9</span></a></li>
+          </ul>
+          <a href="#" class="mt-3 inline-block text-[14px] font-semibold text-marigold hover:underline underline-offset-4">All announcements</a>
+        </section>
+      </aside>
+    </div>
+
+    <!-- On this day -->
+    <section class="bg-marigold text-marigold-on" aria-labelledby="otd-heading" data-component="OnThisDay">
+      <div class="max-w-container mx-auto px-4 lg:px-16 py-10 lg:py-16 grid lg:grid-cols-[300px_1fr_1fr_1fr] gap-8 lg:gap-14">
+        <div>
+          <h2 id="otd-heading" class="text-[24px] lg:text-[32px] font-bold leading-tight">On this day</h2>
+          <p class="mt-2 text-[16px] leading-relaxed">What PLP was doing on November 14 in earlier years.</p>
+        </div>
+        <a href="#" class="story block"><span class="display block text-[44px] lg:text-[72px]">2025</span><span class="story-title block mt-2 font-semibold text-[16px] lg:text-[18px] leading-snug">Computer Society hosts its first city-wide coding bootcamp</span></a>
+        <a href="#" class="story block"><span class="display block text-[44px] lg:text-[72px]">2024</span><span class="story-title block mt-2 font-semibold text-[16px] lg:text-[18px] leading-snug">Nursing students run a free health check day for Pasig residents</span></a>
+        <a href="#" class="story block"><span class="display block text-[44px] lg:text-[72px]">2023</span><span class="story-title block mt-2 font-semibold text-[16px] lg:text-[18px] leading-snug">A new study hall opens on the fourth floor of the main building</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-night text-on-dark" data-component="SiteFooter">
+    <div class="max-w-container mx-auto px-4 lg:px-16 pt-12 lg:pt-14 pb-8">
+      <div class="grid gap-10 lg:grid-cols-[420px_1fr_1fr] lg:gap-16">
+        <div>
+          <p class="font-display text-[44px] lg:text-[56px] leading-none">ICG</p>
+          <p class="mt-3 text-[15px] text-on-dark-muted leading-relaxed max-w-[44ch]">The news and events record of Pamantasan ng Lungsod ng Pasig, published by the Integrated Communications Group.</p>
+        </div>
+        <nav aria-label="Footer">
+          <h2 class="text-[14px] font-bold text-marigold">Sections</h2>
+          <ul class="mt-3 space-y-2 text-[15px]"><li><a href="#" class="hover:underline underline-offset-4">Calendar</a></li><li><a href="#" class="hover:underline underline-offset-4">Archive</a></li><li><a href="#" class="hover:underline underline-offset-4">About</a></li></ul>
+        </nav>
+        <div class="text-[15px] space-y-2">
+          <h2 class="text-[14px] font-bold text-marigold">Visit</h2>
+          <p class="pt-1">Alcalde Jose Street, Kapasigan, Pasig City</p>
+          <p>Monday to Friday, 8 AM to 5 PM</p>
+          <p><a href="#" class="underline underline-offset-4">Send us a message</a></p>
+        </div>
+      </div>
+      <div class="mt-10 pt-5 border-t border-line flex flex-col sm:flex-row gap-3 justify-between text-[13px]">
+        <p class="text-on-dark-muted">© 2026 Integrated Communications Group</p>
+        <p class="flex gap-5 font-semibold"><a href="#" class="hover:text-marigold">Facebook</a><a href="#" class="hover:text-marigold">Instagram</a><a href="#" class="hover:text-marigold">Email us</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const G = f => `../../gallery/${f}`;
+    const P = {
+      assembly: '497925340_1123740813103575_2729152394313884247_n.jpg',
+      ched: '491437776_688909453650424_7343309105083708107_n-1-1024x683.jpg',
+      crowd: '497703489_1123741309770192_1478858989456023992_n.jpg',
+      podium: '499531502_1123740929770230_1368565540467169504_n.jpg',
+      cheer: '500224508_1127395446071445_3922075466479369094_n.jpg',
+      table: '497462541_1122183953259261_8696477054724547342_n.jpg',
+      nurses: '499231701_1127395856071404_2821192826251073541_n.jpg',
+      laptops: '497581098_1122183726592617_702004212603911751_n.jpg',
+      signing: '497479859_1122184209925902_4851807120241892161_n.jpg',
+      speaker: '494972831_1113454740798849_3302452030579944142_n.jpg',
+      handshake: '499682957_1127395329404790_7535707343553598684_n.jpg',
+      awards: '499149230_1123741343103522_1169874126023852452_n.jpg',
+      merch: '495149029_1113455437465446_7921582105592513755_n.jpg',
+      ballots: '497509838_1122183823259274_4514683001305040981_n.jpg',
+      hall: '494850561_1113454817465508_1040277523513428949_n.jpg',
+    };
+    const ICON = {
+      clock: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b335" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+      pin: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b335" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+      pinInk: '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#56655d" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+      cal: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+    };
+
+    // ---------- Hero carousel ----------
+    const slides = [
+      { kind: 'event', img: P.assembly, pos: '50% 38%', alt: 'Students and faculty fill the university auditorium, making heart signs with their hands',
+        title: 'Second-semester student assembly', dek: 'All year levels meet the new student council, get the semester calendar and sign up for organizations.',
+        when: 'Monday, November 23, 8 AM to 12 NN', where: 'University auditorium' },
+      { kind: 'story', img: P.ched, pos: '60% 40%', alt: 'A university official speaks at a podium in front of a screen welcoming CHED-NCR education supervisors',
+        title: 'CHED supervisors review PLP’s education programs', dek: 'The two-day visit covered curriculum, faculty records and student facilities ahead of January’s program evaluation.',
+        when: 'November 12, 2026', where: 'College of Education' },
+      { kind: 'story', img: P.crowd, pos: '50% 35%', alt: 'Students in red and maroon uniforms seated in a packed auditorium',
+        title: 'Leadership summit fills the auditorium on its first day', dek: 'More than 900 student leaders from every college joined two days of workshops on running organizations.',
+        when: 'November 6, 2026', where: 'University auditorium' },
+    ];
+    let current = 0;
+    const heroImg = document.getElementById('hero-img');
+    function renderHero(i) {
+      const s = slides[i];
+      heroImg.style.opacity = 0;
+      setTimeout(() => { heroImg.src = G(s.img); heroImg.alt = s.alt; heroImg.style.objectPosition = s.pos; heroImg.style.opacity = 1; }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180);
+      document.getElementById('hero-title').textContent = s.title;
+      document.getElementById('hero-dek').textContent = s.dek;
+      document.getElementById('hero-meta').innerHTML =
+        `<li class="flex items-center gap-2">${ICON.clock}<span>${s.when}</span></li><li class="flex items-center gap-2">${ICON.pin}<span>${s.where}</span></li>`;
+      document.getElementById('hero-actions').innerHTML = s.kind === 'event'
+        ? `<a href="${ICGDemo.linkFor(s.title)}" class="inline-flex justify-center items-center h-12 px-7 rounded-pill bg-marigold text-marigold-on font-bold text-[15px] hover:bg-marigold-bright">See event details</a>
+           <button type="button" class="ghost-btn inline-flex justify-center items-center gap-2 h-12 px-6 rounded-pill border font-bold text-[15px]" style="border-color: rgba(246,241,231,.6)">${ICON.cal}Add to calendar</button>`
+        : `<a href="${ICGDemo.linkFor(s.title)}" class="inline-flex justify-center items-center h-12 px-7 rounded-pill bg-marigold text-marigold-on font-bold text-[15px] hover:bg-marigold-bright">Read the story</a>`;
+      document.getElementById('hero-dashes').innerHTML = slides.map((_, k) =>
+        `<span class="block h-[3px] rounded ${k === i ? 'w-10 bg-marigold' : 'w-5'}" style="${k === i ? '' : 'background: rgba(246,241,231,.35)'}"></span>`).join('');
+      document.getElementById('hero-count').textContent = `${i + 1} of ${slides.length}`;
+      document.dispatchEvent(new Event('icg:render'));
+    }
+    document.getElementById('hero-prev').addEventListener('click', () => { current = (current - 1 + slides.length) % slides.length; renderHero(current); });
+    document.getElementById('hero-next').addEventListener('click', () => { current = (current + 1) % slides.length; renderHero(current); });
+    renderHero(0);
+
+    // ---------- Connected week strip and programme ----------
+    const homeToday = new Date(2026,10,14);
+    let weekStart = new Date(2026,10,9);
+    let selectedHome = new Date(homeToday);
+    const weekEl = document.getElementById('week');
+    const sameDay = (a,b) => ICGDemo.dateString(a) === ICGDemo.dateString(b);
+    const homeEvents = date => ICGDemo.events.filter(e=>sameDay(e.date,date));
+    function eventRow(e, upcoming=false) {
+      const time=e.start.split(' ');
+      const big=upcoming ? e.date.getDate() : time[0];
+      const small=upcoming ? e.date.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase()+', '+e.start : time[1];
+      return `<li class="border-b border-rule"><a href="${ICGDemo.href(e)}" class="story group grid grid-cols-[76px_1fr] lg:grid-cols-[110px_1fr_180px] gap-4 lg:gap-8 py-5 lg:py-6" data-component="EventRow"><span><span class="display block text-[30px] lg:text-[44px]">${big}</span><span class="block mt-1 text-[12px] lg:text-[13px] font-semibold text-ink-muted">${small}</span></span><span class="min-w-0"><span class="story-title block font-bold text-[17px] lg:text-[22px] leading-snug">${ICGDemo.escape(e.title)}</span><span class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-ink-muted font-medium"><span class="px-2.5 py-0.5 rounded-pill border text-[12px] font-semibold text-ink" style="border-color: rgba(var(--ink-rgb),.3)">${e.cat}</span><span class="inline-flex items-center gap-1">${ICON.pinInk}${ICGDemo.escape(e.place)}</span></span><span class="hidden lg:block mt-2 text-[15px] text-ink-muted leading-relaxed">${ICGDemo.escape(e.summary)}</span></span><img src="${G(e.photo)}" alt="" loading="lazy" class="hidden lg:block w-[180px] h-[120px] object-cover rounded-sm" style="object-position:50% 40%"></a></li>`;
+    }
+    function renderDay(date) {
+      selectedHome=new Date(date);
+      const list=homeEvents(date);
+      document.getElementById('day-heading').textContent=date.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+      document.getElementById('day-count').textContent=list.length ? `${list.length} event${list.length===1?'':'s'}${sameDay(date,homeToday)?' today':''}` : '';
+      document.getElementById('day-events').innerHTML=list.length ? list.map(e=>eventRow(e)).join('') : '<li class="py-8 text-[16px] text-ink-muted">Nothing is scheduled on this day. <a href="calendar.html?date='+ICGDemo.dateString(date)+'" class="text-amber font-semibold underline underline-offset-4">Browse the calendar</a> for upcoming events.</li>';
+      weekEl.querySelectorAll('.day').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.date===ICGDemo.dateString(date))));
+    }
+    function renderWeek(){
+      weekEl.innerHTML='';
+      const weekEnd=new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+6);
+      document.querySelector('#week-heading + p').textContent=weekStart.toLocaleDateString('en-US',{month:'long',day:'numeric'})+' to '+(weekEnd.getMonth()===weekStart.getMonth()?weekEnd.getDate():weekEnd.toLocaleDateString('en-US',{month:'long',day:'numeric'}));
+      for(let i=0;i<7;i++){
+        const date=new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+i);
+        const n=homeEvents(date).length,today=sameDay(date,homeToday);
+        const button=document.createElement('button');button.type='button';button.dataset.date=ICGDemo.dateString(date);
+        button.className=`day ${today?'is-today bg-marigold text-marigold-on':''} shrink-0 w-[76px] lg:w-auto text-left px-3 lg:px-[18px] py-3.5 lg:py-6 border-l border-line transition-colors`;
+        button.setAttribute('aria-label',date.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+`, ${n} events`);
+        button.innerHTML=`<span class="block text-[12px] lg:text-[13px] font-semibold uppercase tracking-[.06em]">${date.toLocaleDateString('en-US',{weekday:'short'})}</span><span class="display block text-[44px] lg:text-[88px] mt-1">${date.getDate()}</span><span class="block mt-2 text-[12px] lg:text-[13px] ${today?'':'text-on-dark-muted'}">${n ? n+' event'+(n===1?'':'s'):'No events'}</span>`;
+        button.addEventListener('click',()=>renderDay(date));weekEl.append(button);
+      }
+      renderDay(selectedHome);
+    }
+    const shiftWeek=n=>{weekStart.setDate(weekStart.getDate()+7*n);selectedHome=new Date(weekStart);renderWeek();};
+    document.querySelector('[aria-label="Previous week"]').addEventListener('click',()=>shiftWeek(-1));
+    document.querySelector('[aria-label="Next week"]').addEventListener('click',()=>shiftWeek(1));
+    renderWeek();
+    const centerToday=()=>{const t=weekEl.querySelector('.is-today');if(t)weekEl.scrollLeft=t.offsetLeft-(weekEl.clientWidth-t.offsetWidth)/2;};
+    addEventListener('load',()=>requestAnimationFrame(centerToday));
+    document.getElementById('upcoming').innerHTML=ICGDemo.events.filter(e=>e.date>homeToday).slice(0,3).map(e=>eventRow(e,true)).join('');
+
+    // ---------- News ----------
+    const news = [
+      [P.speaker, 'Campus', 'ICG summit asks every college to tell its own story', 'November 12', 'A speaker in a green stole addresses students on stage'],
+      [P.handshake, 'Campus', 'PLP and the city sign a scholarship partnership for 500 students', 'November 10', 'Officials shake hands after a signing'],
+      [P.awards, 'Sports', 'Taekwondo team brings home three medals from the city meet', 'November 7', 'Athletes hold certificates on stage'],
+    ];
+    document.getElementById('news').innerHTML = news.map(([img, cat, title, date, alt]) => `
+      <a href="${ICGDemo.linkFor(title)}" class="story block" data-component="NewsCard">
+        <img src="${G(img)}" alt="${alt}" loading="lazy" class="w-full aspect-[5/3] object-cover rounded-sm" style="object-position: 50% 40%">
+        <span class="story-title block mt-3 font-bold text-[19px] lg:text-[21px] leading-snug">${title}</span>
+        <span class="mt-2 flex items-center gap-2.5 text-[13px]"><span class="font-bold text-amber">${cat}</span><i class="block w-[3px] h-[3px] rounded-full bg-ink-muted"></i><span class="text-ink-muted">${date}</span></span>
+      </a>`).join('');
+
+    // ---------- Header: solid once the hero is scrolled past the top ----------
+    const header = document.getElementById('site-header');
+    const onScroll = () => header.classList.toggle('is-solid', window.scrollY > 40);
+    addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  </script>
+  <script src="public-site.js"></script>
+</body>
+</html>

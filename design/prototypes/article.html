@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Article — ICG</title>
+  <meta name="description" content="More than 300 student journalists, organization officers and faculty filled the auditorium for the first campus-wide communications summit.">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="public-site.css">
+  <script src="public-data.js"></script>
+  <style>
+    ::selection { background: var(--color-marigold); color: var(--color-on-marigold); }
+    :focus-visible { outline: 2px solid var(--color-marigold); outline-offset: 3px; border-radius: 4px; }
+    .on-paper :focus-visible { outline-color: var(--color-ink); }
+    .display { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.005em; line-height: 0.96; }
+    .balance { text-wrap: balance; }
+    .ghost-btn:hover { background: rgba(246,241,231,.08); }
+    .story:hover .story-title, .story:focus-visible .story-title { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+    /* Article prose: Read mode, 18px on a ~68ch measure */
+    .prose-icg { font-size: 18px; line-height: 1.5; max-width: 680px; }
+    .prose-icg > p { margin-top: 1.25em; }
+    .prose-icg > p:first-child { margin-top: 0; }
+    .prose-icg h2 { font-size: 28px; line-height: 1.2; font-weight: 700; margin-top: 2em; }
+    .prose-icg a { color: var(--color-amber); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+    .prose-icg a:hover { text-decoration-thickness: 2px; }
+    @media (max-width: 1023px) { .prose-icg h2 { font-size: 22px; } }
+    /* Type roles from DESIGN.md, in plain CSS so they never depend on the CDN */
+    .t-hero { font-size: 44px; }                       /* display-hero-sm */
+    .t-section { font-size: 22px; line-height: 1.2; font-weight: 700; }  /* title-section, mobile */
+    .t-panel { font-size: 20px; line-height: 1.3; font-weight: 700; }    /* title-panel-sm */
+    @media (min-width: 1024px) {
+      .t-hero { font-size: 60px; }                     /* display-hero-md */
+      .t-section { font-size: 28px; }                  /* title-section */
+      .t-panel { font-size: 22px; }
+    }
+    .progress { transform-origin: 0 50%; transform: scaleX(0); }
+    @media (prefers-reduced-motion: reduce) { .progress { display: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 bg-marigold text-marigold-on px-4 py-2 rounded-pill font-semibold">Skip to content</a>
+
+  <header class="sticky top-0 z-40 bg-night text-on-dark border-b border-line" data-component="SiteHeader">
+    <div class="max-w-container mx-auto px-4 lg:px-16 h-[76px] lg:h-[92px] flex items-center justify-between">
+      <a href="home.html" class="flex items-center gap-3" aria-label="ICG home">
+        <span class="font-display text-[30px] lg:text-[40px] leading-none">ICG</span>
+        <span class="hidden sm:flex flex-col text-[12px] leading-tight">
+          <span class="font-semibold">Integrated Communications Group</span>
+          <span class="text-on-dark-muted">Pamantasan ng Lungsod ng Pasig</span>
+        </span>
+      </a>
+      <nav aria-label="Main" class="hidden lg:block">
+        <ul class="flex items-center gap-8 text-[15px] font-medium">
+          <li><a href="home.html" class="hover:text-marigold">Home</a></li>
+          <li><a href="calendar.html" class="hover:text-marigold">Calendar</a></li>
+          <li><a href="#" class="hover:text-marigold">Archive</a></li>
+          <li><a href="#" class="hover:text-marigold">About</a></li>
+          <li><a href="#" class="hover:text-marigold">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="flex items-center gap-1 lg:gap-3">
+        <button type="button" class="ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Search">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <a href="#" class="hidden lg:inline-flex items-center h-11 px-5 rounded-pill border font-semibold text-[14px] ghost-btn" style="border-color: rgba(246,241,231,.5)">Log in</a>
+        <button type="button" class="lg:hidden ghost-btn w-11 h-11 grid place-items-center rounded-pill" aria-label="Open menu" aria-expanded="false">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="absolute inset-x-0 -bottom-px h-[3px]" aria-hidden="true"><div id="progress" class="progress h-full bg-marigold"></div></div>
+  </header>
+
+  <main id="main">
+    <!-- Article head (night) -->
+    <article>
+      <header class="bg-night text-on-dark" data-component="ArticleHead">
+        <div class="max-w-container mx-auto px-4 lg:px-16 pt-10 lg:pt-16 pb-[120px] lg:pb-[220px]">
+          <div class="max-w-[1000px]">
+            <h1 class="display balance t-hero">ICG summit asks every college to tell its own story</h1>
+            <p class="mt-5 lg:mt-6 max-w-[680px] text-[16px] lg:text-[18px] leading-normal">More than 300 student journalists, organization officers and faculty filled the auditorium for the first campus-wide communications summit.</p>
+            <div class="mt-7 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 justify-between max-w-[1000px] border-t border-line pt-5">
+              <p class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[14px]">
+                <a href="#" class="font-semibold text-marigold hover:underline underline-offset-4">Campus</a>
+                <span class="text-on-dark-muted">By the ICG news desk</span>
+                <time datetime="2026-11-12" class="text-on-dark-muted">November 12, 2026</time>
+                <span class="text-on-dark-muted">4 minute read</span>
+              </p>
+              <div class="flex items-center gap-2" data-component="ShareButtons">
+                <span class="text-[13px] text-on-dark-muted mr-1">Share</span>
+                <button type="button" id="copy-link" class="w-11 h-11 grid place-items-center rounded-pill border hover:bg-surface" style="border-color: rgba(246,241,231,.4)" aria-label="Copy link to this story">
+                  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
+                </button>
+                <a href="#" class="w-11 h-11 grid place-items-center rounded-pill border hover:bg-surface" style="border-color: rgba(246,241,231,.4)" aria-label="Share on Facebook">
+                  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h-2a4 4 0 0 0-4 4v3H7v4h2v7h4v-7h2.5l.5-4h-3V7.5a.5.5 0 0 1 .5-.5H15V3Z"/></svg>
+                </a>
+                <a href="#" class="w-11 h-11 grid place-items-center rounded-pill border hover:bg-surface" style="border-color: rgba(246,241,231,.4)" aria-label="Share by email">
+                  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                </a>
+                <span id="copied" class="text-[13px] font-semibold text-marigold" role="status" aria-live="polite"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Lead photo straddles night and day -->
+      <figure class="max-w-container mx-auto px-4 lg:px-16 -mt-[96px] lg:-mt-[180px]" data-component="LeadPhoto">
+        <img src="../../gallery/494972831_1113454740798849_3302452030579944142_n.jpg" alt="A speaker in a green stole and blue jacket gestures with a microphone on the auditorium stage" class="w-full aspect-[16/10] lg:aspect-[21/9] object-cover rounded-sm" style="object-position: 50% 30%">
+        <figcaption class="on-paper mt-3 text-[13px] text-ink-muted max-w-[680px]">The summit opened with a talk on how each college can report its own events. Photo by the ICG photo desk.</figcaption>
+      </figure>
+
+      <!-- Body + aside -->
+      <div class="on-paper max-w-container mx-auto px-4 lg:px-16 pt-10 lg:pt-14 pb-16 lg:pb-20 grid lg:grid-cols-[1fr_340px] gap-12 lg:gap-[72px]">
+        <div class="min-w-0">
+          <div class="prose-icg" data-component="ArticleBody">
+            <p>The Integrated Communications Group held its first campus-wide communications summit on Thursday, bringing together student journalists, organization officers and faculty advisers from every college.</p>
+            <p>The day was built around one request: that each college start reporting its own events, so the university's record of what happens on campus is complete. ICG will publish what the colleges send in, with dates attached, so every event ends up on the shared <a href="calendar.html">calendar</a> and in the archive.</p>
+
+            <h2>Why the colleges, and why now</h2>
+            <p>Until now, most campus news reached students through scattered social media pages. Events were announced, held and then hard to find a month later. Organizers said the new site is meant to fix that by keeping one dated record that anyone can search by day, month or year.</p>
+
+            <figure class="my-10 py-6 border-y border-rule" data-component="PullQuote">
+              <blockquote class="text-[24px] lg:text-[32px] font-bold leading-[1.15] balance">“If it happened at PLP, it should be on the calendar and in the archive, with a date and a photo.”</blockquote>
+              <figcaption class="mt-3 text-[14px] font-medium text-ink-muted">An ICG editor, during the opening talk</figcaption>
+            </figure>
+
+            <p>Workshops in the afternoon covered writing a short event report, taking photos people can use, and getting consent before photographing students. Each college council left with a reporting guide and a contact on the ICG desk.</p>
+
+            <h2>What changes for students</h2>
+            <p>Students will see college events on the home page as they are confirmed, and can add any event to their phone's calendar with one tap. Past events stay in the archive, linked from the day they happened.</p>
+            <p>Organizations that want an event listed can send the date, time, place and a short description through the <a href="#">contact form</a>. The ICG desk reviews every submission before it is published.</p>
+          </div>
+
+          <!-- Gallery -->
+          <section class="mt-12" aria-labelledby="gallery-heading" data-component="ArticleGallery">
+            <h2 id="gallery-heading" class="t-section">Photos from the summit</h2>
+            <div class="mt-5 grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <figure class="col-span-2 lg:col-span-2 lg:row-span-2">
+                <img src="../../gallery/494850561_1113454817465508_1040277523513428949_n.jpg" alt="Students seated in the auditorium, one laughing toward the camera" loading="lazy" class="w-full h-full min-h-[220px] aspect-[4/3] lg:aspect-auto object-cover rounded-sm" style="object-position: 50% 40%">
+              </figure>
+              <figure><img src="../../gallery/495203970_1113455080798815_8502560693806477292_n.jpg" alt="A student speaks into a microphone in front of a red curtain" loading="lazy" class="w-full aspect-square object-cover rounded-sm" style="object-position: 50% 35%"></figure>
+              <figure><img src="../../gallery/494696323_1113454670798856_3530858757561531603_n.jpg" alt="A speaker in a dark sweater and green stole gestures while presenting" loading="lazy" class="w-full aspect-square object-cover rounded-sm" style="object-position: 50% 35%"></figure>
+            </div>
+            <p class="mt-3 text-[13px] text-ink-muted">Photos by the ICG photo desk.</p>
+          </section>
+
+          <!-- Tags + share again -->
+          <div class="mt-10 pt-6 border-t border-rule flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <ul class="flex flex-wrap gap-2" aria-label="Topics">
+              <li><a href="#" class="inline-block px-2.5 py-0.5 rounded-pill border text-[12px] font-semibold hover:bg-ink hover:text-paper" style="border-color: rgba(var(--ink-rgb),.3)">Campus</a></li>
+              <li><a href="#" class="inline-block px-2.5 py-0.5 rounded-pill border text-[12px] font-semibold hover:bg-ink hover:text-paper" style="border-color: rgba(var(--ink-rgb),.3)">Student life</a></li>
+              <li><a href="#" class="inline-block px-2.5 py-0.5 rounded-pill border text-[12px] font-semibold hover:bg-ink hover:text-paper" style="border-color: rgba(var(--ink-rgb),.3)">ICG</a></li>
+            </ul>
+            <a href="#" class="text-[15px] font-semibold text-amber underline underline-offset-4">Report a correction</a>
+          </div>
+        </div>
+
+        <!-- Aside -->
+        <aside class="flex flex-col gap-8 lg:sticky lg:top-[124px] self-start" aria-label="Related">
+          <section class="bg-night text-on-dark rounded-sm p-6 lg:p-7" aria-labelledby="happened-heading" data-component="EventStamp">
+            <h2 id="happened-heading" class="t-panel">When it happened</h2>
+            <div class="mt-4 flex items-end gap-4">
+              <span class="display text-[64px] text-marigold">12</span>
+              <span class="pb-1.5">
+                <span class="block text-[13px] font-semibold uppercase tracking-[.06em] text-on-dark-muted">Thu</span>
+                <span class="block text-[15px] font-semibold">November 2026</span>
+              </span>
+            </div>
+            <ul class="mt-4 space-y-2 text-[14px]">
+              <li class="flex items-center gap-2"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b335" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>8:00 AM to 5:00 PM</li>
+              <li class="flex items-center gap-2"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b335" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>University auditorium</li>
+            </ul>
+            <a href="calendar.html" class="mt-5 inline-flex items-center gap-2 text-[14px] font-semibold text-marigold hover:underline underline-offset-4">See this day on the calendar</a>
+          </section>
+
+          <section aria-labelledby="more-campus" data-component="RelatedList">
+            <h2 id="more-campus" class="t-panel pb-3 border-b border-ink">More from Campus</h2>
+            <ul class="divide-y divide-rule">
+              <li class="py-4"><a href="#" class="story block"><span class="story-title block font-bold text-[17px] leading-snug">CHED supervisors review PLP's education programs</span><span class="block mt-1 text-[13px] text-ink-muted">November 12</span></a></li>
+              <li class="py-4"><a href="#" class="story block"><span class="story-title block font-bold text-[17px] leading-snug">PLP and the city sign a scholarship partnership for 500 students</span><span class="block mt-1 text-[13px] text-ink-muted">November 10</span></a></li>
+              <li class="py-4"><a href="#" class="story block"><span class="story-title block font-bold text-[17px] leading-snug">Leadership summit fills the auditorium on its first day</span><span class="block mt-1 text-[13px] text-ink-muted">November 6</span></a></li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </article>
+
+    <!-- More stories -->
+    <section class="on-paper border-t border-rule" aria-labelledby="more-heading" data-component="MoreStories">
+      <div class="max-w-container mx-auto px-4 lg:px-16 py-12 lg:py-16">
+        <div class="flex items-end justify-between">
+          <h2 id="more-heading" class="t-section">Latest news</h2>
+          <a href="#" class="text-[15px] font-semibold text-amber hover:underline underline-offset-4">All news</a>
+        </div>
+        <div class="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <a href="#" class="story block" data-component="NewsCard">
+            <img src="../../gallery/491437776_688909453650424_7343309105083708107_n-1-1024x683.jpg" alt="An official speaks at a podium in front of a screen welcoming CHED-NCR supervisors" loading="lazy" class="w-full aspect-[5/3] object-cover rounded-sm">
+            <span class="story-title block mt-3 font-bold text-[19px] lg:text-[21px] leading-snug">CHED supervisors review PLP's education programs</span>
+            <span class="mt-2 flex items-center gap-2.5 text-[13px]"><span class="font-bold text-amber">Campus</span><i class="block w-[3px] h-[3px] rounded-full bg-ink-muted"></i><span class="text-ink-muted">November 12</span></span>
+          </a>
+          <a href="#" class="story block" data-component="NewsCard">
+            <img src="../../gallery/499682957_1127395329404790_7535707343553598684_n.jpg" alt="Officials shake hands after a signing" loading="lazy" class="w-full aspect-[5/3] object-cover rounded-sm" style="object-position: 50% 40%">
+            <span class="story-title block mt-3 font-bold text-[19px] lg:text-[21px] leading-snug">PLP and the city sign a scholarship partnership for 500 students</span>
+            <span class="mt-2 flex items-center gap-2.5 text-[13px]"><span class="font-bold text-amber">Campus</span><i class="block w-[3px] h-[3px] rounded-full bg-ink-muted"></i><span class="text-ink-muted">November 10</span></span>
+          </a>
+          <a href="#" class="story block" data-component="NewsCard">
+            <img src="../../gallery/499149230_1123741343103522_1169874126023852452_n.jpg" alt="Athletes hold certificates on stage" loading="lazy" class="w-full aspect-[5/3] object-cover rounded-sm" style="object-position: 50% 40%">
+            <span class="story-title block mt-3 font-bold text-[19px] lg:text-[21px] leading-snug">Taekwondo team brings home three medals from the city meet</span>
+            <span class="mt-2 flex items-center gap-2.5 text-[13px]"><span class="font-bold text-amber">Sports</span><i class="block w-[3px] h-[3px] rounded-full bg-ink-muted"></i><span class="text-ink-muted">November 7</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-night text-on-dark" data-component="SiteFooter">
+    <div class="max-w-container mx-auto px-4 lg:px-16 pt-12 lg:pt-14 pb-8">
+      <div class="grid gap-10 lg:grid-cols-[420px_1fr_1fr] lg:gap-16">
+        <div>
+          <p class="font-display text-[44px] lg:text-[56px] leading-none">ICG</p>
+          <p class="mt-3 text-[15px] text-on-dark-muted leading-relaxed max-w-[44ch]">The news and events record of Pamantasan ng Lungsod ng Pasig, published by the Integrated Communications Group.</p>
+        </div>
+        <nav aria-label="Footer">
+          <h2 class="text-[14px] font-bold text-marigold">Sections</h2>
+          <ul class="mt-3 space-y-2 text-[15px]"><li><a href="calendar.html" class="hover:underline underline-offset-4">Calendar</a></li><li><a href="#" class="hover:underline underline-offset-4">Archive</a></li><li><a href="#" class="hover:underline underline-offset-4">About</a></li></ul>
+        </nav>
+        <div class="text-[15px] space-y-2">
+          <h2 class="text-[14px] font-bold text-marigold">Visit</h2>
+          <p class="pt-1">Alcalde Jose Street, Kapasigan, Pasig City</p>
+          <p>Monday to Friday, 8 AM to 5 PM</p>
+          <p><a href="#" class="underline underline-offset-4">Send us a message</a></p>
+        </div>
+      </div>
+      <div class="mt-10 pt-5 border-t border-line flex flex-col sm:flex-row gap-3 justify-between text-[13px]">
+        <p class="text-on-dark-muted">© 2026 Integrated Communications Group</p>
+        <p class="flex gap-5 font-semibold"><a href="#" class="hover:text-marigold">Facebook</a><a href="#" class="hover:text-marigold">Instagram</a><a href="#" class="hover:text-marigold">Email us</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Reading progress along the bottom edge of the header (the page's one motion moment).
+    const bar = document.getElementById('progress');
+    const body = document.querySelector('[data-component="ArticleBody"]').closest('article');
+    const onScroll = () => {
+      const r = body.getBoundingClientRect();
+      const total = r.height - innerHeight;
+      bar.style.transform = `scaleX(${Math.min(1, Math.max(0, -r.top / Math.max(total, 1)))})`;
+    };
+    addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+    // Copy link with confirmation.
+    document.getElementById('copy-link').addEventListener('click', async () => {
+      const msg = document.getElementById('copied');
+      try { await navigator.clipboard.writeText(location.href); msg.textContent = 'Link copied'; }
+      catch { msg.textContent = 'Copy failed. Use the address bar.'; }
+      setTimeout(() => { msg.textContent = ''; }, 2500);
+    });
+  </script>
+  <script src="public-site.js"></script>
+</body>
+</html>

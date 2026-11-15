@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview B, the ledger · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="public-data.js"></script>
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Structure B: the ledger. One dense, grouped list of your work fills the
+     * width; a full-height Card White rail on the right holds the next two weeks.
+     * The rail is a second surface, not a bordered box.
+     */
+    .ledger-layout { display: grid; }
+    .ledger-main { min-width: 0; padding: 24px 16px 40px; }
+    .rail { background: var(--color-card); padding: 28px 16px 48px; }
+    @media (min-width: 1024px) {
+      .ledger-layout { grid-template-columns: minmax(0, 1fr) 380px; min-height: 100svh; }
+      .ledger-main { padding: 40px 40px 72px; }
+      .rail { position: sticky; top: 0; height: 100svh; overflow-y: auto; padding: 40px 32px; }
+    }
+    .ledger { margin-top: 32px; background: var(--color-card); border-radius: var(--radius-sm); }
+    .group + .group { border-top: 1px solid var(--color-rule); }
+    .group-head { display: flex; align-items: baseline; justify-content: space-between; padding: 20px 16px 8px; }
+    @media (min-width: 1024px) { .group-head { padding: 24px 24px 8px; } }
+    .group-head .count { font-size: 15px; font-weight: 600; color: var(--color-ink-muted); }
+    .lrow { display: grid; grid-template-columns: minmax(0, 1fr) 20px; grid-template-areas: "status chev" "main chev"; gap: 8px 12px; align-items: center; padding: 14px 16px; color: inherit; transition: background-color 150ms ease; }
+    .lrow + .lrow { border-top: 1px solid var(--color-rule); }
+    a.lrow:hover { background: var(--color-card-hover); }
+    a.lrow:hover .t-row { text-decoration: underline; text-underline-offset: 4px; }
+    .lrow .st { grid-area: status; }
+    .lrow .mn { grid-area: main; min-width: 0; }
+    .lrow .dt { display: none; }
+    .lrow .chev { grid-area: chev; color: var(--color-ink-muted); }
+    @media (min-width: 768px) {
+      .lrow { grid-template-columns: 112px minmax(0, 1fr) 176px 20px; grid-template-areas: "status main date chev"; padding: 14px 24px; gap: 16px; }
+      .lrow .dt { display: block; grid-area: date; text-align: right; font-size: 13px; color: var(--color-ink-muted); }
+    }
+    .ask-note { margin-top: 6px; font-size: 14px; color: var(--color-ink-muted); }
+
+    .day { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 14px 0; }
+    .day + .day { border-top: 1px solid var(--color-rule); }
+    .day .num { font-size: 30px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: var(--radius-sm); }   /* numeral-time-sm */
+    .day.today .num { background: var(--color-marigold); color: var(--color-on-marigold); }
+    .day .wd { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--color-ink-muted); }
+    .item { display: block; margin-top: 6px; font-size: 14px; line-height: 1.4; color: inherit; }
+    .item:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .item.mine { font-weight: 600; }
+    .item .k { font-weight: 400; color: var(--color-ink-muted); }
+    .item.campus { color: var(--color-ink-muted); }
+    @media (prefers-reduced-motion: reduce) { .lrow { transition: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="ledger-layout">
+      <div class="ledger-main">
+        <header class="ov-head">
+          <div>
+            <h1 class="t-section">Good morning, Lea</h1>
+            <p class="ov-sub" id="summary"></p>
+          </div>
+          <a href="#new" data-later="The article editor" class="btn btn-primary hidden lg:inline-flex" id="new-btn"></a>
+        </header>
+        <div class="ledger" id="ledger" data-component="Ledger"></div>
+        <a href="dashboard-articles.html" class="link inline-block mt-5 text-[14px]">All your articles</a>
+      </div>
+
+      <aside class="rail" aria-labelledby="rail-heading" data-component="TwoWeekRail">
+        <div class="flex items-baseline justify-between gap-4">
+          <h2 id="rail-heading" class="t-h2">Next two weeks</h2>
+          <a href="calendar.html" class="link text-[14px]">Calendar</a>
+        </div>
+        <p class="mt-1 text-[13px] text-ink-muted">Your dates first, then what's on campus.</p>
+        <div id="days" class="mt-3"></div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const { $, esc, icon, badge, ARTICLES, TODAY, DAYS, MONTHS, parse, plainDate, edited, mount, dated, KIND } = window.Desk;
+    mount({ current: 'overview', title: 'Overview', action: { label: 'New article', href: '#new', icon: 'plus' } });
+    document.querySelectorAll('[href="#new"]').forEach(a => a.setAttribute('data-later', 'The article editor'));
+    $('new-btn').innerHTML = icon('plus', 18) + 'New article';
+    $('summary').innerHTML = `Sunday, November 15<span class="dot-sep"></span>2 drafts<span class="dot-sep"></span>1 in review<span class="dot-sep"></span>1 going live tomorrow`;
+
+    const CHEV = `<span class="chev">${icon('chevron', 20)}</span>`;
+    const dateCol = a => a.status === 'draft' ? `Edited ${edited(a.updated_at, a.time)}`
+      : a.status === 'in_review' ? `Sent ${plainDate(a.sent)}`
+      : a.status === 'approved' ? `Live ${esc(a.publish_at)}`
+      : `Published ${plainDate(a.updated_at)}`;
+    const meta = a => `<span class="type">${a.type}</span><span class="dot-sep"></span>${esc(a.category)}${a.status === 'in_review' ? `<span class="dot-sep"></span>With ${esc(a.reviewer)}` : ''}${a.event_starts_at ? `<span class="dot-sep"></span>Event on ${plainDate(a.event_starts_at)}` : ''}`;
+
+    const row = a => `<a href="#edit" data-later="The article editor" class="lrow" data-component="LedgerRow">
+      <span class="st">${badge(a.status)}</span>
+      <span class="mn"><span class="block t-row">${esc(a.title)}</span><span class="block meta mt-1">${meta(a)}</span></span>
+      <span class="dt">${dateCol(a)}</span>${CHEV}</a>`;
+    const askRow = a => `<div class="lrow" data-component="LedgerRow">
+      <span class="st">${badge(a.status)}</span>
+      <span class="mn"><span class="block t-row">${esc(a.title)}</span>
+        <span class="block meta mt-1"><span class="flag">Changes requested</span> by ${esc(a.changes.by)}<span class="dot-sep"></span>${plainDate(a.changes.on)}</span>
+        <span class="block ask-note">“${esc(a.changes.note)}”</span></span>
+      <span class="dt"><a href="#edit" data-later="The article editor" class="btn btn-day">Edit draft</a></span><span></span></div>`;
+
+    const groups = [
+      ['Needs you', ARTICLES.filter(a => a.changes), askRow],
+      ['In progress', ARTICLES.filter(a => ['draft', 'in_review', 'approved'].includes(a.status) && !a.changes), row],
+      ['Published recently', ARTICLES.filter(a => a.status === 'published').slice(0, 3), row],
+    ];
+    $('ledger').innerHTML = groups.map(([name, items, fn]) => `<section class="group" aria-label="${name}">
+      <div class="group-head"><h2 class="t-h2">${name} <span class="count">${items.length}</span></h2></div>
+      <div>${items.map(fn).join('')}</div></section>`).join('');
+    // On phones the "Edit draft" button sits under the note.
+    document.querySelectorAll('.lrow .dt .btn').forEach(b => { const c = b.cloneNode(true); c.classList.add('mt-3', 'md:hidden'); b.closest('.lrow').querySelector('.mn').appendChild(c); });
+
+    // Next two weeks: your dated items, then campus events.
+    const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const mine = dated(), demo = window.ICGDemo;
+    const days = [];
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(TODAY); d.setDate(d.getDate() + i);
+      const key = iso(d);
+      const own = mine.filter(x => x.date === key);
+      const campus = (demo?.events || []).filter(e => demo.dateString(e.date) === key && !own.some(o => o.label === e.title));
+      if (own.length || campus.length || i === 0) days.push({ d, key, own, campus, today: i === 0 });
+    }
+    $('days').innerHTML = days.map(({ d, key, own, campus, today }) => `<div class="day ${today ? 'today' : ''}">
+      <a href="calendar.html?date=${key}" class="display num" aria-label="${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}${today ? ', today' : ''}">${d.getDate()}</a>
+      <div class="min-w-0">
+        <p class="wd">${today ? 'TODAY' : DAYS[d.getDay()].slice(0, 3).toUpperCase()}<span class="sr-only">, ${MONTHS[d.getMonth()]} ${d.getDate()}</span></p>
+        ${own.map(x => `<a href="#edit" data-later="The article editor" class="item mine"><span class="k">${KIND[x.kind]}, ${x.time}</span><br>${esc(x.label)}</a>`).join('')}
+        ${campus.slice(0, 2).map(e => `<a href="article.html?id=${encodeURIComponent(e.id)}" class="item campus">${esc(e.title)}, ${e.start}</a>`).join('')}
+        ${!own.length && !campus.length ? '<p class="item campus">Nothing on your calendar today.</p>' : ''}
+      </div></div>`).join('');
+  </script>
+</body>
+</html>

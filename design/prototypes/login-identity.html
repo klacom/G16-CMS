@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Campus Desk — ICG login concept</title>
+  <meta name="description" content="Log in to the ICG desk to write, review and publish stories and events.">
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <style>
+    ::selection { background: var(--color-marigold); color: var(--color-on-marigold); }
+    :focus-visible { outline: 2px solid var(--color-marigold); outline-offset: 3px; border-radius: 4px; }
+    .on-paper :focus-visible { outline-color: var(--color-ink); }
+    .display { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.005em; line-height: 0.96; }
+    .ghost-btn:hover { background: rgba(246,241,231,.08); }
+
+    /* Existing type roles; the identity headline uses display-hero. */
+    .t-feature { font-size: 24px; line-height: 1.2; font-weight: 700; }
+    .login-layout { min-height: 100svh; }
+    .brand-panel { position: relative; overflow: hidden; background: var(--color-night); color: var(--color-text-on-dark); }
+    .brand-inner { min-height: var(--signin-band-height); padding: 24px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .brand-lockup { display: flex; align-items: center; gap: 16px; }
+    .brand-mark { font-size: 56px; line-height: 1; }
+    .brand-name, .brand-story, .brand-foot, .desktop-back { display: none; }
+    .brand-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; font-weight: 600; }
+    .brand-back:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .brand-back.desktop-back { display: none; }
+    .mobile-lockup { display: flex; align-items: center; gap: 12px; }
+    .mobile-art { width: 56px; height: 56px; }
+    .mobile-art rect, .mobile-art path { vector-effect: non-scaling-stroke; }
+    .form-side { position: relative; display: flex; align-items: center; justify-content: center; padding: 40px 16px; background: var(--color-paper); }
+    .form-column { width: 100%; max-width: 420px; }
+    .desk-scene { width: 100%; height: auto; overflow: visible; }
+    .desk-scene text { font-family: var(--font-body); }
+    .desk-scene .art-display { font-family: var(--font-display); }
+    .desk-scene .art-meta { font-size: 13px; }
+    .desk-scene .art-label { font-size: 12px; font-weight: 600; }
+    .desk-scene .art-title { font-size: 22px; font-weight: 700; }
+    .desk-scene .art-day { font-size: 26px; }
+    .desk-scene .art-today { font-size: 44px; }
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .brand-inner { padding: 24px 32px; }
+      .form-side { padding: 56px 32px; }
+    }
+    @media (min-width: 1024px) {
+      .login-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(480px, .9fr); }
+      .brand-inner { min-height: 100svh; height: 100%; padding: 48px 64px 32px; display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; gap: 32px; }
+      .brand-mark { font-size: 40px; }
+      .brand-name { display: block; padding-left: 16px; border-left: 1px solid var(--color-line); font-size: 12px; line-height: 1.5; color: var(--color-muted-on-dark); }
+      .brand-story { display: block; margin: auto 0; }
+      .brand-headline { font-size: 60px; }
+      .brand-description { margin-top: 16px; max-width: 400px; font-size: 16px; line-height: 1.5; color: var(--color-muted-on-dark); }
+      .scene-wrap { margin: 32px -16px 0; }
+      .brand-foot { display: flex; gap: 16px; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--color-line); color: var(--color-muted-on-dark); font-size: 12px; line-height: 1.5; }
+      .brand-foot span:last-child { text-align: right; }
+      .mobile-back, .mobile-art { display: none; }
+      .form-side { padding: 110px 48px 72px; }
+      .brand-back.desktop-back { display: inline-flex; position: absolute; top: 48px; left: 48px; }
+      .t-feature { font-size: 32px; line-height: 1.15; }
+    }
+    @media (min-width: 1280px) {
+      .brand-headline { font-size: 84px; }
+      .brand-description { font-size: 18px; }
+      .form-side { padding-left: 64px; padding-right: 64px; }
+      .desktop-back { left: 64px; }
+    }
+
+    /* Fields (DESIGN.md: Inputs / Fields, day) */
+    .field-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .field { width: 100%; min-height: 48px; padding: 12px 14px; font-size: 16px; color: var(--color-ink); background: var(--color-card);
+             border: 1px solid var(--color-ink-faint); border-radius: var(--radius-sm); transition: border-color 150ms ease, box-shadow 150ms ease; }
+    .field::placeholder { color: var(--color-ink-muted); }
+    .field:hover { border-color: var(--color-ink); }
+    .field:focus { outline: none; border-color: var(--color-ink); box-shadow: 0 0 0 2px var(--color-ink); }
+    .field[aria-invalid="true"] { border-color: var(--color-error); box-shadow: 0 0 0 1px var(--color-error); }
+    .field[aria-invalid="true"]:focus { box-shadow: 0 0 0 2px var(--color-error); }
+    .field-error { display: none; margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--color-error); }
+    .field-error.show { display: flex; gap: 6px; align-items: flex-start; }
+
+    /* Checkbox (DESIGN.md) */
+    .check { appearance: none; width: 22px; height: 22px; flex: none; border: 1px solid var(--color-ink-faint); border-radius: var(--radius-xs);
+             background: var(--color-card) center / 16px no-repeat; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease; }
+    .check:hover { border-color: var(--color-ink); }
+    .check:checked { background-color: var(--color-ink); border-color: var(--color-ink);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eff2ee' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-10'/%3E%3C/svg%3E"); }
+    .check:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
+
+    #error-summary, #reset-heading, #reset-done, .field { scroll-margin-top: 24px; }
+    .spin { animation: spin 900ms linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .field, .check { transition: none; }
+      .spin { animation: none; }
+    }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main class="login-layout">
+    <section class="brand-panel" aria-label="ICG — Campus life, on the record" data-component="LoginBrand">
+      <div class="brand-inner">
+        <a href="home.html" class="brand-back mobile-back">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+          Back to the site
+        </a>
+        <div class="brand-lockup">
+          <div class="mobile-lockup">
+            <svg class="mobile-art" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><rect x="3" y="7" width="50" height="46" rx="4" fill="var(--color-surface)" stroke="var(--color-muted-on-dark)"/><path d="M3 21h50M16 3v10M40 3v10M20 21v32M37 21v32M3 37h50" fill="none" stroke="var(--color-muted-on-dark)"/><rect x="38" y="38" width="14" height="14" fill="var(--color-marigold)"/></svg>
+            <p class="display brand-mark">ICG</p>
+          </div>
+          <p class="brand-name">Integrated<br>Communications Group</p>
+        </div>
+
+        <div class="brand-story">
+          <p class="display brand-headline">Campus life,<br>on the record.</p>
+          <p class="brand-description">The stories we tell. The dates we keep.<br>A shared record of life at PLP.</p>
+          <div class="scene-wrap" data-component="CampusDeskIllustration">
+            <svg class="desk-scene" viewBox="0 0 664 366" aria-hidden="true" focusable="false">
+              <!-- Archive folder: flat layers, with no shadow or texture. -->
+              <g transform="rotate(5 300 292)">
+                <path d="M140 245v-16a6 6 0 0 1 6-6h94l20 22h177a6 6 0 0 1 6 6v87H140Z" fill="var(--color-surface-raised)" stroke="var(--color-muted-on-dark)"/>
+                <path d="M140 267h303" stroke="var(--color-muted-on-dark)"/>
+                <text x="330" y="321" class="art-meta" fill="var(--color-muted-on-dark)">Archive</text>
+              </g>
+              <!-- Calendar: illustrative November 2026, with the 14th highlighted. -->
+              <g transform="rotate(7 470 161)">
+                <rect x="310" y="22" width="322" height="276" rx="6" fill="var(--color-surface)" stroke="var(--color-muted-on-dark)"/>
+                <path d="M310 80h322M340 12v24M602 12v24" fill="none" stroke="var(--color-text-on-dark)" stroke-width="2" stroke-linecap="round"/>
+                <text x="330" y="61" class="art-title" fill="var(--color-text-on-dark)">November <tspan class="art-meta" font-weight="400">2026</tspan></text>
+                <g fill="var(--color-muted-on-dark)" class="art-label" text-anchor="middle">
+                  <text y="108"><tspan x="333">MON</tspan><tspan x="379">TUE</tspan><tspan x="425">WED</tspan><tspan x="471">THU</tspan><tspan x="517">FRI</tspan><tspan x="563">SAT</tspan><tspan x="609">SUN</tspan></text>
+                </g>
+                <path d="M310 120h322M310 182h322M310 244h322M356 120v124M402 120v124M448 120v124M494 120v124M540 120v124M586 120v124" fill="none" stroke="var(--color-line)"/>
+                <g class="art-display art-day" fill="var(--color-muted-on-dark)" text-anchor="middle">
+                  <text y="160"><tspan x="333">9</tspan><tspan x="379">10</tspan><tspan x="425">11</tspan><tspan x="471">12</tspan><tspan x="517">13</tspan><tspan x="609">15</tspan></text>
+                  <text y="222"><tspan x="333">16</tspan><tspan x="379">17</tspan><tspan x="425">18</tspan><tspan x="471">19</tspan><tspan x="517">20</tspan><tspan x="563">21</tspan><tspan x="609">22</tspan></text>
+                </g>
+                <rect x="540" y="120" width="46" height="62" fill="var(--color-marigold)"/>
+                <text x="563" y="167" text-anchor="middle" class="art-display art-today" fill="var(--color-on-marigold)">14</text>
+                <path d="M330 273h122" stroke="var(--color-muted-on-dark)"/>
+              </g>
+              <!-- Story proof: a small news record, rather than an invented campus scene. -->
+              <g transform="rotate(-8 198 175)">
+                <path d="M67 28h220l36 36v247H67Z" fill="var(--color-paper)" stroke="var(--color-night)"/>
+                <path d="M287 28v36h36" fill="var(--color-rule)" stroke="var(--color-night)"/>
+                <text x="89" y="64" class="art-display" font-size="30" fill="var(--color-ink)">ICG</text>
+                <path d="M89 80h212" stroke="var(--color-ink)"/>
+                <text x="89" y="112" class="art-title" fill="var(--color-ink)">A campus full</text>
+                <text x="89" y="139" class="art-title" fill="var(--color-ink)">of stories.</text>
+                <text x="89" y="164" class="art-meta" fill="var(--color-ink-muted)">The PLP community</text>
+                <g fill="none" stroke="var(--color-ink-faint)">
+                  <path d="M89 190h212M89 202h212M89 214h181M89 238h98M89 250h98M89 262h85M89 274h98"/>
+                  <rect x="206" y="234" width="95" height="48" rx="4"/>
+                  <path d="m214 273 22-21 15 13 18-21 24 29M214 273h79"/>
+                  <circle cx="222" cy="246" r="4"/>
+                </g>
+                <path d="M51 113h-9v73h9M339 203h9v73h-9" fill="none" stroke="var(--color-muted-on-dark)" stroke-width="2"/>
+              </g>
+              <!-- Camera: the people and moments behind the record. -->
+              <g transform="rotate(-5 483 292)">
+                <path d="m424 252 12-19h44l12 19h52a6 6 0 0 1 6 6v75a6 6 0 0 1-6 6H402a6 6 0 0 1-6-6v-75a6 6 0 0 1 6-6Z" fill="var(--color-night)" stroke="var(--color-muted-on-dark)" stroke-width="2"/>
+                <path d="M397 276h152" stroke="var(--color-muted-on-dark)"/>
+                <circle cx="477" cy="293" r="32" fill="var(--color-surface-raised)" stroke="var(--color-text-on-dark)" stroke-width="2"/>
+                <circle cx="477" cy="293" r="22" fill="var(--color-night)" stroke="var(--color-muted-on-dark)"/>
+                <path d="M465 293a12 12 0 0 1 12-12" fill="none" stroke="var(--color-text-on-dark)" stroke-width="2" stroke-linecap="round"/>
+                <rect x="513" y="260" width="22" height="8" rx="4" fill="var(--color-text-on-dark)"/>
+                <path d="M411 246h13" stroke="var(--color-text-on-dark)" stroke-width="4" stroke-linecap="round"/>
+              </g>
+              <!-- Proofreader's pencil and a grounded baseline. -->
+              <g transform="rotate(24 41 267)" fill="none" stroke="var(--color-muted-on-dark)" stroke-width="2">
+                <path d="M35 210h12v96l-6 15-6-15ZM35 223h12M41 223v83M35 306h12"/>
+              </g>
+              <path d="M17 356h630" stroke="var(--color-line)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="brand-foot">
+          <span>Pamantasan ng Lungsod ng Pasig</span>
+          <span>Stories. Events.<br>A shared record.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form side -->
+    <section class="on-paper form-side" aria-labelledby="login-heading" data-component="LoginForm">
+      <a href="home.html" class="brand-back desktop-back">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        Back to the site
+      </a>
+      <div class="form-column">
+        <h1 id="login-heading" class="t-feature">Log in to the ICG desk</h1>
+        <p class="mt-2 text-[15px] text-ink-muted">Use the email your editor invited you with.</p>
+
+        <div id="error-summary" class="hidden mt-6 p-4 rounded-sm bg-error-soft border border-error" role="alert" tabindex="-1" data-component="ErrorSummary">
+          <p id="error-title" class="font-bold text-error"></p>
+          <p id="error-text" class="mt-1 text-[15px]"></p>
+        </div>
+
+        <form id="form" class="mt-7 space-y-5" novalidate>
+          <div>
+            <label class="field-label" for="email">Email</label>
+            <input class="field" id="email" type="email" autocomplete="username" inputmode="email" aria-describedby="email-hint" required>
+            <p class="mt-1.5 text-[13px] text-ink-muted" id="email-hint">Your @plpasig.edu.ph address</p>
+            <p class="field-error" id="email-err"></p>
+          </div>
+
+          <div>
+            <div class="flex items-baseline justify-between gap-4">
+              <label class="field-label" for="password">Password</label>
+              <a href="#" id="forgot" class="text-[14px] font-semibold text-amber underline underline-offset-4">Forgot your password?</a>
+            </div>
+            <div class="relative">
+              <input class="field pr-[60px]" id="password" type="password" autocomplete="current-password" required>
+              <button type="button" id="toggle-pw" class="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-pill hover:bg-card-hover" aria-label="Show password" aria-pressed="false" aria-controls="password">
+                <svg id="eye" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <p class="field-error" id="password-err"></p>
+            <p id="caps" class="hidden mt-1.5 text-[13px] font-semibold text-ink-muted">Caps Lock is on.</p>
+          </div>
+
+          <div data-component="Checkbox">
+            <label class="flex items-center gap-3 min-h-11 text-[15px] cursor-pointer select-none">
+              <input type="checkbox" class="check" id="remember" aria-describedby="remember-hint">
+              Keep me logged in on this device
+            </label>
+            <p class="ml-[34px] text-[13px] text-ink-muted" id="remember-hint">Leave this off on shared or lab computers.</p>
+          </div>
+
+          <button type="submit" id="submit" class="w-full inline-flex justify-center items-center gap-2 h-12 rounded-pill bg-marigold text-marigold-on font-bold text-[15px] hover:bg-marigold-bright disabled:bg-disabled-bg disabled:text-disabled-text">Log in</button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-rule text-[15px] text-ink-muted">
+          <p>Accounts are created by ICG editors. If you need one, <a href="contact.html?topic=account" class="font-semibold text-amber underline underline-offset-4">ask the desk</a>.</p>
+        </div>
+
+        <!-- Forgot password (inline step) -->
+        <div id="reset" class="hidden" data-component="ResetRequest">
+          <button type="button" id="back-login" class="inline-flex items-center gap-2 h-11 pr-4 -ml-2 rounded-pill text-[14px] font-semibold hover:bg-card-hover">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+            Back to log in
+          </button>
+          <h2 class="mt-4 t-feature" tabindex="-1" id="reset-heading">Reset your password</h2>
+          <p class="mt-2 text-[15px] text-ink-muted">Enter your email and we'll send a link to set a new password. The link works for one hour.</p>
+          <form id="reset-form" class="mt-7 space-y-5" novalidate>
+            <div>
+              <label class="field-label" for="reset-email">Email</label>
+              <input class="field" id="reset-email" type="email" autocomplete="username" inputmode="email" aria-describedby="reset-email-hint" required>
+              <p class="mt-1.5 text-[13px] text-ink-muted" id="reset-email-hint">Your @plpasig.edu.ph address</p>
+              <p class="field-error" id="reset-email-err"></p>
+            </div>
+            <button type="submit" class="w-full h-12 rounded-pill bg-marigold text-marigold-on font-bold text-[15px] hover:bg-marigold-bright">Send reset link</button>
+          </form>
+          <p id="reset-done" class="hidden mt-6 p-4 rounded-sm bg-card border border-rule text-[15px]" role="status" tabindex="-1"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const ERR_ICON = '<svg aria-hidden="true" class="shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>';
+    const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const $ = id => document.getElementById(id);
+
+    function setError(id, text) {
+      const el = $(id), err = $(id + '-err');
+      el.setAttribute('aria-invalid', text ? 'true' : 'false');
+      if (text) { err.innerHTML = ERR_ICON + `<span>${text}</span>`; err.classList.add('show'); }
+      else { err.classList.remove('show'); err.textContent = ''; }
+      const descriptions = [$(id + '-hint') ? id + '-hint' : '', text ? id + '-err' : ''].filter(Boolean).join(' ');
+      if (descriptions) el.setAttribute('aria-describedby', descriptions);
+      else el.removeAttribute('aria-describedby');
+      return !!text;
+    }
+    const validateEmail = v => !v ? 'Enter your email address' : !EMAIL.test(v) ? 'Enter an email address like name@plpasig.edu.ph' : '';
+
+    // Show / hide password
+    $('toggle-pw').addEventListener('click', () => {
+      const pw = $('password'), show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      $('toggle-pw').setAttribute('aria-pressed', String(show));
+      $('toggle-pw').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      $('eye').innerHTML = show
+        ? '<path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'
+        : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>';
+    });
+    // Caps Lock hint
+    $('password').addEventListener('keyup', e => $('caps').classList.toggle('hidden', !e.getModifierState?.('CapsLock')));
+    // Re-check fixed fields
+    $('email').addEventListener('input', () => { if ($('email').getAttribute('aria-invalid') === 'true') setError('email', validateEmail($('email').value.trim())); });
+    $('password').addEventListener('input', () => { if ($('password').getAttribute('aria-invalid') === 'true') setError('password', $('password').value ? '' : 'Enter your password'); });
+
+    // Log in (prototype: the password "wrong" shows the failed state)
+    $('form').addEventListener('submit', e => {
+      e.preventDefault();
+      $('error-summary').classList.add('hidden');
+      const bad = [setError('email', validateEmail($('email').value.trim())), setError('password', $('password').value ? '' : 'Enter your password')];
+      if (bad.some(Boolean)) { (bad[0] ? $('email') : $('password')).focus(); return; }
+      const btn = $('submit');
+      btn.disabled = true;
+      btn.innerHTML = '<svg aria-hidden="true" class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>Logging in…';
+      setTimeout(() => {
+        btn.disabled = false; btn.textContent = 'Log in';
+        const s = $('error-summary');
+        if ($('password').value === 'wrong') {
+          s.className = 'mt-6 p-4 rounded-sm bg-error-soft border border-error'; s.setAttribute('role', 'alert');
+          $('error-title').className = 'font-bold text-error';
+          $('error-title').textContent = "That email and password don't match";
+          $('error-text').innerHTML = 'Check both and try again, or <a href="#" class="font-semibold text-amber underline underline-offset-4" data-reset>reset your password</a>.';
+          $('password').value = ''; s.classList.remove('hidden'); s.focus();
+        } else {
+          s.className = 'mt-6 p-4 rounded-sm bg-card border border-rule'; s.setAttribute('role', 'status');
+          $('error-title').className = 'font-bold'; $('error-title').textContent = 'Logged in';
+          $('error-text').textContent = 'Opening your desk…';
+          s.focus();
+          setTimeout(() => { location.href = 'dashboard.html'; }, 600);
+        }
+      }, 900);
+    });
+
+    // Forgot password: inline step on the same page
+    const showReset = e => {
+      e?.preventDefault();
+      $('form').closest('div').querySelectorAll(':scope > :not(#reset)').forEach(n => n.classList.add('hidden'));
+      $('reset').classList.remove('hidden');
+      $('reset-form').classList.remove('hidden');
+      $('reset-done').classList.add('hidden');
+      setError('reset-email', '');
+      $('reset-email').value = $('email').value;
+      $('reset-heading').focus();
+    };
+    $('forgot').addEventListener('click', showReset);
+    document.addEventListener('click', e => { if (e.target.closest('[data-reset]')) showReset(e); });
+    $('back-login').addEventListener('click', () => { $('reset').classList.add('hidden'); $('form').closest('div').querySelectorAll(':scope > :not(#reset):not(#error-summary)').forEach(n => n.classList.remove('hidden')); $('email').focus(); });
+    $('reset-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const v = $('reset-email').value.trim();
+      if (setError('reset-email', validateEmail(v))) { $('reset-email').focus(); return; }
+      $('reset-form').classList.add('hidden');
+      const done = $('reset-done'); done.classList.remove('hidden');
+      done.innerHTML = `If <strong>${v.replace(/</g, '&lt;')}</strong> has an ICG account, a reset link is on its way. Check your spam folder if it doesn't arrive in a few minutes.`;
+      done.focus();
+    });
+    // Links from reset-password.html ("Send a new link") open the reset step directly.
+    if (new URLSearchParams(location.search).get('step') === 'reset') showReset();
+  </script>
+</body>
+</html>

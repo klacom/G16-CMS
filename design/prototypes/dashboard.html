@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="public-data.js"></script>
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Overview, the month desk (chosen 2026-11-15). The calendar is the way in, on the desk too:
+     * a month of your own dated work (events, go-live times, publish days, review
+     * hand-offs) beside ruled columns for the selected day and what needs you.
+     * Uses the public calendar's vocabulary (DESIGN.md: Calendar).
+     */
+    .month-layout { margin-top: 32px; display: grid; gap: 32px; }
+    @media (min-width: 1024px) { .month-layout { grid-template-columns: minmax(0, 1fr) 360px; align-items: start; } }
+    .month-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .nav-btn { width: 44px; height: 44px; display: inline-grid; place-items: center; border-radius: 999px; border: 1px solid var(--color-ink); }
+    .nav-btn:hover { background: var(--color-ink); color: var(--color-paper); }
+    .grid7 { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .wdays div { padding: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--color-ink-muted); text-align: center; }
+    @media (min-width: 768px) { .wdays div { text-align: left; padding-left: 10px; } }
+    .cells { gap: 1px; background: var(--color-rule); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--color-rule); }
+    .cell { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 56px; padding: 6px 2px; background: var(--color-card); text-align: left; transition: background-color 150ms ease; }
+    .cell:hover { background: var(--color-card-hover); }
+    .cell.out { background: var(--color-paper); }
+    .cell.out .n { color: var(--color-ink-faint); }
+    .cell[aria-pressed="true"] { outline: 2px solid var(--color-ink); outline-offset: -2px; z-index: 1; }
+    .cell:focus-visible { outline: 2px solid var(--color-ink); outline-offset: -4px; border-radius: 0; z-index: 2; }
+    .n { font-size: 20px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 999px; }  /* numeral-cell-sm */
+    .cell.today .n { background: var(--color-marigold); color: var(--color-on-marigold); }
+    .dots { display: flex; gap: 3px; }
+    .dots i { width: 6px; height: 6px; border-radius: 999px; background: var(--color-ink); }
+    .dots i.c { background: var(--color-ink-faint); }
+    .chips, .campus { display: none; }
+    @media (min-width: 768px) {
+      .cell { align-items: stretch; min-height: 128px; padding: 8px 8px 10px; }
+      .n { font-size: 26px; width: 40px; height: 40px; }  /* numeral-cell */
+      .dots { display: none; }
+      .chips { display: grid; gap: 4px; }
+      .campus { display: block; margin-top: auto; font-size: 12px; color: var(--color-ink-muted); }
+    }
+    .chip-ev { display: block; padding: 4px 6px; border-radius: var(--radius-xs); font-size: 12px; line-height: 1.3; background: var(--color-paper); color: var(--color-ink); }
+    .chip-ev b { font-weight: 600; display: block; }
+    .chip-ev span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .chip-ev[data-status="in_review"] { background: var(--color-rule); }
+    .chip-ev[data-status="approved"] { background: var(--color-surface-raised); color: var(--color-text-on-dark); }
+    .chip-ev[data-status="published"] { background: var(--color-ink); color: var(--color-paper); }
+    .legend { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--color-ink-muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+    .ruled { border-top: 3px solid var(--color-ink); padding-top: 12px; }
+    /* On Mist the Draft badge takes Card White so its fill still shows. */
+    .ruled .badge[data-status="draft"] { background: var(--color-card); }
+    .ruled + .ruled { margin-top: 32px; }
+    .day-item { display: block; padding: 12px 0; color: inherit; }
+    .day-item + .day-item { border-top: 1px solid var(--color-rule); }
+    a.day-item:hover .t-row { text-decoration: underline; text-underline-offset: 4px; }
+    @media (prefers-reduced-motion: reduce) { .cell { transition: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head">
+        <div>
+          <h1 class="t-section">Good morning, Lea</h1>
+          <p class="ov-sub" id="summary"></p>
+        </div>
+        <a href="dashboard-editor.html?id=new" class="btn btn-primary hidden lg:inline-flex" id="new-btn"></a>
+      </header>
+
+      <div class="month-layout">
+        <section aria-labelledby="month-heading" data-component="DeskMonth">
+          <div class="month-bar">
+            <h2 id="month-heading" class="t-h2 mr-auto" aria-live="polite"></h2>
+            <button type="button" class="nav-btn" id="prev" aria-label="Previous month"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button>
+            <button type="button" class="nav-btn" id="next" aria-label="Next month"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>
+          </div>
+          <div class="grid7 wdays" aria-hidden="true"><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div><div>SUN</div></div>
+          <div class="grid7 cells" id="cells"></div>
+          <p class="legend">
+            <span><i style="background:var(--color-paper);border:1px solid var(--color-rule)"></i>Draft</span>
+            <span><i style="background:var(--color-rule)"></i>In review</span>
+            <span><i style="background:var(--color-surface-raised)"></i>Approved</span>
+            <span><i style="background:var(--color-ink)"></i>Published</span>
+            <span>Marigold circle: today</span>
+          </p>
+        </section>
+
+        <div>
+          <section class="ruled" aria-labelledby="day-heading" data-component="SelectedDay">
+            <h2 id="day-heading" class="t-h2" tabindex="-1"></h2>
+            <div id="day-list" class="mt-1"></div>
+          </section>
+          <section class="ruled" aria-labelledby="needs-heading" data-component="NeedsYou">
+            <h2 id="needs-heading" class="t-h2">Needs you <span class="text-ink-muted font-semibold text-[15px]">1</span></h2>
+            <div id="needs" class="mt-1"></div>
+          </section>
+          <section class="ruled" aria-labelledby="work-heading" data-component="PipelineCounts">
+            <h2 id="work-heading" class="t-h2">Your work</h2>
+            <div id="work" class="mt-1"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const { $, esc, icon, badge, ARTICLES, TODAY, DAYS, MONTHS, parse, plainDate, mount, dated, KIND, STATUS } = window.Desk;
+    mount({ current: 'overview', title: 'Overview', action: { label: 'New article', href: 'dashboard-editor.html?id=new', icon: 'plus' } });
+    $('new-btn').innerHTML = icon('plus', 18) + 'New article';
+    $('summary').innerHTML = `Sunday, November 15<span class="dot-sep"></span>2 drafts<span class="dot-sep"></span>1 in review<span class="dot-sep"></span>1 going live tomorrow`;
+
+    const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const mine = dated(), demo = window.ICGDemo;
+    const campusOn = key => (demo?.events || []).filter(e => demo.dateString(e.date) === key && !mine.some(m => m.label === e.title));
+    const todayKey = iso(TODAY);
+    let view = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+    let selected = todayKey;
+
+    function render() {
+      $('month-heading').textContent = `${MONTHS[view.getMonth()]} ${view.getFullYear()}`;
+      const start = new Date(view); start.setDate(1 - ((view.getDay() + 6) % 7));   // Monday first
+      const cells = [];
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(start); d.setDate(start.getDate() + i);
+        if (i === 35 && d.getMonth() !== view.getMonth()) break;
+        const key = iso(d), own = mine.filter(x => x.date === key), campus = campusOn(key);
+        const label = `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}${key === todayKey ? ', today' : ''}${own.length ? `, ${own.length} of yours` : ''}${campus.length ? `, ${campus.length} on campus` : ''}`;
+        cells.push(`<button type="button" class="cell ${d.getMonth() !== view.getMonth() ? 'out' : ''} ${key === todayKey ? 'today' : ''}" data-key="${key}" aria-pressed="${key === selected}" aria-label="${esc(label)}">
+          <span class="display n" aria-hidden="true">${d.getDate()}</span>
+          <span class="dots" aria-hidden="true">${own.slice(0, 2).map(() => '<i></i>').join('')}${campus.length ? '<i class="c"></i>' : ''}</span>
+          <span class="chips" aria-hidden="true">${own.slice(0, 2).map(x => `<span class="chip-ev" data-status="${x.a.status}"><b>${x.time} ${KIND[x.kind]}</b><span>${esc(x.label)}</span></span>`).join('')}${own.length > 2 ? `<span class="text-[12px] font-semibold">${own.length - 2} more</span>` : ''}</span>
+          ${campus.length ? `<span class="campus" aria-hidden="true">${campus.length} on campus</span>` : ''}
+        </button>`);
+      }
+      $('cells').innerHTML = cells.join('');
+      renderDay();
+    }
+
+    function renderDay() {
+      const d = parse(selected), own = mine.filter(x => x.date === selected), campus = campusOn(selected);
+      $('day-heading').textContent = `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}${selected === todayKey ? ' (today)' : ''}`;
+      const items = own.map(x => `<a href="dashboard-editor.html?id=${x.a.id}" class="day-item">
+          <p class="meta">${KIND[x.kind]}, ${x.time}</p>
+          <p class="t-row mt-1">${esc(x.label)}</p>
+          <div class="mt-2">${badge(x.a.status)}</div></a>`)
+        .concat(campus.map(e => `<a href="article.html?id=${encodeURIComponent(e.id)}" class="day-item">
+          <p class="meta">On campus, ${e.start}</p><p class="t-row mt-1 !font-medium">${esc(e.title)}</p></a>`));
+      if (!items.length) {
+        const next = mine.filter(x => x.date > selected).sort((a, b) => a.date.localeCompare(b.date))[0];
+        items.push(`<p class="day-item text-[15px] text-ink-muted">Nothing on your calendar this day.${next ? ` Next: ${KIND[next.kind].toLowerCase()} on ${DAYS[parse(next.date).getDay()]}, ${plainDate(next.date)}.` : ''}</p>`
+          + (next ? `<button type="button" class="btn btn-day" data-go="${next.date}">Show ${DAYS[parse(next.date).getDay()]}</button>` : ''));
+      }
+      $('day-list').innerHTML = items.join('');
+    }
+
+    $('cells').addEventListener('click', e => {
+      const c = e.target.closest('[data-key]'); if (!c) return;
+      selected = c.dataset.key;
+      const d = parse(selected);
+      if (d.getMonth() !== view.getMonth()) { view = new Date(d.getFullYear(), d.getMonth(), 1); render(); $(`cells`).querySelector(`[data-key="${selected}"]`).focus(); return; }
+      $('cells').querySelectorAll('[aria-pressed]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.key === selected)));
+      renderDay();
+    });
+    $('day-list').addEventListener('click', e => {
+      const b = e.target.closest('[data-go]'); if (!b) return;
+      selected = b.dataset.go; const d = parse(selected); view = new Date(d.getFullYear(), d.getMonth(), 1); render(); $('day-heading').focus();
+    });
+    $('prev').addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); render(); });
+    $('next').addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); render(); });
+
+    // Needs you and the pipeline as plain ruled lists.
+    const ask = ARTICLES.find(a => a.changes);
+    $('needs').innerHTML = `<div class="day-item"><p class="meta"><span class="flag">Changes requested</span> by ${esc(ask.changes.by)}, ${plainDate(ask.changes.on)}</p>
+      <p class="t-row mt-1">${esc(ask.title)}</p><p class="mt-1 text-[14px] text-ink-muted">“${esc(ask.changes.note)}”</p>
+      <a href="dashboard-editor.html?id=${ask.id}" class="btn btn-day mt-3">Edit draft</a></div>`;
+    const counts = ['draft', 'in_review', 'approved', 'published'].map(s => [s, ARTICLES.filter(a => a.status === s).length]);
+    $('work').innerHTML = counts.map(([s, n]) => `<a href="dashboard-articles.html?status=${s}" class="day-item flex items-center gap-3">
+      <span class="w-[112px] shrink-0">${badge(s)}</span><span class="t-row flex-1">${n} ${n === 1 ? 'article' : 'articles'}</span><span class="text-ink-muted">${icon('chevron', 20)}</span></a>`).join('');
+
+    render();
+  </script>
+</body>
+</html>

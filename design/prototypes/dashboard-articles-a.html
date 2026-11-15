@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My articles A, the proof sheet · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Structure A: the proof sheet. Your articles as a wall of cover photos,
+     * grouped by the month you last worked on them (ruled month heads), so the
+     * list reads like your own archive. Cards here are allowed: they carry photos.
+     */
+    .controls { margin-top: 24px; display: grid; gap: 12px; }
+    @media (min-width: 1024px) { .controls { grid-template-columns: minmax(0, 1fr) 360px auto; align-items: center; } }
+    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: -2px; padding: 2px; }
+    .chips::-webkit-scrollbar { display: none; }
+    .search { position: relative; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-ink-muted); pointer-events: none; }
+    .search .field { padding-left: 44px; }
+    .month { margin-top: 40px; }
+    .month-head { border-top: 3px solid var(--color-ink); padding-top: 12px; display: flex; align-items: baseline; gap: 10px; }
+    .month-head .count { font-size: 15px; font-weight: 600; color: var(--color-ink-muted); }
+    .wall { margin-top: 16px; display: grid; gap: 24px 20px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    @media (max-width: 639px) { .wall { grid-template-columns: 1fr; } }
+    .proof { display: block; color: inherit; }
+    .proof .cover { position: relative; aspect-ratio: 3 / 2; border-radius: var(--radius-sm); overflow: hidden; background: var(--color-card); }
+    .proof .cover img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .proof:hover .cover img { transform: scale(1.03); }
+    .proof:hover .t-row { text-decoration: underline; text-underline-offset: 4px; }
+    .proof .badge { position: absolute; left: 10px; bottom: 10px; }
+    .proof .badge[data-status="draft"] { background: var(--color-card); }
+    .proof .badge[data-status="archived"] { background: var(--color-card); padding-left: 8px; }
+    .no-cover { height: 100%; display: grid; place-content: center; justify-items: center; gap: 6px; font-size: 13px; color: var(--color-ink-muted); background: var(--color-card); }
+    .no-cover svg { color: var(--color-ink-faint); }
+    .proof .no-cover + .badge[data-status="draft"] { background: var(--color-paper); }
+    .proof .body { padding-top: 12px; }
+    .proof .foot { margin-top: 8px; font-size: 13px; color: var(--color-ink-muted); }
+    .empty-wall { margin-top: 40px; padding: 32px; background: var(--color-card); border-radius: var(--radius-sm); }
+    @media (prefers-reduced-motion: reduce) { .proof .cover img { transition: none; } .proof:hover .cover img { transform: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head">
+        <div>
+          <h1 class="t-section">My articles</h1>
+          <p class="ov-sub">11 articles<span class="dot-sep"></span>1 needs you<span class="dot-sep"></span>last edited today</p>
+        </div>
+        <a href="#new" class="btn btn-primary hidden lg:inline-flex" id="new-btn"></a>
+      </header>
+
+      <div class="controls" data-component="ArticleFilters">
+        <div class="chips" role="group" aria-label="Filter by status" id="chips"></div>
+        <div class="search">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <label class="sr-only" for="q">Search your articles</label>
+          <input class="field" id="q" type="search" placeholder="Search titles, like hackathon" autocomplete="off">
+        </div>
+        <div class="flex items-center gap-3">
+          <label for="sort" class="text-[14px] text-ink-muted">Group by</label>
+          <select id="sort" class="select"><option value="edited">Month edited</option><option value="event">Event month</option></select>
+        </div>
+      </div>
+
+      <div id="months" data-component="ProofSheet"></div>
+    </div>
+  </main>
+
+  <script>
+    const { $, esc, icon, badge, STATUS, ARTICLES, MONTHS, parse, plainDate, edited, mount } = window.Desk;
+    mount({ current: 'articles', title: 'My articles', action: { label: 'New article', href: '#new', icon: 'plus' } });
+    $('new-btn').innerHTML = icon('plus', 18) + 'New article';
+    document.querySelectorAll('[href="#new"]').forEach(a => a.setAttribute('data-later', 'The article editor'));
+
+    const ORDER = ['all', 'draft', 'in_review', 'approved', 'published', 'archived'];
+    const st = { status: 'all', q: '', group: 'edited' };
+
+    const foot = a => a.changes ? `<span class="flag">Changes requested</span> by ${esc(a.changes.by)}`
+      : a.status === 'in_review' ? `With ${esc(a.reviewer)}`
+      : a.status === 'approved' ? `Goes live ${esc(a.publish_at)}`
+      : `Edited ${edited(a.updated_at, a.time)}`;
+
+    const proof = a => `<a href="#edit" data-later="The article editor" class="proof" data-component="ProofCard">
+      <div class="cover">${a.cover ? `<img src="${a.cover}" alt="" loading="lazy">` : `<div class="no-cover">${icon('articles', 22)}No cover photo yet</div>`}${badge(a.status)}</div>
+      <div class="body">
+        <p class="meta"><span class="type">${a.type}</span><span class="dot-sep"></span>${esc(a.category)}${a.event_starts_at ? `<span class="dot-sep"></span>${plainDate(a.event_starts_at)}` : ''}</p>
+        <p class="t-row mt-1">${esc(a.title)}</p>
+        <p class="foot">${foot(a)}</p>
+      </div></a>`;
+
+    function render() {
+      $('chips').innerHTML = ORDER.map(s => `<button type="button" class="chip" data-s="${s}" aria-pressed="${s === st.status}">${s === 'all' ? 'All' : STATUS[s]}<span class="count">${s === 'all' ? ARTICLES.length : ARTICLES.filter(a => a.status === s).length}</span></button>`).join('');
+      let list = ARTICLES.filter(a => (st.status === 'all' || a.status === st.status) && a.title.toLowerCase().includes(st.q.toLowerCase()));
+      const keyOf = a => st.group === 'event' ? (a.event_starts_at || '') : a.updated_at;
+      if (st.group === 'event') list = list.filter(a => a.event_starts_at);
+      list.sort((x, y) => keyOf(y).localeCompare(keyOf(x)));
+      const groups = [];
+      list.forEach(a => {
+        const d = parse(keyOf(a)), k = `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+        (groups.find(g => g.k === k) || (groups.push({ k, items: [] }), groups[groups.length - 1])).items.push(a);
+      });
+      $('months').innerHTML = groups.length ? groups.map(g => `<section class="month" aria-label="${g.k}">
+          <div class="month-head"><h2 class="t-h2">${g.k}</h2><span class="count">${g.items.length}</span></div>
+          <div class="wall">${g.items.map(proof).join('')}</div></section>`).join('')
+        : `<div class="empty-wall"><p class="t-row">Nothing matches${st.q ? ` “${esc(st.q)}”` : ''}.</p><p class="mt-1 text-[15px] text-ink-muted">Try a shorter word, or look in all your articles.</p><button type="button" class="btn btn-day mt-4" id="clear">Clear filters</button></div>`;
+    }
+    $('chips').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b) { st.status = b.dataset.s; render(); $('chips').querySelector(`[data-s="${st.status}"]`).focus(); } });
+    $('q').addEventListener('input', () => { st.q = $('q').value.trim(); render(); });
+    $('sort').addEventListener('change', () => { st.group = $('sort').value; render(); });
+    $('months').addEventListener('click', e => { if (e.target.id === 'clear') { st.status = 'all'; st.q = ''; $('q').value = ''; render(); $('q').focus(); } });
+    render();
+  </script>
+</body>
+</html>

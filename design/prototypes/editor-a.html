@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor A, guided steps · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <script src="desk-editor.js"></script>
+  <style>
+    /*
+     * Editor A: guided steps. Five short steps in the order a contributor thinks
+     * (what is it, when and where, the story, photos, send), for org officers who
+     * post twice a semester. Every step stays open to jump to; the rail says which
+     * are done and where the reviewer asked for changes. Wide screens add the
+     * reviewer's notes as a third column.
+     */
+    .steps-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 24px 16px 48px; }
+    @media (min-width: 1024px) { .steps-layout { grid-template-columns: 240px minmax(0, 720px); gap: 48px; padding: 40px; } }
+    @media (min-width: 1440px) { .steps-layout { grid-template-columns: 240px minmax(0, 720px) minmax(300px, 380px); } }
+    .rail ol { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+    .rail ol::-webkit-scrollbar { display: none; }
+    .rail button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 12px; border-radius: var(--radius-sm); text-align: left; white-space: nowrap; transition: background-color 150ms ease; }
+    .rail button:hover { background: var(--color-card-hover); }
+    .rail [aria-current="step"] { background: var(--color-card); }
+    .rail .no { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 999px; border: 1px solid var(--color-ink-faint); font-size: 14px; font-weight: 700; background: var(--color-card); }
+    .rail [data-state="done"] .no { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+    .rail .lbl { font-size: 15px; font-weight: 600; }
+    .rail .st { display: block; font-size: 13px; font-weight: 400; color: var(--color-ink-muted); }
+    .rail [data-state="fix"] .st { color: var(--color-ink); font-weight: 600; }
+    @media (min-width: 1024px) {
+      .rail { position: sticky; top: 104px; align-self: start; }
+      .rail ol { display: grid; gap: 4px; overflow: visible; margin: 0; padding: 0; }
+      .rail button { white-space: normal; }
+    }
+    .step-panel { background: var(--color-card); border-radius: var(--radius-sm); padding: 24px 16px; }
+    @media (min-width: 768px) { .step-panel { padding: 32px; } }
+    .step-panel h2 { scroll-margin-top: 120px; }
+    .ask { margin-top: 16px; padding: 14px 16px; background: var(--color-paper); border-radius: var(--radius-sm); font-size: 15px; }
+    .grid2 { display: grid; gap: 16px; }
+    @media (min-width: 640px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill { height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--color-ink-faint); background: var(--color-card); font-size: 15px; font-weight: 600; }
+    .pill[aria-checked="true"] { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+    .pill:hover:not([aria-checked="true"]) { border-color: var(--color-ink); }
+    .notes { display: none; }
+    @media (min-width: 1440px) { .notes { display: block; position: sticky; top: 104px; align-self: start; } }
+    .ruled { border-top: 3px solid var(--color-ink); padding-top: 12px; }
+    .field.needed { border-color: var(--color-ink); }
+    @media (prefers-reduced-motion: reduce) { .rail button { transition: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div id="bar"></div>
+    <div class="steps-layout">
+      <nav class="rail" aria-label="Steps" data-component="StepRail"><ol id="rail"></ol></nav>
+
+      <section class="step-panel" aria-labelledby="step-heading" data-component="StepPanel">
+        <p class="text-[13px] font-semibold text-ink-muted" id="step-count"></p>
+        <h2 id="step-heading" class="t-section mt-1" tabindex="-1"></h2>
+        <div id="step-body" class="mt-6 space-y-6"></div>
+        <div class="mt-10 pt-6 border-t border-rule flex flex-wrap gap-3 justify-between">
+          <button type="button" class="btn btn-day" id="prev">Back</button>
+          <button type="button" class="btn btn-day" id="next"></button>
+        </div>
+      </section>
+
+      <aside class="notes" aria-labelledby="notes-heading" data-component="ReviewerNotes">
+        <div class="ruled">
+          <h2 id="notes-heading" class="t-h2">Notes from Paolo Cruz</h2>
+          <div id="thread"></div>
+          <label for="reply" class="field-label mt-4">Reply to Paolo <span class="opt">(optional)</span></label>
+          <textarea id="reply" class="field" placeholder="Venue is Computer Lab 3; sign-ups close November 28."></textarea>
+        </div>
+      </aside>
+    </div>
+    <div id="macts"></div>
+  </main>
+
+  <script>
+    const { $, esc, icon, mount, toast, plainDate } = window.Desk;
+    const { DRAFT, THREAD, CATEGORIES, TYPES, bar, mobileActs, toolbar, tagbox, touched } = window.Editor;
+    mount({ current: 'articles', title: 'Edit draft' });
+    $('bar').innerHTML = bar();
+    $('macts').innerHTML = mobileActs();
+    $('prev').textContent = 'Back';
+    $('thread').innerHTML = THREAD.map(c => `<div class="comment"><p class="who">${c.who} <span class="when">· ${c.when}</span></p><p class="text">${esc(c.text)}</p></div>`).join('');
+
+    const STEPS = [
+      { key: 'basics', label: 'The basics', body: () => `
+        <div><p class="field-label" id="type-l">What are you posting?</p>
+          <div class="pills" role="radiogroup" aria-labelledby="type-l">${TYPES.map(t => `<button type="button" role="radio" class="pill" aria-checked="${t === DRAFT.type}" tabindex="${t === DRAFT.type ? 0 : -1}">${t}</button>`).join('')}</div>
+          <p class="field-hint">Events go on the calendar on their date.</p></div>
+        <div><label class="field-label" for="title">Title</label><input class="field" id="title" value="${esc(DRAFT.title)}"><p class="field-hint">Say what happens, in plain words.</p></div>
+        <div><label class="field-label" for="excerpt">Summary</label><textarea class="field" id="excerpt" maxlength="200">${esc(DRAFT.excerpt)}</textarea><p class="field-hint" id="ex-count"></p></div>
+        <div class="grid2"><div><label class="field-label" for="cat">Category</label><select class="field" id="cat">${CATEGORIES.map(c => `<option ${c === DRAFT.category ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+          <div><p class="field-label">Tags <span class="opt">(optional)</span></p>${tagbox('tags', DRAFT.tags)}</div></div>` },
+      { key: 'when', label: 'When and where', body: () => `
+        <div class="ask"><span class="font-semibold">Paolo asked for the venue.</span> Readers check the time and place first, so add them here, not only in the story.</div>
+        <div class="grid2">
+          <div><label class="field-label" for="date">Date</label><input class="field" id="date" type="date" value="${DRAFT.event.date}"></div>
+          <div class="grid grid-cols-2 gap-3"><div><label class="field-label" for="start">Starts</label><input class="field" id="start" type="time" value="${DRAFT.event.start}"></div><div><label class="field-label" for="end">Ends</label><input class="field" id="end" type="time" value="${DRAFT.event.end}"></div></div>
+        </div>
+        <div><label class="field-label" for="venue">Venue</label><input class="field needed" id="venue" placeholder="Computer Lab 3, Main building" value="${esc(DRAFT.event.venue)}"><p class="field-hint">Building and room, the way students say it.</p></div>
+        <div><label class="field-label" for="limit">Who can join <span class="opt">(optional)</span></label><input class="field" id="limit" placeholder="Up to five students per school"></div>` },
+      { key: 'story', label: 'The story', body: () => `
+        <div class="ask"><span class="font-semibold">Paolo asked for the sign-up deadline.</span> Add when and how schools sign up.</div>
+        <div><p class="field-label" id="body-l">Story</p>
+          <div class="border-b border-rule pb-2 mb-4">${toolbar('body')}</div>
+          <div class="rte" id="body" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="body-l">${DRAFT.body}</div></div>` },
+      { key: 'photos', label: 'Photos', body: () => `
+        <div><p class="field-label">Cover photo</p><button type="button" class="drop w-full" data-later="Photo upload">${icon('plus', 22)}<span><span class="font-semibold text-ink">Add a cover photo</span><br>A landscape photo at least 2400px wide works best.</span></button></div>
+        <div><p class="field-label">Gallery <span class="opt">(optional)</span></p><button type="button" class="btn btn-day" data-later="Photo upload">${icon('plus', 18)}Add photos</button><p class="field-hint">Every photo needs a short description for people who can't see it.</p></div>` },
+      { key: 'send', label: 'Review and send', body: () => `
+        <div><p class="field-label">Reviewer</p><p class="text-[16px]"><span class="font-semibold">Paolo Cruz</span> reviews this again, since he asked for the changes.</p></div>
+        <div role="radiogroup" aria-labelledby="when-l"><p class="field-label" id="when-l">When it goes live</p>
+          <label class="flex items-center gap-3 min-h-11 text-[15px]"><input type="radio" name="pub" checked class="w-5 h-5 accent-[#0a1f17]"> As soon as Paolo approves it</label>
+          <label class="flex items-center gap-3 min-h-11 text-[15px]"><input type="radio" name="pub" class="w-5 h-5 accent-[#0a1f17]"> On a date and time I choose</label></div>
+        <div><label class="field-label" for="note">Note to Paolo <span class="opt">(optional)</span></label><textarea class="field" id="note" placeholder="Added the venue and the deadline. Thanks!"></textarea></div>
+        <button type="button" class="btn btn-primary" id="send-step">Send for review</button>` },
+    ];
+    const state = { basics: 'done', when: 'fix', story: 'fix', photos: 'todo', send: 'todo' };
+    const stText = { done: 'Done', fix: 'Paolo asked for changes', todo: 'Not done yet' };
+    let cur = 1;   // opens where the reviewer asked for changes
+
+    function rail() {
+      $('rail').innerHTML = STEPS.map((s, i) => `<li><button type="button" data-i="${i}" data-state="${state[s.key]}" ${i === cur ? 'aria-current="step"' : ''}>
+        <span class="no" aria-hidden="true">${state[s.key] === 'done' ? icon('approved', 18).replace('<circle cx="12" cy="12" r="8"/>', '') : i + 1}</span>
+        <span><span class="lbl">${s.label}</span><span class="st">${stText[state[s.key]]}</span></span></button></li>`).join('');
+    }
+    function show(i, focus) {
+      cur = i; const s = STEPS[i];
+      $('step-count').textContent = `Step ${i + 1} of ${STEPS.length}`;
+      $('step-heading').textContent = s.label;
+      $('step-body').innerHTML = s.body();
+      $('prev').classList.toggle('invisible', i === 0);
+      $('next').classList.toggle('invisible', i === STEPS.length - 1);
+      $('next').innerHTML = i < STEPS.length - 1 ? `Next: ${STEPS[i + 1].label}${icon('chevron', 18)}` : '';
+      rail();
+      const ex = $('excerpt'); if (ex) { const f = () => $('ex-count').textContent = `${ex.value.length} of 200 characters`; f(); ex.addEventListener('input', f); }
+      const v = $('venue'); if (v) v.addEventListener('input', () => { state.when = v.value.trim() ? 'done' : 'fix'; rail(); });
+      const b = $('body'); if (b) b.addEventListener('input', () => { state.story = /deadline|sign-ups close|sign up by/i.test(b.textContent) ? 'done' : 'fix'; rail(); });
+      if (focus) { $('step-heading').focus(); }
+    }
+    $('rail').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) show(+b.dataset.i, true); });
+    $('prev').addEventListener('click', () => show(cur - 1, true));
+    $('next').addEventListener('click', () => { if (state[STEPS[cur].key] === 'todo') state[STEPS[cur].key] = 'done'; show(cur + 1, true); });
+    // Type pills: a radio group with arrow keys.
+    document.addEventListener('keydown', e => {
+      const p = e.target.closest('.pill'); if (!p || !['ArrowRight', 'ArrowLeft'].includes(e.key)) return;
+      const all = [...p.parentNode.children], n = all[(all.indexOf(p) + (e.key === 'ArrowRight' ? 1 : all.length - 1)) % all.length];
+      n.click(); n.focus();
+    });
+    document.addEventListener('click', e => {
+      const p = e.target.closest('.pill'); if (p) { [...p.parentNode.children].forEach(x => { x.setAttribute('aria-checked', String(x === p)); x.tabIndex = x === p ? 0 : -1; }); touched(); }
+      if (e.target.closest('#send, #send-m, #send-step')) {
+        const left = Object.entries(state).filter(([k, v]) => v === 'fix').map(([k]) => STEPS.find(s => s.key === k).label);
+        toast(left.length ? `Still to fix: ${left.join(', ')}.` : 'Sent to Paolo Cruz for review.');
+      }
+    });
+    show(cur);
+  </script>
+</body>
+</html>
