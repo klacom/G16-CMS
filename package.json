@@ -17,7 +17,9 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test:db": "node tooling/test-db.mjs",
-    "supabase:start": "supabase start --exclude realtime,storage-api,imgproxy,postgres-meta,studio,edge-runtime,logflare,vector,supavisor",
+    "bootstrap:admin": "node --env-file=.env.local tooling/bootstrap-admin.mjs",
+    "supabase:start": "node tooling/start-local.mjs",
+    "supabase:restart": "node tooling/start-local.mjs --restart",
     "supabase:stop": "supabase stop",
     "supabase:env": "node tooling/write-local-env.mjs",
     "test:local": "node tooling/test-local.mjs"
@@ -25,13 +27,22 @@
   "dependencies": {
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.119.0",
+    "@tiptap/core": "3.34.0",
+    "@tiptap/extension-image": "3.34.0",
+    "@tiptap/pm": "3.34.0",
+    "@tiptap/react": "3.34.0",
+    "@tiptap/starter-kit": "3.34.0",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "server-only": "0.0.1"
+    "server-only": "0.0.1",
+    "svix": "2.10.0",
+    "zod": "4.6.7"
   },
   "overrides": {
-    "@typescript-eslint/typescript-estree": { "minimatch": "11.0.1" }
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.1"
+    }
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",
@@ -40,6 +51,7 @@
     "@types/react-dom": "19.3.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.6",
+    "prettier": "3.10.1",
     "supabase": "3.1.0",
     "typescript": "6.0.3",
     "vitest": "5.1.0"

@@ -6,9 +6,9 @@ export default defineConfig([
   ...nextVitals,
   ...nextTypescript,
   globalIgnores([
-    ".next/**", "node_modules/**", ".cache/**", "coverage/**",
+    ".next/**", ".next-e2e/**", "node_modules/**", ".cache/**", "coverage/**",
     "playwright-report/**", "test-results/**", "next-env.d.ts",
-    "design/**", "scripts/**", "php-backend/**", ".claude/**",
+    "design/**", "legacy/**", ".claude/**", ".agents/**",
     "supabase/.temp/**", "supabase/.branches/**",
   ]),
 ]);

@@ -1,7 +1,7 @@
 # Implementation Plan: ICG rebuild
 
 Created: 2026-11-14 (Asia/Manila)
-Status: T01-T05 authorized by the user; T02-T05 implemented and verified. T01's contract draft is delivered; business-rule reconciliation remains pending.
+Status: Full eight-module implementation authorized on 2026-11-17. T02-T05 remain complete. The approved replacement business contract and current execution checklist are in backend-plan.md and backend-todo.md; older provisional decisions below are historical.
 Task list target: [todo.md](todo.md). See [foundation evidence](foundation-evidence.md) and [local setup](setup.md).
 
 ## Overview
@@ -17,7 +17,7 @@ This plan is based on the local documents and selected legacy feature paths. It 
 - `.claude/skills/icg-prototype/SKILL.md`: Claude's prototype/handoff contract.
 - `design/tokens.css` and `design/tailwind.config.js`: available design inputs; colors/fonts remain provisional.
 - `README.md`: describes the legacy application; its PHP hosting instructions are not the new application's setup guide.
-- Selected `php-backend/` and editor/reviewer PHP paths: behavioral evidence for invitations, approvals, scheduling, expiry, comments, and contact submissions. Their implementation and security behavior are not carried over as requirements.
+- Selected `legacy/php-backend/` and editor/reviewer PHP paths: behavioral evidence for invitations, approvals, scheduling, expiry, comments, and contact submissions. Their implementation and security behavior are not carried over as requirements.
 - External plan: https://claude.ai/artifact/XLxYzwpGB6jzqUBMgaRGBL was inaccessible during discovery. Task 1 reconciles it if an accessible copy becomes available; otherwise explicitly records a replacement contract for review before dependent semantics are implemented.
 - There is no existing `package.json`, Next.js application, Supabase project configuration, SQL schema, or prior `tasks/` plan in this checkout at planning time.
 - Existing untracked `CLAUDE.md`, `.claude/`, and `design/` belong to ongoing design work and must be preserved.

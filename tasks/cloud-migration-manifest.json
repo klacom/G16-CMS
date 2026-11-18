@@ -1,0 +1,120 @@
+{
+  "projectRef": "lcvxwfhbnzxjihtcrvpa",
+  "organizationId": "jphejzrzwchmuxkuijbt",
+  "appliedOn": "2026-11-18",
+  "note": "MCP-generated history versions were aligned to the successfully applied source file versions so future CLI migrations remain consistent.",
+  "migrations": [
+    {
+      "file": "20261117084255_identity_access.sql",
+      "version": "20261117084255",
+      "name": "identity_access",
+      "sha256": "9a384c2c15fdebb5f9c89ca93a2f27592c35f62f5534b4f20ff1f0afbd62ad2e",
+      "generatedVersion": "20261118020005",
+      "applied": true
+    },
+    {
+      "file": "20261117084802_account_lifecycle.sql",
+      "version": "20261117084802",
+      "name": "account_lifecycle",
+      "sha256": "29b331eb2cc1daee1ba0d846d30cd4e16289bd70ffd4ed0bd43bad6bcf8625da",
+      "generatedVersion": "20261118020052",
+      "applied": true
+    },
+    {
+      "file": "20261117085341_editorial_core.sql",
+      "version": "20261117085341",
+      "name": "editorial_core",
+      "sha256": "b92d4b05527840555f2072fcee878f806980a0310c466cbdd49d1471eaf52c0e",
+      "generatedVersion": "20261118020109",
+      "applied": true
+    },
+    {
+      "file": "20261117090352_editorial_lifecycle.sql",
+      "version": "20261117090352",
+      "name": "editorial_lifecycle",
+      "sha256": "0845c3ec7060ae21c7ffb4b7f5d527a933c9702a6dcdac05a144f34e2c9d7dac",
+      "generatedVersion": "20261118020119",
+      "applied": true
+    },
+    {
+      "file": "20261117091238_auth_controls.sql",
+      "version": "20261117091238",
+      "name": "auth_controls",
+      "sha256": "60ecee00feb38e6e34c2e29bdfd9fe5ccaa6d84c4e8e671db89dc38ee0ecbc1e",
+      "generatedVersion": "20261118020735",
+      "applied": true
+    },
+    {
+      "file": "20261117091239_media_storage.sql",
+      "version": "20261117091239",
+      "name": "media_storage",
+      "sha256": "13a34b1716c8e901a23b31a4f3ed25ec0fcefdbf73799a7e6d96d7a27c8a1019",
+      "generatedVersion": "20261118020746",
+      "applied": true
+    },
+    {
+      "file": "20261117091241_site_management.sql",
+      "version": "20261117091241",
+      "name": "site_management",
+      "sha256": "36d72d8ca919d3787d105a645572141ba0636c4faf6697464c2c6ae63b955a55",
+      "generatedVersion": "20261118020755",
+      "applied": true
+    },
+    {
+      "file": "20261117091243_contact_delivery.sql",
+      "version": "20261117091243",
+      "name": "contact_delivery",
+      "sha256": "07481c23737c49deec54f2698c97ba23f96c9b87a44b8055d74028173f4371e9",
+      "generatedVersion": "20261118021103",
+      "applied": true
+    },
+    {
+      "file": "20261117091244_scheduled_operations.sql",
+      "version": "20261117091244",
+      "name": "scheduled_operations",
+      "sha256": "9f8da0ef12b82f83d3e1d6b6879fad905e89ba4767545a3270f083732a8594d2",
+      "generatedVersion": "20261118021222",
+      "applied": true
+    },
+    {
+      "file": "20261117120803_discovery_operations_completion.sql",
+      "version": "20261117120803",
+      "name": "discovery_operations_completion",
+      "sha256": "40b61c22ff0e58b9b06bf046bd96d782033a375794cec9accb7af407004890bc",
+      "generatedVersion": "20261118021236",
+      "applied": true
+    },
+    {
+      "file": "20261117122407_review_role_serialization.sql",
+      "version": "20261117122407",
+      "name": "review_role_serialization",
+      "sha256": "fffa0577f20195d27f7f07014e785aca2b6f871171001279d624553101b4d9e4",
+      "generatedVersion": "20261118021249",
+      "applied": true
+    },
+    {
+      "file": "20261117122823_operational_job_failures.sql",
+      "version": "20261117122823",
+      "name": "operational_job_failures",
+      "sha256": "9aadbfe588c862fddb2d7babadac7c486554b1bb843b000ba12621b98417cf0f",
+      "generatedVersion": "20261118021257",
+      "applied": true
+    },
+    {
+      "file": "20261117123530_about_rich_media.sql",
+      "version": "20261117123530",
+      "name": "about_rich_media",
+      "sha256": "043046b302c0c8b35aaca4989a7cf97bfe38f9dddc3b1c64a15b7d0e5f88c243",
+      "generatedVersion": "20261118021327",
+      "applied": true
+    },
+    {
+      "file": "20261118015319_contact_request_serialization.sql",
+      "version": "20261118015319",
+      "name": "contact_request_serialization",
+      "sha256": "2295e3f756a0375f1f2da0e3c486b6ee2eb9cc0c763c3e8b098a7c1a12e84519",
+      "generatedVersion": "20261118021338",
+      "applied": true
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="pics/banner.png" alt="G16-CMS Banner" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"/>
+  <img src="legacy/pics/banner.png" alt="G16-CMS Banner" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"/>
 </div>
 
 <h1 align="center" style="border-bottom: none; margin-top: 20px;">🌐 G16-CMS</h1>
@@ -26,6 +26,50 @@ and lively. **Campus life, on the record.**
 Read [the identity guide](IDENTITY.md) for voice and tone, and [the design system](DESIGN.md)
 for the Campus Marquee visual direction. The PHP documentation below describes the
 legacy project.
+
+## Design preview
+
+The default development server runs the real Next.js application. To inspect the
+preserved HTML prototypes, set `ICG_DESIGN_PREVIEW=true` for development only.
+Production builds never serve the prototypes. Keep this flag disabled for backend
+acceptance.
+
+## ICG application
+
+Use Node 24, npm 12 and Docker Desktop. The pinned Supabase CLI runs an isolated
+ICG stack on ports 55320–55329.
+
+```powershell
+npm ci
+npm run supabase:start
+node tooling/configure-local.mjs
+npm run dev
+```
+
+Open <http://127.0.0.1:3000>. Credentials are written only to ignored `.env.local`.
+
+This workspace has since been switched to ICG cloud. `npm run dev` uses that
+backend. Local acceptance commands force the isolated local stack, and browser
+tests build into `.next-e2e`. See [cloud acceptance](tasks/cloud-acceptance.md).
+Create the first admin with [the operator procedure](tasks/bootstrap.md). There are
+no seeded production accounts or public registration. Roles are Writer, Reviewer
+and Admin; the public record always reads an approved published revision.
+
+Validation commands: `npm run lint`, `npm run typecheck`, `npm run test:unit`,
+`npm run test:db`, `npm run test:local`, `npm run build`, then `npm run test:e2e`.
+Run database, native integration and browser suites sequentially because adversarial
+tests deliberately hold shared database locks. Browser tests create an isolated local production
+build on port 3100 and a second-origin iframe host on port 3200. Fixtures and reset
+tooling refuse hosted targets. `npm run verify:migrations` additionally refuses
+local accounts/content before rebuilding the empty test database.
+
+See [the implementation contract](tasks/backend-plan.md),
+[verification evidence](tasks/backend-evidence.md), and
+[hosted acceptance instructions](tasks/deployment.md). The configured workspace now uses the ICG cloud project. A canonical domain and verified Resend sender remain launch inputs.
+
+## Legacy PHP reference
+
+The sections below describe the retained legacy project, not the ICG application.
 
 ## ✨ Key Features
 
@@ -102,7 +146,7 @@ cp config.sample.php config.php
 
 | Home Page | Article Editor | Calendar |
 |-----------|----------------|----------|
-| <img src="pics/homepage.png" width="90%"> | <img src="pics/editor.png" width="90%"> | <img src="pics/calendar.png" width="90%"> |
+| <img src="legacy/pics/homepage.png" width="90%"> | <img src="legacy/pics/editor.png" width="90%"> | <img src="legacy/pics/calendar.png" width="90%"> |
 
 </div>
 

@@ -1,6 +1,6 @@
 # ICG implementation contracts
 
-Status: foundation conventions and the access rules below are confirmed; other business semantics remain proposed for review.
+Status: superseded by the user-approved backend-plan.md on 2026-11-17. The route inventory below remains useful; provisional rules are retained as historical context, not current requirements.
 Source: `CLAUDE.md`, `design/PAGES.md`, legacy behavior as reference only.
 The inaccessible external artifact has not been reproduced or approved here.
 

@@ -23,7 +23,8 @@ Supabase and Vercel. The old MySQL database is lost; there is no data to migrate
   DESIGN.md frontmatter exactly. Handoff notes live in `design/handoff/`.
 - The Next.js app, Supabase schema, auth and all backend work are done by another
   tool (ChatGPT). Do not write that code here unless explicitly asked.
-- Treat the PHP files as a feature reference. Do not modify or "fix" them; their
+- The legacy PHP app (pages, `php-backend/`, `scripts/`, styles, fonts and uploaded
+  photos) lives in `legacy/`. Treat it as a feature reference. Do not modify or "fix" it; its
   security holes (missing auth checks, SQL injection) are documented in the plan.
 
 ## References
@@ -32,7 +33,7 @@ Supabase and Vercel. The old MySQL database is lost; there is no data to migrate
 - Concept: PLP's news and events record with the calendar as the main way in (Manila Bulletin as a concept reference only, not its look).
 - Figma: https://www.figma.com/design/H8cLeaupZB7AHxFpNalfeA/ICG-Rebranding
 - Design system: `DESIGN.md`; tokens: `design/tokens.css` + `design/tailwind.config.js`
-- Prototypes so far: home, calendar, article, archive, about, contact, login, reset password, accept invite, desk overview (month desk), my articles (proof sheet), article editor, reviews (review inbox) (all in `design/prototypes/`); page list in `design/PAGES.md`
+- Prototypes so far: home, calendar, article, archive, about, contact, login, reset password, accept invite, desk overview (month desk), my articles (proof sheet), article editor, reviews (review inbox), inbox, account, users, messages, audit log, site settings (all in `design/prototypes/`); page list in `design/PAGES.md`
 - Product context: `PRODUCT.md` (users, roles, invite-only accounts)
 - **Picking up the work? Read `design/HANDOFF.md` first**: status, workflow, tools (`design/tools/`), and the next task.
 

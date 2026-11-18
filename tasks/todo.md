@@ -1,6 +1,6 @@
 # ICG implementation tasks
 
-Created: 2026-11-14 (Asia/Manila). Status: foundation batch authorized; T02-T05 complete. T01 contract draft delivered; final business semantics pending.
+Created: 2026-11-14 (Asia/Manila). Updated 2026-11-17: the user approved the full replacement contract in backend-plan.md. T02-T05 remain complete. Follow backend-todo.md for the implementation slices; the original detailed task inventory below is preserved for traceability.
 
 Read [plan.md](plan.md) first. This is the execution checklist. Paths for future tasks are proposed repository-relative paths. Migration placeholders mean one tool-generated migration file, not a literal filename. Foundation commands now exist; verification results are in [foundation-evidence.md](foundation-evidence.md). Each future database task includes direct policy checks and type regeneration within its file budget. Every business mutation must use the T10 audit primitive once introduced. If a slice needs more than five files or a session, split it before implementing.
 
