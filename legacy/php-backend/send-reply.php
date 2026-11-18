@@ -37,7 +37,7 @@ $passQuery = $conn->query("
   WHERE setting_group = 'mail' AND setting_name = 'password'
   LIMIT 1
 ");
-$mailPassword = $passQuery->fetch_assoc()['setting_value'] ?? 'lmug rrup rumq epqh';
+$mailPassword = $passQuery->fetch_assoc()['setting_value'] ?? (getenv('ICG_LEGACY_SMTP_PASSWORD') ?: '');
 
 // Instantiate PHPMailer
 $mail = new PHPMailer();
