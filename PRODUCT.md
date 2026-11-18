@@ -73,7 +73,7 @@ always passes through a reviewer, so what appears is something ICG stands behind
 
 ## Evidence on Hand
 
-- Real PLP photographs in `gallery/` (many carry an old watermark; landscape originals
+- Real PLP photographs in `legacy/gallery/` (many carry an old watermark; landscape originals
   over 2400px are still needed for heroes).
 - All article, event, contact and archive copy in the prototypes is placeholder for ICG
   to confirm. Contact addresses and turnaround times are placeholders. Do not present

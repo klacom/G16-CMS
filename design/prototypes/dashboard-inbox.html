@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inbox · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Inbox: what happened to your work, by the day it happened. The date is the
+     * spine, as everywhere on the site: each day opens with its numeral, and its
+     * notices sit on one Card White panel, one sentence each (who did what to which
+     * article), linking to where it can be acted on. A side column keeps what is
+     * still waiting on you, so reading a notice never hides an open task.
+     * Route: /dashboard/inbox. Demo: ?role=writer|reviewer|admin, ?show=unread,
+     * ?empty=1, ?state=loading|error.
+     */
+    .ib-layout { margin-top: 24px; display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 1024px) { .ib-layout { grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; align-items: start; } .ib-side { position: sticky; top: 40px; } }
+    @media (max-width: 1023px) { .ib-side { order: -1; } .ib-side.none { display: none; } }   /* phones: open tasks before the log */
+    .ib-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; margin-bottom: 24px; }
+    .ib-tools .seg { flex: 1 1 240px; max-width: 320px; }
+    .ib-foot { margin-top: 24px; font-size: 14px; color: var(--color-ink-muted); max-width: 68ch; }
+    @media (min-width: 640px) { .ib-foot { margin-left: 92px; } }
+
+    /* A day: numeral column beside the day's panel (inline above it on phones). */
+    .day { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .day + .day { margin-top: 24px; }
+    @media (min-width: 640px) { .day { grid-template-columns: 72px minmax(0, 1fr); gap: 20px; } .day + .day { margin-top: 32px; } }
+    .day-head { display: flex; align-items: baseline; gap: 10px; }
+    @media (min-width: 640px) { .day-head { display: block; padding-top: 6px; } }
+    .day-num { font-size: 30px; line-height: 1; }                 /* numeral-time-sm */
+    @media (min-width: 640px) { .day-num { font-size: 40px; } }   /* numeral-agenda-sm */
+    .day-wd { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--color-ink-muted); }  /* label-sm */
+    @media (min-width: 640px) { .day-wd { margin-top: 6px; } }
+    .day-wd.today { color: var(--color-ink); }
+
+    .notes { background: var(--color-card); border-radius: var(--radius-sm); container-type: inline-size; }
+    .note { position: relative; display: flex; align-items: flex-start; }
+    .note + .note { border-top: 1px solid var(--color-rule); }
+    .note:first-child .note-link { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+    .note:last-child .note-link { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+    .note:only-child .note-link { border-radius: var(--radius-sm); }
+    .note-link { flex: 1; min-width: 0; display: flex; gap: 12px; align-items: flex-start; padding: 16px 16px 16px 52px; color: inherit; }
+    @media (min-width: 640px) { .note-link { padding: 18px 20px 18px 56px; } }
+    .note-link:hover { background: var(--color-card-hover); }
+    .note-link:hover .say strong.what { text-decoration: underline; text-underline-offset: 4px; }
+    .note-link:focus-visible { outline-offset: -2px; }
+    .note-link .chev { flex: none; margin-top: 1px; margin-left: auto; color: var(--color-ink-muted); transition: transform 150ms ease; }
+    .note-link:hover .chev { transform: translateX(2px); }
+    /* Read notices step back to Ink Muted; unread ones are Ink and semibold. */
+    .say { font-size: 15px; line-height: 1.45; color: var(--color-ink-muted); }
+    .say strong { font-weight: 600; color: var(--color-ink); }
+    .note.unread .say { font-weight: 600; color: var(--color-ink); }
+    .note.unread .say strong { font-weight: 700; }
+    .quote { margin-top: 4px; font-size: 15px; line-height: 1.45; color: var(--color-ink-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    /* Meta line: every item carries its separator, and the line is shifted left by one
+       separator inside a clipping box, so a separator that starts a wrapped line is cut off. */
+    .meta-row { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+    @media (max-width: 639px) { .meta-row { flex-direction: column; align-items: flex-start; } }
+    .meta-clip { overflow: hidden; min-width: 0; }
+    .note-meta { display: flex; flex-wrap: wrap; margin-left: -16px; }
+    .note-meta .it { white-space: nowrap; }
+    @media (max-width: 379px) { .note-meta .it { white-space: normal; } }  /* very narrow phones: long items may wrap */
+    .note-meta .sep { display: inline-block; width: 16px; text-align: center; color: var(--color-ink-faint); }
+    .meta-row .badge[data-status="draft"] { background: var(--color-paper); }
+    @container (min-width: 820px) {
+      .note-body { display: grid; grid-template-columns: minmax(0, 1fr) 220px; grid-template-rows: auto 1fr; column-gap: 40px; }
+      .note-body .say, .note-body .quote { grid-column: 1; max-width: 72ch; }
+      .note-body .meta-row { grid-column: 2; grid-row: 1 / span 2; margin-top: 1px; flex-direction: column; align-items: flex-end; gap: 6px; }
+      .note-body .note-meta { flex-direction: column; align-items: flex-end; margin-left: 0; text-align: right; }
+      .note-body .note-meta .sep { display: none; }
+    }
+
+    /* Read toggle: the unread dot is the button. */
+    .mark { position: absolute; left: 4px; top: 6px; z-index: 1; width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius-pill); }
+    @media (min-width: 640px) { .mark { left: 6px; top: 8px; } }
+    .mark::before { content: ''; width: 10px; height: 10px; border-radius: 999px; box-shadow: inset 0 0 0 1.5px transparent; transition: box-shadow 150ms ease, background-color 150ms ease; }
+    .note.unread .mark::before { background: var(--color-ink); }
+    .note:not(.unread):hover .mark::before, .mark:focus-visible::before { box-shadow: inset 0 0 0 1.5px var(--color-ink-faint); }
+    .mark:hover { background: var(--color-rule); }
+    .mark:active { transform: scale(0.94); }
+
+    .ruled { border-top: 3px solid var(--color-ink); padding-top: 12px; }
+    .ruled + .ruled { margin-top: 32px; }
+    /* A task: its text beside its one action, wrapping under it only when there's no room. */
+    .task { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 14px 0; }
+    .task-txt { flex: 1 1 180px; min-width: 0; }
+    .task .btn { flex: none; }
+    .task + .task { border-top: 1px solid var(--color-rule); }
+    .ib-empty { padding: 32px; background: var(--color-card); border-radius: var(--radius-sm); max-width: 640px; }
+    @media (prefers-reduced-motion: reduce) { .note-link .chev, .mark::before { transition: none; } .note-link:hover .chev { transform: none; } .mark:active { transform: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head">
+        <div><h1 class="t-section">Inbox</h1><p class="ov-sub" id="sub"></p></div>
+      </header>
+      <div class="ib-layout">
+        <div class="min-w-0">
+          <div class="ib-tools">
+            <div class="seg" role="tablist" aria-label="Show" id="seg">
+              <button type="button" role="tab" aria-controls="days" id="tab-all" data-show="all"></button>
+              <button type="button" role="tab" aria-controls="days" id="tab-unread" data-show="unread"></button>
+            </div>
+            <button type="button" class="btn btn-day" id="mark-all" data-component="MarkAllRead">Mark all as read</button>
+          </div>
+          <section id="days" role="tabpanel" aria-labelledby="tab-all" data-component="NoticeDays"></section>
+          <p class="ib-foot" id="mail-note" data-component="EmailNote"></p>
+        </div>
+        <aside class="ib-side" aria-label="Still open" data-component="InboxSide">
+          <section class="ruled" aria-labelledby="wait-h" data-component="WaitingOnYou">
+            <h2 id="wait-h" class="t-h2">Waiting on you <span class="text-ink-muted font-semibold text-[15px]" id="wait-n"></span></h2>
+            <div id="tasks" class="mt-1"></div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const { $, esc, icon, badge, mount, toast, role, withRole, DAYS, MONTHS, parse, plainDate, TODAY } = window.Desk;
+    mount({ current: 'inbox', title: 'Inbox' });
+    const params = new URLSearchParams(location.search);
+    const go = href => withRole(href);
+    const s = x => `<strong class="what">${esc(x)}</strong>`;   // an article title
+    const p = x => `<strong>${esc(x)}</strong>`;                // a person
+
+    /*
+     * Notices (notifications): kind, when, the sentence, an optional quote, meta, the
+     * article's status now, and where the row goes. task: also listed under Waiting on you.
+     */
+    const NOTICES = {
+      writer: [
+        { id: 'w1', on: '2026-11-15', at: '8:00 AM', kind: 'clock', unread: true, href: 'dashboard-editor.html?id=a4', status: 'approved',
+          say: `${s('Computer Society joins the city’s digital literacy week')} goes live tomorrow at 8:00 AM.` },
+        { id: 'w2', on: '2026-11-14', at: '6:15 PM', kind: 'reviews', unread: true, href: 'dashboard-editor.html?id=a2', status: 'draft',
+          say: `${p('Paolo Cruz')} asked for changes to ${s('Code camp for senior high students')}.`, quote: 'Add the venue and the sign-up deadline before this goes out.', meta: '2 requests',
+          task: { title: 'Code camp for senior high students', line: 'Paolo Cruz asked for 2 changes', action: 'Fix 2 requests' } },
+        { id: 'w3', on: '2026-11-14', at: '12:02 PM', kind: 'reviews', href: 'dashboard-editor.html?id=a3', status: 'in_review',
+          say: `${p('Paolo Cruz')} accepted your review request for ${s('Hackathon rules and team sign-up')}.`, meta: '' },
+        { id: 'w4', on: '2026-11-13', at: '4:05 PM', kind: 'reviews', unread: true, href: 'dashboard-editor.html?id=a4', status: 'approved',
+          say: `${p('Paolo Cruz')} approved ${s('Computer Society joins the city’s digital literacy week')}. It goes live Monday, November 16, 8:00 AM.`, quote: 'Clear and complete. Nice work on the photos.' },
+        { id: 'w5', on: '2026-11-10', at: '2:30 PM', kind: 'external', href: 'article.html?id=computer-studies-hackathon-kickoff', status: 'published',
+          say: `${s('Computer Studies hackathon kickoff')} is live on the site.` , meta: 'Approved by Paolo Cruz' },
+        { id: 'w6', on: '2026-11-08', at: '9:30 PM', kind: 'user', href: 'dashboard-account.html#password-section',
+          say: 'Your password was changed.', quote: 'If this wasn’t you, reset your password now and tell an ICG admin.', meta: 'From a browser on Windows' },
+      ],
+      reviewer: [
+        { id: 'v1', on: '2026-11-15', at: '9:58 AM', kind: 'reviews', unread: true, href: 'dashboard-reviews.html?id=r1', status: 'in_review',
+          say: `${p('Lea Mendoza')} sent ${s('Code camp for senior high students')} back to you with both requests fixed.`, quote: 'Added the venue and the deadline. Thanks!', meta: 'Round 2<span class="dot-sep"></span>Needed by Thursday, November 26',
+          task: { title: 'Code camp for senior high students', line: 'Second read: check Lea’s 2 fixes', action: 'Read the changes' } },
+        { id: 'v2', on: '2026-11-15', at: '8:15 AM', kind: 'reviews', unread: true, href: 'dashboard-reviews.html?id=r4', status: 'in_review',
+          say: `${p('Jo Ramos')} asked you to review ${s('Nursing students to hold a free health check day in Barangay Rosario')}.`, meta: 'No date',
+          task: { title: 'Nursing students to hold a free health check day', line: 'New request from Jo Ramos', action: 'Accept or decline' } },
+        { id: 'v3', on: '2026-11-14', at: '4:40 PM', kind: 'reviews', unread: true, href: 'dashboard-reviews.html?id=r3', status: 'in_review',
+          say: `${p('Carla Dizon')} asked you to review ${s('Glee club opens auditions for the Christmas concert choir')}.`, meta: 'Needed by Thursday, November 19',
+          task: { title: 'Glee club opens auditions for the Christmas concert choir', line: 'New request from Carla Dizon, needed by Thursday', action: 'Accept or decline' } },
+        { id: 'v4', on: '2026-11-14', at: '11:20 AM', kind: 'reviews', href: 'dashboard-reviews.html?id=r2', status: 'in_review',
+          say: `${p('Lea Mendoza')} asked you to review ${s('Hackathon rules and team sign-up')}. You accepted.`, meta: 'Needed by Tuesday, November 17' },
+        { id: 'v5', on: '2026-11-10', at: '2:30 PM', kind: 'external', href: 'article.html?id=computer-studies-hackathon-kickoff', status: 'published',
+          say: `${s('Computer Studies hackathon kickoff')}, which you approved, is live on the site.`, meta: 'By Lea Mendoza' },
+      ],
+      admin: [
+        { id: 'm1', on: '2026-11-15', at: '9:12 AM', kind: 'user', unread: true, href: 'dashboard-users.html?q=jo.ramos%40plpasig.edu.ph',
+          say: `${p('Jo Ramos')} accepted your invite and joined the desk as a Writer.`, meta: 'Invited November 10' },
+        { id: 'm3', on: '2026-11-15', at: '9:00 AM', kind: 'mail', href: 'dashboard-messages.html',
+          say: `${p('3 new messages')} came in through the contact form.`, meta: '1 about an event listing' },
+        { id: 'm2', on: '2026-11-14', at: '3:40 PM', kind: 'mail', unread: true, href: 'dashboard-users.html?status=invited&q=rafael.santos%40plpasig.edu.ph',
+          say: `Your invite to ${p('rafael.santos@plpasig.edu.ph')} expired before it was used.`, meta: 'Sent November 7 as a Reviewer',
+          task: { title: 'Invite to rafael.santos@plpasig.edu.ph', line: 'Expired after 7 days', action: 'Review invite' } },
+        { id: 'm4', on: '2026-11-12', at: '5:20 PM', kind: 'users', href: 'dashboard-users.html?q=bea.villanueva%40plpasig.edu.ph',
+          say: `${p('Bea Villanueva')} stepped down from reviewing ${s('Freshmen photo walk')}.`, quote: 'I’m covering the intramurals that week.', meta: 'Kim Reyes chose a new reviewer' },
+      ],
+    };
+    /* What this person also gets by email (set in Account › Email). */
+    const MAIL = {
+      writer: 'Review decisions and go-live notices',
+      reviewer: 'New review requests and articles sent back to you',
+      admin: 'Accepted or expired invites and new contact messages',
+    };
+    const ADDRESS = { writer: 'lea.mendoza@plpasig.edu.ph', reviewer: 'paolo.cruz@plpasig.edu.ph', admin: 'maria.santos@plpasig.edu.ph' };
+
+    let list = params.get('empty') === '1' ? [] : NOTICES[role].map(n => ({ ...n }));
+    // Read state survives going to an article and coming back (prototype only).
+    try { const read = JSON.parse(sessionStorage.getItem('icg-inbox-read-' + role) || '[]'); list.forEach(n => { if (read.includes(n.id)) n.unread = false; }); } catch { /* storage off */ }
+    const save = () => { try { sessionStorage.setItem('icg-inbox-read-' + role, JSON.stringify(list.filter(n => !n.unread).map(n => n.id))); } catch { /* storage off */ } };
+    let show = params.get('show') === 'unread' ? 'unread' : 'all';
+    let shown = null;   // ids visible in the Unread view; marking one read keeps it in place until the view changes
+    const unread = () => list.filter(n => n.unread).length;
+
+    function header() {
+      const n = unread();
+      $('sub').innerHTML = `${n ? `${n} unread` : 'Nothing unread'}<span class="dot-sep"></span>${DAYS[TODAY.getDay()]}, ${plainDate('2026-11-15')}`;
+      $('tab-all').textContent = `All ${list.length}`;
+      $('tab-unread').textContent = `Unread ${n}`;
+      $('mark-all').disabled = !n;
+      $('mark-all').classList.toggle('opacity-40', !n);
+      document.querySelectorAll('#seg [role=tab]').forEach(t => { const on = t.dataset.show === show; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; });
+      $('days').setAttribute('aria-labelledby', 'tab-' + show);
+      document.querySelectorAll('.nav-item[href*="dashboard-inbox"]').forEach(a => {
+        const c = a.querySelector('.nav-count'), sr = a.querySelector('.nav-count + .sr-only');
+        if (c) { c.textContent = n; c.hidden = !n; } if (sr) sr.textContent = n ? `, ${n} unread` : '';
+      });
+    }
+
+    function dayHead(key) {
+      const d = parse(key), today = key === '2026-11-15';
+      const full = `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}${today ? ' (today)' : ''}`;
+      return `<h2 class="sr-only">${full}</h2><div class="day-head" aria-hidden="true"><p class="display day-num">${d.getDate()}</p><p class="day-wd${today ? ' today' : ''}">${today ? 'TODAY' : DAYS[d.getDay()].slice(0, 3).toUpperCase()}</p></div>`;
+    }
+
+    function noteHTML(n) {
+      const href = go(n.href);
+      const title = n.say.replace(/<[^>]+>/g, '');
+      return `<li class="note${n.unread ? ' unread' : ''}" data-id="${n.id}" data-component="Notice">
+        <button type="button" class="mark" data-mark="${n.id}" aria-label="${n.unread ? 'Mark as read' : 'Mark as unread'}: ${esc(title)}"></button>
+        <a class="note-link" href="${esc(href)}">
+          <span class="note-body min-w-0 flex-1">
+            <span class="say block">${n.unread ? '<span class="sr-only">Unread. </span>' : ''}${n.say}</span>
+            ${n.quote ? `<span class="quote">“${esc(n.quote)}”</span>` : ''}
+            <span class="meta-row"><span class="meta-clip"><span class="note-meta meta">${[n.at, ...(n.meta ? n.meta.split('<span class="dot-sep"></span>') : [])].map(m => `<span class="it"><span class="sep" aria-hidden="true">·</span>${m}</span>`).join('')}</span></span>${n.status ? badge(n.status) : ''}</span>
+          </span>
+          <span class="chev" aria-hidden="true">${icon('chevron', 20)}</span>
+        </a></li>`;
+    }
+
+    function days() {
+      const state = params.get('state');
+      if (state === 'loading') {
+        $('days').innerHTML = `<div aria-hidden="true">${[0, 1].map(() => `<div class="day"><div><div class="ph w-10 !h-8"></div></div><div class="notes">${[0, 1].map(() => '<div class="p-5 pl-14 border-b border-rule last:border-0"><div class="ph w-4/5"></div><div class="ph w-1/3 mt-3 !h-[10px]"></div></div>').join('')}</div></div>`).join('')}</div><p class="sr-only" role="status">Loading your inbox…</p>`;
+        return;
+      }
+      if (state === 'error') {
+        $('days').innerHTML = `<div class="ib-empty !bg-error-soft" role="alert"><p class="font-bold text-error">Your inbox didn’t load</p><p class="mt-1 text-[15px]">Check your connection, then try again. Your notices are safe.</p><button type="button" class="btn btn-day mt-4" data-retry>Try again</button></div>`;
+        return;
+      }
+      if (!list.length) {
+        const next = role === 'reviewer' ? ['dashboard-reviews.html', 'Go to Reviews'] : role === 'admin' ? ['dashboard.html', 'Go to Overview'] : ['dashboard-articles.html', 'Go to My articles'];
+        const what = role === 'reviewer' ? 'When a writer asks for your review or sends a story back, it shows up here.'
+          : role === 'admin' ? 'When someone accepts an invite or a message comes in, it shows up here.'
+          : 'When a reviewer accepts, approves or asks for changes, or a story goes live, it shows up here.';
+        $('days').innerHTML = `<div class="ib-empty" data-component="InboxEmpty"><p class="t-h2">Nothing here yet</p><p class="mt-2 text-[16px] text-ink-muted">${what}</p><a class="btn btn-day mt-5" href="${go(next[0])}">${next[1]}</a></div>`;
+        return;
+      }
+      const visible = show === 'unread' ? list.filter(n => shown.includes(n.id)) : list;
+      if (!visible.length) {
+        $('days').innerHTML = `<div class="ib-empty" data-component="InboxEmpty"><p class="t-h2">You’ve read everything</p><p class="mt-2 text-[16px] text-ink-muted">New notices will show up here.</p><button type="button" class="btn btn-day mt-5" data-show-all>Show all</button></div>`;
+        return;
+      }
+      const groups = [];
+      visible.forEach(n => { const g = groups.find(x => x.on === n.on); g ? g.items.push(n) : groups.push({ on: n.on, items: [n] }); });
+      $('days').innerHTML = groups.map(g => `<section class="day" data-component="NoticeDay">${dayHead(g.on)}<ul class="notes">${g.items.map(noteHTML).join('')}</ul></section>`).join('');
+    }
+
+    function side() {
+      const tasks = (params.get('empty') === '1' ? [] : NOTICES[role]).filter(n => n.task);
+      $('wait-n').textContent = tasks.length || '';
+      $('tasks').innerHTML = tasks.map(n => `<div class="task" data-component="WaitingTask"><div class="task-txt"><p class="t-row">${esc(n.task.title)}</p><p class="meta mt-1">${esc(n.task.line)}</p></div>
+          <a class="btn btn-day" href="${esc(go(n.href))}">${esc(n.task.action)}</a></div>`).join('')
+        || '<p class="task text-[15px] text-ink-muted">Nothing is waiting on you.</p>';
+      $('mail-note').innerHTML = `${esc(MAIL[role])} are also emailed to ${esc(ADDRESS[role])}. <a class="link" id="mail-link" href="${go('dashboard-account.html')}#email">Change what we email you</a>`;
+      document.querySelector('.ib-side').classList.toggle('none', !tasks.length);
+    }
+
+    function render() { header(); days(); }
+    function setShow(v) {
+      show = v; shown = list.filter(n => n.unread).map(n => n.id);
+      const q = new URLSearchParams(location.search); v === 'unread' ? q.set('show', 'unread') : q.delete('show');
+      history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));
+      render();
+    }
+    function setRead(n, read) {
+      n.unread = !read; save();
+      const li = document.querySelector(`.note[data-id="${n.id}"]`);
+      if (li) li.outerHTML = noteHTML(n);
+      header();
+    }
+
+    $('seg').addEventListener('click', e => { const b = e.target.closest('[data-show]'); if (b) setShow(b.dataset.show); });
+    $('seg').addEventListener('keydown', e => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+      e.preventDefault(); const v = show === 'all' ? 'unread' : 'all'; setShow(v); $('tab-' + v).focus();
+    });
+    $('days').addEventListener('click', e => {
+      const m = e.target.closest('[data-mark]');
+      if (m) { const n = list.find(x => x.id === m.dataset.mark); setRead(n, n.unread); document.querySelector(`[data-mark="${n.id}"]`).focus(); return; }
+      if (e.target.closest('[data-show-all]')) { setShow('all'); $('tab-all').focus(); return; }
+      if (e.target.closest('[data-retry]')) { location.search = role === 'writer' ? '' : `role=${role}`; return; }
+      const a = e.target.closest('.note-link');
+      if (a) { const n = list.find(x => x.id === a.closest('.note').dataset.id); if (n.unread) { n.unread = false; save(); } }
+    });
+    $('mark-all').addEventListener('click', () => {
+      const was = list.filter(n => n.unread);
+      was.forEach(n => { n.unread = false; }); shown = []; save(); render();
+      toast(`Marked ${was.length} as read.`, () => { was.forEach(n => { n.unread = true; }); shown = list.filter(n => n.unread).map(n => n.id); save(); render(); });
+    });
+
+    shown = list.filter(n => n.unread).map(n => n.id);
+    side(); render();
+  </script>
+</body>
+</html>

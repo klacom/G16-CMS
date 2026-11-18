@@ -32,6 +32,9 @@
     chevron: '<path d="m9 6 6 6-6 6"/>',
     pin: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    copy: '<rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+    alert: '<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>',
+    download: '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M4 19h16"/>',
     // Status icons
     draft: '<circle cx="12" cy="12" r="8" stroke-dasharray="3 3.3"/>',
     in_review: '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor"/>',
@@ -86,7 +89,7 @@
     a8: '494850561_1113454817465508_1040277523513428949_n.jpg', a9: '500224508_1127395446071445_3922075466479369094_n.jpg',
     a10: '494972831_1113454740798849_3302452030579944142_n.jpg', a11: null,
   };
-  ARTICLES.forEach(a => { a.cover = COVERS[a.id] ? '../../gallery/' + COVERS[a.id] : null; });
+  ARTICLES.forEach(a => { a.cover = COVERS[a.id] ? '../../legacy/gallery/' + COVERS[a.id] : null; });
 
   const params = new URLSearchParams(location.search);
   // A page can set window.DESK_ROLE before loading desk.js to pick its default person.
@@ -95,9 +98,9 @@
 
   /* Role-based nav: only what the role can use (DESIGN.md: Role-based nav). */
   const NAV = {
-    writer: [['overview', 'Overview', 'home', 'dashboard.html'], ['articles', 'My articles', 'articles', 'dashboard-articles.html'], ['inbox', 'Inbox', 'inbox', '#', 2], ['account', 'Account', 'user', '#']],
-    reviewer: [['overview', 'Overview', 'home', 'dashboard.html'], ['reviews', 'Reviews', 'reviews', 'dashboard-reviews.html', 4], ['inbox', 'Inbox', 'inbox', '#', 1], ['account', 'Account', 'user', '#']],
-    admin: [['overview', 'Overview', 'home', 'dashboard.html'], ['articles', 'Articles', 'articles', 'dashboard-articles.html'], ['users', 'Users', 'users', '#'], ['messages', 'Messages', 'mail', '#', 4], ['audit', 'Audit log', 'list', '#'], ['settings', 'Site settings', 'settings', '#'], ['inbox', 'Inbox', 'inbox', '#'], ['account', 'Account', 'user', '#']],
+    writer: [['overview', 'Overview', 'home', 'dashboard.html'], ['articles', 'My articles', 'articles', 'dashboard-articles.html'], ['inbox', 'Inbox', 'inbox', 'dashboard-inbox.html', 3], ['account', 'Account', 'user', 'dashboard-account.html']],
+    reviewer: [['overview', 'Overview', 'home', 'dashboard.html'], ['reviews', 'Reviews', 'reviews', 'dashboard-reviews.html', 4], ['inbox', 'Inbox', 'inbox', 'dashboard-inbox.html', 3], ['account', 'Account', 'user', 'dashboard-account.html']],
+    admin: [['overview', 'Overview', 'home', 'dashboard.html'], ['articles', 'Articles', 'articles', 'dashboard-articles.html'], ['users', 'Users', 'users', 'dashboard-users.html'], ['messages', 'Messages', 'mail', 'dashboard-messages.html', 3], ['audit', 'Audit log', 'list', 'dashboard-audit.html'], ['settings', 'Site settings', 'settings', 'dashboard-settings.html'], ['inbox', 'Inbox', 'inbox', 'dashboard-inbox.html', 2], ['account', 'Account', 'user', 'dashboard-account.html']],
   };
 
   function sidebar(current) {

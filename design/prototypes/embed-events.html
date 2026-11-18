@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Campus events · ICG widget</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <link rel="stylesheet" href="embed-widgets.css">
+  <script src="public-data.js" defer></script>
+  <script src="embed-events.js" defer></script>
+</head>
+<body class="ew-page">
+  <main class="ew" data-component="EventsWidget">
+    <header class="ew-head">
+      <div><h1>Campus events</h1><p>Pamantasan ng Lungsod ng Pasig</p></div>
+      <a class="ew-mark" href="home.html" target="_blank" rel="noopener" aria-label="ICG home (opens in a new tab)">ICG</a>
+    </header>
+    <div class="ew-content">
+      <div class="ew-tabs" role="tablist" aria-label="Event view">
+        <button type="button" id="list-tab" role="tab" aria-selected="true" aria-controls="list-view" data-view="list">List</button>
+        <button type="button" id="calendar-tab" role="tab" aria-selected="false" tabindex="-1" aria-controls="calendar-view" data-view="calendar">Calendar</button>
+      </div>
+      <div id="feed-state" class="ew-state" hidden></div>
+      <section id="list-view" role="tabpanel" aria-labelledby="list-tab">
+        <h2 class="ew-sr">Upcoming events</h2>
+        <div class="ew-from"><label for="from-date">From</label><input id="from-date" type="date" min="2000-01-01" max="2099-12-31" aria-describedby="date-error"></div>
+        <p id="date-error" class="ew-error" hidden>Choose a valid date from 2000 to 2099.</p>
+        <div id="upcoming" data-component="WidgetEventList"></div>
+      </section>
+      <section id="calendar-view" role="tabpanel" aria-labelledby="calendar-tab" hidden>
+        <div class="ew-calendar-layout">
+          <div>
+            <div class="ew-month-bar">
+              <button type="button" class="ew-icon" id="previous-month" aria-label="Previous month"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14 6-6 6 6 6"/></svg></button>
+              <h2 id="month-label"></h2>
+              <button type="button" class="ew-icon" id="next-month" aria-label="Next month"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m10 6 6 6-6 6"/></svg></button>
+            </div>
+            <div id="month-grid" data-component="WidgetMonth"></div>
+            <div class="ew-calendar-tools"><button type="button" class="ew-button" id="today">Today</button><p class="ew-legend"><span class="ew-event-dot" aria-hidden="true"></span> Events</p></div>
+            <div class="ew-day-picker"><label for="day-select">Choose a day</label><select id="day-select"></select></div>
+          </div>
+          <section class="ew-programme" aria-labelledby="day-title">
+            <h2 id="day-title"></h2><p id="day-count" class="ew-meta"></p>
+            <div id="day-events" data-component="WidgetDayProgramme"></div>
+          </section>
+        </div>
+      </section>
+      <p id="widget-status" class="ew-sr" role="status" aria-live="polite" aria-atomic="true"></p>
+    </div>
+    <footer class="ew-foot"><a id="full-calendar" href="calendar.html" target="_blank" rel="noopener">Full campus calendar <span aria-hidden="true">↗</span><span class="ew-sr"> (opens in a new tab)</span></a><p>Times are Philippine Time.</p><p>ICG · Sample campus content</p></footer>
+    <noscript><p class="ew-state">This preview needs JavaScript. <a href="calendar.html" target="_blank" rel="noopener">Open the campus calendar</a>.</p></noscript>
+  </main>
+</body>
+</html>

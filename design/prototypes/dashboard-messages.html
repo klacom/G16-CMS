@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Messages · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script>window.DESK_ROLE = 'admin';</script>
+  <script src="desk.js"></script>
+  <script src="desk-admin-data.js"></script>
+  <style>
+    /*
+     * Messages (admin): what people sent through the public contact form. One page,
+     * two panes, like Reviews: the list on a full-height Card White column, grouped
+     * under the day each message arrived, and the open message on Mist with its
+     * replies and the reply box. Every open message carries the date the contact
+     * page promises a reply by (two school days). A topic can add its next step:
+     * an event submission can start a draft, an account request can start an invite.
+     * Routes: /dashboard/messages and /dashboard/messages/[id] (?id= here).
+     * Demo: ?id=m1…m10, ?tab=open|replied|closed, ?topic=, ?q=, ?empty=1, ?state=loading|error.
+     */
+    .mx { display: grid; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 1024px) { .mx { grid-template-columns: 380px minmax(0, 1fr); min-height: 100svh; } }
+    @media (max-width: 1023px) { .mx.open .list { display: none; } .mx:not(.open) .pane { display: none; } }
+
+    /* The list */
+    .list { background: var(--color-card); padding: 24px 0 32px; min-height: calc(100svh - var(--dash-topbar)); }
+    @media (min-width: 1024px) { .list { position: sticky; top: 0; height: 100svh; overflow-y: auto; } }
+    .list-head { padding: 0 16px 20px; display: grid; gap: 16px; }
+    @media (min-width: 1024px) { .list-head { padding: 16px 24px 20px; } }
+    .list-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+    .search { position: relative; flex: 1 1 180px; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-ink-muted); pointer-events: none; }
+    .search .field { padding-left: 42px; }
+    .list-tools .select { height: 48px; flex: none; }
+    .list-count { font-size: 13px; color: var(--color-ink-muted); }
+    .list-count:empty { display: none; }
+
+    /* Day heads: the date spine, as on the rest of the site (DESIGN.md: The Plain Date Rule). */
+    .dhead { position: sticky; top: var(--dash-topbar); z-index: 2; display: flex; align-items: baseline; gap: 8px; padding: 14px 16px 8px; background: var(--color-card); border-top: 1px solid var(--color-rule); }
+    @media (min-width: 1024px) { .dhead { top: 0; padding: 16px 24px 8px; } }
+    .dnum { font-size: 20px; line-height: 1; }                               /* numeral-cell-sm */
+    @media (min-width: 1024px) { .dnum { font-size: 26px; } }                /* numeral-cell */
+    .dwd { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--color-ink-muted); }   /* label-sm */
+    .dwd.today { color: var(--color-ink); }
+    .dmo { font-size: 13px; color: var(--color-ink-muted); }
+
+    /* A row: one button for the whole message. Unread rows carry the Ink dot and are semibold. */
+    .li { position: relative; display: block; width: 100%; text-align: left; padding: 12px 16px 14px 40px; color: inherit; transition: background-color 150ms ease; }
+    @media (min-width: 1024px) { .li { padding: 12px 24px 14px 44px; } }
+    .li + .li { border-top: 1px solid var(--color-rule); }
+    .li:hover { background: var(--color-card-hover); }
+    .li[aria-current="true"] { background: var(--color-paper); box-shadow: inset 0 0 0 2px var(--color-ink); }
+    .li:focus-visible { outline-offset: -4px; border-radius: 0; }
+    .li .dot { position: absolute; left: 16px; top: 19px; width: 10px; height: 10px; border-radius: 999px; background: var(--color-ink); }
+    @media (min-width: 1024px) { .li .dot { left: 20px; } }
+    .li-top { display: flex; align-items: baseline; gap: 12px; }
+    .li-who { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .li-time { flex: none; font-size: 13px; color: var(--color-ink-muted); }
+    .li-subj { margin-top: 2px; font-size: 15px; line-height: 1.35; font-weight: 400; }
+    .li-prev { margin-top: 2px; font-size: 14px; line-height: 1.45; color: var(--color-ink-muted); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .li .meta { margin-top: 6px; }
+    .li.unread .li-who { font-weight: 700; }
+    .li.unread .li-subj { font-weight: 600; }
+    .list-empty { padding: 16px; font-size: 15px; color: var(--color-ink-muted); border-top: 1px solid var(--color-rule); }
+    @media (min-width: 1024px) { .list-empty { padding: 16px 24px; } }
+
+    /* The open message */
+    .pane { min-width: 0; padding: 20px 16px 56px; }
+    @media (min-width: 1024px) { .pane { padding: 40px 48px 72px; } }
+    .pane-in { container-type: inline-size; }
+    /* Wide panes (1040px and up): the reply box and Delete sit beside the thread, in view while reading. */
+    .pane-cols { display: grid; grid-template-columns: minmax(0, 1fr); }
+    .side-col > :first-child { margin-top: 24px; }
+    @container (min-width: 1040px) {
+      .pane-cols { grid-template-columns: minmax(0, 1fr) 400px; gap: 32px; align-items: start; }
+      .side-col { position: sticky; top: 40px; }
+      .side-col > :first-child { margin-top: 0; }
+      .side-col .pane-foot { margin-top: 24px; }
+    }
+    .pane-in.enter { animation: pane-in 200ms cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes pane-in { from { opacity: 0; } to { opacity: 1; } }
+    .pane-head { display: grid; gap: 16px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--color-rule); }
+    .pane-head .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+    #pane-h { scroll-margin-top: 72px; }
+    .state-line { margin-top: 8px; font-size: 15px; color: var(--color-ink-muted); }
+    .state-line strong { color: var(--color-ink); font-weight: 600; }
+    .back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin: -8px 0 4px; font-size: 14px; font-weight: 600; color: var(--color-ink-muted); }
+    .back:hover { color: var(--color-ink); }
+
+    /* Letters: the message and each reply, Card White on Mist, one after another. */
+    .thread { display: grid; gap: 12px; }
+    .letter { background: var(--color-card); border-radius: var(--radius-sm); padding: 18px 16px 20px; }
+    @media (min-width: 640px) { .letter { padding: 20px 24px 24px; } }
+    .from { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--color-rule); }
+    .av { width: 36px; height: 36px; flex: none; border-radius: 999px; display: grid; place-items: center; background: var(--color-ink); color: var(--color-paper); font-size: 13px; font-weight: 700; }
+    .av.out { background: var(--color-paper); color: var(--color-ink); box-shadow: inset 0 0 0 1.5px var(--color-ink-faint); }
+    .from-name { font-size: 15px; font-weight: 600; }
+    .from-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 4px; font-size: 14px; color: var(--color-ink-muted); overflow-wrap: anywhere; }
+    .from-line .icon-btn { margin: -10px 0 -10px -4px; }
+    .from-when { margin-left: auto; flex: none; font-size: 13px; color: var(--color-ink-muted); text-align: right; }
+    @media (max-width: 639px) { .from { flex-wrap: wrap; } .from-when { flex: 1 0 100%; margin-left: 0; padding-left: 48px; text-align: left; } }
+    .letter-body { margin-top: 16px; font-size: 16px; line-height: 1.6; max-width: 68ch; white-space: pre-line; overflow-wrap: anywhere; }
+    .sent-line { margin-top: 14px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--color-ink-muted); }
+
+    /* What the topic adds: a Mist panel inside the letter (like the editor's "When it happens"). */
+    .extra { margin-top: 20px; padding: 16px; background: var(--color-paper); border-radius: var(--radius-sm); }
+    @media (min-width: 640px) { .extra { padding: 18px 20px; } }
+    .extra dl { display: grid; gap: 6px 16px; margin-top: 10px; font-size: 15px; }
+    .extra dl > div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 12px; }
+    .extra dt { font-size: 14px; font-weight: 600; }
+    .extra .btn-day { margin-top: 14px; }
+
+    /* A reply that came back. Error Wash, like a failed load (DESIGN.md: Messages). */
+    .bounce { padding: 18px 16px; background: var(--color-error-soft); border: 1px solid var(--color-error); border-radius: var(--radius-sm); }
+    @media (min-width: 640px) { .bounce { padding: 18px 24px 20px; } }
+    .bounce h3 { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; font-weight: 700; color: var(--color-error); }
+    .bounce .row2 { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; }
+    .bounce .row2 > div { flex: 1 1 260px; }
+
+    /* The reply box */
+    .compose { background: var(--color-card); border-radius: var(--radius-sm); padding: 18px 16px 20px; }
+    @media (min-width: 640px) { .compose { padding: 20px 24px 24px; } }
+    .compose textarea.field { min-height: 200px; font-size: 16px; }
+    .compose .under { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin-top: 6px; font-size: 13px; color: var(--color-ink-muted); }
+    .compose .send-row { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; }
+    .compose .alt { font-size: 14px; color: var(--color-ink-muted); }
+    .pane h3 { text-wrap: balance; }
+    .linkish { min-height: 44px; font-weight: 600; color: var(--color-amber); text-decoration: underline; text-underline-offset: 4px; }
+    .field-error { display: none; margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--color-error); }
+    .field-error.show { display: flex; gap: 6px; align-items: flex-start; }
+    .field[aria-invalid="true"] { border-color: var(--color-error); box-shadow: 0 0 0 1px var(--color-error); }
+    .pane-foot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--color-rule); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+    .pane-foot p { flex: 1 1 280px; font-size: 14px; color: var(--color-ink-muted); max-width: 60ch; }
+    .spin { animation: spin 900ms linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-panel { padding: 16px; background: var(--color-error-soft); border: 1px solid var(--color-error); border-radius: var(--radius-sm); }
+    dialog.confirm { padding: 0; border: 0; background: transparent; max-width: calc(100vw - 32px); }
+    dialog.confirm::backdrop { background: rgba(var(--night-rgb), .6); }
+    @media (prefers-reduced-motion: reduce) { .li { transition: none; } .pane-in.enter { animation: none; } .spin { animation: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="mx" id="mx">
+      <section class="list" aria-labelledby="list-h" data-component="MessageList">
+        <div class="list-head">
+          <div><h1 id="list-h" class="t-section">Messages</h1><p class="ov-sub" id="sub"></p></div>
+          <div class="seg" role="tablist" aria-label="Show" id="seg" data-component="MessageTabs">
+            <button type="button" role="tab" aria-controls="items" data-tab="open" id="tab-open"></button>
+            <button type="button" role="tab" aria-controls="items" data-tab="replied" id="tab-replied"></button>
+            <button type="button" role="tab" aria-controls="items" data-tab="closed" id="tab-closed"></button>
+          </div>
+          <div class="list-tools" data-component="MessageFilters">
+            <div class="search"><label class="sr-only" for="q">Search messages</label><input class="field" id="q" type="search" placeholder="Name, email or words…" autocomplete="off"><span id="q-icon"></span></div>
+            <label class="sr-only" for="topic">Topic</label>
+            <select class="select" id="topic"></select>
+          </div>
+          <p class="list-count" id="count" role="status"></p>
+        </div>
+        <div id="items" role="tabpanel"></div>
+      </section>
+      <section class="pane" id="pane" aria-label="Open message" data-component="MessagePane"></section>
+    </div>
+  </main>
+
+  <dialog class="confirm" id="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-text" data-component="ConfirmDialog">
+    <div class="bg-card rounded-sm p-6 w-[440px] max-w-full">
+      <h2 id="confirm-title" class="t-panel"></h2>
+      <p id="confirm-text" class="mt-2 text-[15px] text-ink-muted"></p>
+      <div class="mt-6 flex flex-wrap justify-end gap-2">
+        <button type="button" class="btn btn-day" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn !h-11 !px-5 !text-[14px] bg-ink text-paper hover:bg-surface" id="confirm-ok"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const { $, esc, icon, mount, toast, TODAY, MONTHS, DAYS, parse, ME } = window.Desk;
+    mount({ current: 'messages', title: 'Messages' });
+    $('q-icon').outerHTML = icon('search', 18);
+
+    /* Topics, as the contact form names them (contact.html). */
+    const TOPICS = { question: 'A question', account: 'Request an account', event: 'Submit an event', correction: 'Report a correction', photo: 'Remove a photo', partner: 'Partnership or press' };
+    const DESK_MAIL = 'icg@plpasig.edu.ph';
+    const ME_NAME = ME.admin[0];   // Maria Santos
+
+    /*
+     * contact_messages, newest first. status: open | replied | closed.
+     * Names follow the plan's data model (first_name, last_name, created_at, read_at…).
+     */
+    let MSGS = structuredClone(window.AdminDemo.messages);
+
+    const params = new URLSearchParams(location.search);
+    const STATE = params.get('state');               // loading | error
+    if (params.get('empty') === '1') MSGS = [];
+    const TABS = ['open', 'replied', 'closed'];
+    let tab = TABS.includes(params.get('tab')) ? params.get('tab') : 'open';
+    let topic = TOPICS[params.get('topic')] ? params.get('topic') : '';
+    let q = params.get('q') || '';
+    let cur = params.get('id') || null;
+    let shown = null;       // ids in view: a message that changes state stays in place until the view changes
+    const drafts = {};      // unsent replies, kept per message while the page is open
+    const isPhone = () => !matchMedia('(min-width: 1024px)').matches;
+
+    /* Dates (The Plain Date Rule) */
+    const daysAgo = s => Math.round((TODAY - parse(s)) / 864e5);
+    const longDate = d => `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`;
+    const when = (s, at) => { const n = daysAgo(s); return n === 0 ? `today, ${at}` : n === 1 ? `yesterday, ${at}` : `${longDate(parse(s))}, ${at}`; };
+    const dayWord = (s, at) => { const n = daysAgo(s); return n === 0 ? `Today, ${at}` : n === 1 ? `Yesterday, ${at}` : `${longDate(parse(s))}, ${at}`; };
+    /* The contact page promises a reply within two school days (Monday to Friday; holidays not counted yet). */
+    const dueDate = window.AdminDemo.dueDate;
+    function dueLine(m) {
+      const d = dueDate(m.on), diff = Math.round((d - TODAY) / 864e5), short = `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+      if (diff < 0) return { text: `Reply was due ${longDate(d)}`, short: `Reply was due ${short}`, late: true };
+      return diff === 0 ? { text: 'Reply by today', short: 'Reply by today', late: false } : { text: `Reply by ${longDate(d)}`, short: `Reply by ${short}`, late: false };
+    }
+    const nameOf = m => `${m.first} ${m.last}`;
+    const initials = s => s.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    const failed = window.AdminDemo.failed;
+
+    /* The line under each row and in the pane head: what state it's in, in words. */
+    function rowState(m) {
+      if (m.status === 'closed') return `Closed by ${esc(m.closedBy)}`;
+      if (m.status === 'replied') { const r = m.replies[m.replies.length - 1]; const n = daysAgo(r.on), d = parse(r.on); return `${r.marked ? 'Marked as replied' : 'Replied'} by ${esc(r.by)}, ${n === 0 ? 'today' : n === 1 ? 'yesterday' : MONTHS[d.getMonth()] + ' ' + d.getDate()}`; }
+      if (failed(m)) return '<span class="flag">Reply not delivered</span>';
+      if (drafts[m.id]) return '<span class="flag">Draft reply</span>';
+      const d = dueLine(m); return d.late ? `<span class="flag">${d.short}</span>` : d.short;
+    }
+
+    function inTab(m, t) { return m.status === t; }
+    function filtered() {
+      const s = q.trim().toLowerCase();
+      return MSGS.filter(m => (!topic || m.topic === topic) && (!s || [nameOf(m), m.email, m.subject, m.body].join(' ').toLowerCase().includes(s)));
+    }
+
+    /* The sidebar's Messages count follows the number unread. */
+    function navCount() {
+      const n = MSGS.filter(m => m.unread).length;
+      document.querySelectorAll('.nav-item[href*="dashboard-messages"]').forEach(a => {
+        const c = a.querySelector('.nav-count'), sr = a.querySelector('.nav-count + .sr-only');
+        if (c) { c.textContent = n; c.hidden = !n; } if (sr) sr.textContent = n ? `, ${n} new` : '';
+      });
+    }
+
+    function sync(push) {
+      const u = new URLSearchParams();
+      ['role', 'state', 'empty'].forEach(k => { if (params.get(k)) u.set(k, params.get(k)); });   // demo switches survive a reload
+      if (tab !== 'open') u.set('tab', tab);
+      if (topic) u.set('topic', topic);
+      if (q) u.set('q', q);
+      if (cur && (!isPhone() || $('mx').classList.contains('open'))) u.set('id', cur);
+      const url = location.pathname + (u.toString() ? '?' + u : '');
+      push ? history.pushState({ id: cur }, '', url) : history.replaceState({ id: cur }, '', url);
+    }
+
+    /* ---------- The list ---------- */
+    function head() {
+      const unread = MSGS.filter(m => m.unread).length;
+      const late = MSGS.filter(m => m.status === 'open' && !failed(m) && dueLine(m).late).length;
+      const bits = [unread ? `${unread} new` : 'Nothing new', ...(late ? [`${late} past the two-day reply`] : [])];
+      $('sub').innerHTML = STATE ? '&nbsp;' : bits.join('<span class="dot-sep"></span>');   // no counts until the list has loaded
+      TABS.forEach(t => {
+        const b = $('tab-' + t), n = MSGS.filter(m => inTab(m, t)).length;
+        b.textContent = `${t[0].toUpperCase() + t.slice(1)}${STATE ? '' : ' ' + n}`;
+        b.setAttribute('aria-selected', t === tab); b.tabIndex = t === tab ? 0 : -1;
+      });
+      $('items').setAttribute('aria-labelledby', 'tab-' + tab);
+      $('topic').innerHTML = `<option value="">All topics</option>` + Object.entries(TOPICS).map(([k, v]) => `<option value="${k}"${k === topic ? ' selected' : ''}>${v}</option>`).join('');
+      navCount();
+    }
+
+    function list() {
+      head();
+      if (STATE === 'loading') {
+        $('items').innerHTML = `<div aria-busy="true" aria-label="Loading messages">${[0, 1, 2, 3].map(() => `<div class="li"><div class="ph w-1/2"></div><div class="ph w-4/5 mt-3"></div><div class="ph w-3/5 mt-3"></div></div>`).join('')}</div>`;
+        return;
+      }
+      if (STATE === 'error') {
+        $('items').innerHTML = `<div class="px-4 lg:px-6"><div class="error-panel" data-component="ListError"><p class="text-[15px] font-semibold text-error">Messages didn’t load.</p><p class="mt-1 text-[15px]">Check your connection, then try again.</p><button type="button" class="btn btn-day mt-4" data-retry>Try again</button></div></div>`;
+        return;
+      }
+      const all = filtered();
+      if (!shown) shown = all.filter(m => inTab(m, tab)).map(m => m.id);
+      const rows = all.filter(m => shown.includes(m.id)).sort((a, b) => (b.on + to24(b.at)).localeCompare(a.on + to24(a.at)));
+      const filtering = !!(topic || q.trim());
+      $('count').textContent = filtering && rows.length ? `${rows.length} ${rows.length === 1 ? 'message matches' : 'messages match'}` : '';
+      if (!rows.length) {
+        $('items').innerHTML = !MSGS.length
+          ? `<div class="list-empty lg:hidden">${emptyPane().replace(/ id="pane-h" tabindex="-1"/, '').replace('t-section', 't-h2 text-ink').replace('text-[16px]', 'text-[15px]')}</div>`
+          : filtering
+            ? `<div class="list-empty" data-component="ListEmpty"><p class="text-ink font-semibold">No messages match.</p><p class="mt-1">Try other words, or another topic.</p><button type="button" class="btn btn-day mt-4" data-clear>Clear search</button></div>`
+            : `<p class="list-empty">${{ open: 'Nothing to answer.', replied: 'Nothing has been replied to yet.', closed: 'Nothing is closed.' }[tab]}</p>`;
+        return;
+      }
+      let html = '', day = null;
+      rows.forEach(m => {
+        if (m.on !== day) {
+          day = m.on; const d = parse(day), today = daysAgo(day) === 0;
+          html += `<h2 class="dhead" data-component="DayHead"><span class="sr-only">${today ? 'Today, ' : ''}${longDate(d)}</span><span aria-hidden="true" class="display dnum">${d.getDate()}</span><span aria-hidden="true" class="dwd${today ? ' today' : ''}">${today ? 'TODAY' : DAYS[d.getDay()].slice(0, 3).toUpperCase()}</span><span aria-hidden="true" class="dmo">${MONTHS[d.getMonth()]}</span></h2>`;
+        }
+        html += `<button type="button" class="li${m.unread ? ' unread' : ''}" data-id="${m.id}" aria-current="${m.id === cur}" data-component="MessageRow">
+          ${m.unread ? '<span class="dot" aria-hidden="true"></span><span class="sr-only">New: </span>' : ''}
+          <span class="li-top"><span class="li-who">${esc(nameOf(m))}</span><span class="li-time">${m.at}</span></span>
+          <span class="li-subj block">${esc(m.subject)}</span>
+          <span class="li-prev">${esc(m.body.replace(/\s+/g, ' '))}</span>
+          <span class="meta block"><span class="type">${TOPICS[m.topic]}</span><span class="dot-sep"></span>${rowState(m)}</span></button>`;
+      });
+      const had = document.activeElement?.closest?.('.li[data-id]')?.dataset.id;
+      $('items').innerHTML = html;
+      if (had) document.querySelector(`.li[data-id="${had}"]`)?.focus({ preventScroll: true });   // re-rendering never drops focus
+    }
+    const to24 = at => { const [, h, mi, ap] = at.match(/(\d+):(\d+) (AM|PM|NN)/); let H = +h % 12; if (ap === 'PM') H += 12; if (ap === 'NN') H = 12; return String(H).padStart(2, '0') + mi; };
+
+    /* ---------- The open message ---------- */
+    function letterHTML(m) {
+      const extra = m.event ? `<div class="extra" data-component="EventDetails"><h3 class="t-row">Event details</h3>
+            <dl><div><dt>Event</dt><dd>${esc(m.event.title)}</dd></div><div><dt>Date</dt><dd>${longDate(parse(m.event.date))}</dd></div><div><dt>Starts</dt><dd>${m.event.time}</dd></div><div><dt>Place</dt><dd>${esc(m.event.place)}</dd></div></dl>
+            ${m.status === 'open' ? `<a class="btn btn-day" href="dashboard-editor.html?id=new&role=admin&from=${m.id}">Draft an event article</a><p class="hint text-[13px] text-ink-muted mt-2">Starts a draft with these details. ${esc(m.first)} isn’t told until you reply.</p>` : ''}</div>`
+        : m.topic === 'account' ? `<div class="extra" data-component="AccountRequest"><h3 class="t-row">${esc(nameOf(m))} has no desk account or invite yet.</h3>
+            <p class="mt-1 text-[15px] text-ink-muted">Accounts are invite only. The invite opens with the name and email filled in.</p>
+            <a class="btn btn-day" href="dashboard-users.html?invite=1&email=${encodeURIComponent(m.email)}&name=${encodeURIComponent(nameOf(m))}">Invite ${esc(nameOf(m))}</a></div>`
+        : m.article ? `<div class="extra" data-component="AboutStory"><h3 class="t-row">About the story <a class="link" href="article.html?id=${m.article.slug}">${esc(m.article.title)}</a></h3>
+            <a class="btn btn-day" href="dashboard-editor.html?id=${m.article.id}&role=admin">Edit the article</a></div>`
+        : '';
+      return `<article class="letter" aria-label="Message from ${esc(nameOf(m))}" data-component="IncomingMessage">
+          <header class="from"><span class="av" aria-hidden="true">${initials(nameOf(m))}</span>
+            <div class="min-w-0 flex-1"><p class="from-name">${esc(nameOf(m))}</p>
+              <p class="from-line"><span>${esc(m.email)}</span><button type="button" class="icon-btn on-day" data-copy="${esc(m.email)}" aria-label="Copy email address">${icon('copy', 18)}</button>${m.phone ? `<span class="dot-sep"></span><span>${esc(m.phone)}</span>` : ''}</p></div>
+            <p class="from-when">${dayWord(m.on, m.at)}</p></header>
+          <div class="letter-body">${esc(m.body)}</div>${extra}</article>`;
+    }
+
+    function replyHTML(m, r, i) {
+      if (r.marked) return `<p class="sent-line px-1" data-component="MarkedReplied">${icon('approved', 16)}${esc(r.by)} marked this as replied, ${when(r.on, r.at)}. The answer went out another way.</p>`;
+      const bounce = r.delivery === 'failed' && m.status === 'open' ? `<section class="bounce" aria-labelledby="bounce-h" data-component="ReplyNotDelivered">
+          <h3 id="bounce-h">${icon('alert', 18)}This reply didn’t reach ${esc(m.first)}.</h3>
+          <p class="mt-1 text-[15px]">The address ${esc(r.to)} doesn’t exist, so the email came back ${when(r.on, r.back)}. If you can tell what it should be, send the reply to that address.</p>
+          <div class="row2"><div><label class="field-label" for="resend-to">Send it to</label><input class="field" id="resend-to" type="email" spellcheck="false" value="${esc(r.to)}" aria-describedby="resend-to-err" autocomplete="off"><p class="field-error" id="resend-to-err"></p></div>
+            <button type="button" class="btn btn-primary" data-resend="${i}">Send again</button></div></section>` : '';
+      return `<article class="letter" aria-label="Reply from ${esc(r.by)}" data-component="SentReply">
+          <header class="from"><span class="av out" aria-hidden="true">${initials(r.by)}</span>
+            <div class="min-w-0 flex-1"><p class="from-name">${esc(r.by)} for the ICG desk</p><p class="from-line">To ${esc(r.to)}</p></div>
+            <p class="from-when">${dayWord(r.on, r.at)}</p></header>
+          <div class="letter-body">${esc(r.body)}</div>
+          <p class="sent-line">${r.delivery === 'failed' ? `${icon('alert', 16)}<span class="text-ink font-semibold">Not delivered</span>` : r.delivery === 'sending' ? 'Sending…' : `${icon('approved', 16)}Sent from ${DESK_MAIL}`}</p></article>${bounce}`;
+    }
+
+    function composeHTML(m) {
+      const greet = `Hi ${m.first},\n\n`;
+      const text = drafts[m.id] ?? greet;
+      return `<form class="compose" id="compose" novalidate data-component="ReplyBox" aria-labelledby="c-h">
+          <h3 class="t-h2" id="c-h">${m.status === 'replied' ? `Write to ${esc(m.first)} again` : `Reply to ${esc(m.first)}`}</h3>
+          <p class="mt-1 text-[14px] text-ink-muted">Sent from ${DESK_MAIL} to ${esc(m.email)}. If ${esc(m.first)} writes back, it goes to that mailbox, not here.</p>
+          <label class="field-label mt-4" for="reply">Your reply</label>
+          <textarea class="field" id="reply" maxlength="5000" aria-describedby="reply-err reply-under">${esc(text)}</textarea>
+          <p class="field-error" id="reply-err"></p>
+          <div class="under" id="reply-under"><span>Signed “${ME_NAME}, ICG desk”</span><span id="reply-count"></span></div>
+          <div class="send-row"><button type="submit" class="btn btn-primary" id="send">Send reply</button>
+            ${m.status === 'open' ? `<p class="alt">Answered by phone or from your own email? <button type="button" class="linkish" data-mark>Mark as replied</button></p>` : ''}</div></form>`;
+    }
+
+    let lastShown = null;
+    /* chosen: the admin opened it (a row, a link). Only then does it count as read. */
+    function pane(focus, chosen) {
+      const p = $('pane');
+      if (STATE === 'loading') { p.innerHTML = `<div class="pane-in" aria-hidden="true"><div class="ph w-1/3"></div><div class="ph w-2/3 mt-4 !h-7"></div><div class="mt-8 bg-card rounded-sm p-6"><div class="ph w-1/2"></div><div class="ph mt-6"></div><div class="ph mt-3"></div><div class="ph w-3/4 mt-3"></div></div></div>`; return; }
+      if (STATE === 'error') { p.innerHTML = ''; return; }
+      const pool = filtered().filter(m => (shown || []).includes(m.id));
+      let m = MSGS.find(x => x.id === cur && (pool.includes(x) || chosen));
+      if (!m && !isPhone()) m = pool.sort((a, b) => (b.on + to24(b.at)).localeCompare(a.on + to24(a.at)))[0];
+      if (!m) { p.innerHTML = emptyPane(); cur = null; document.title = 'Messages · ICG desk'; return; }
+      const picked = cur !== m.id; cur = m.id;
+      if (m.unread && chosen) m.unread = false;
+      if (picked || chosen) queueMicrotask(list);   // the row shows it's open (and read)
+      const d = dueLine(m), last = (m.replies || [])[m.replies?.length - 1];
+      const state = m.status === 'closed' ? `Closed by <strong>${esc(m.closedBy)}</strong> ${daysAgo(m.closedOn) === 0 ? 'today' : 'on ' + longDate(parse(m.closedOn))}. No reply was sent.`
+        : m.status === 'replied' ? `Replied by <strong>${esc(last.by)}</strong>, ${when(last.on, last.at)}.`
+        : failed(m) ? `<strong>The reply wasn’t delivered.</strong> ${d.text}.`
+        : d.late ? `<strong>${d.text}.</strong> The contact page promises a reply within two school days.` : `${d.text}. The contact page promises a reply within two school days.`;
+      const acts = m.status === 'open' ? `<button type="button" class="btn btn-day" data-unread>${m.unread ? 'Mark as read' : 'Mark as unread'}</button><button type="button" class="btn btn-day" data-close>Close without replying</button>`
+        : m.status === 'closed' ? `<button type="button" class="btn btn-day" data-reopen>Reopen</button>` : '';
+      const composer = m.status === 'closed' || failed(m) ? '' : m.status === 'replied' && !m.again
+        ? `<button type="button" class="btn btn-day" data-again>Write to ${esc(m.first)} again</button>` : composeHTML(m);
+      const fresh = lastShown !== m.id; lastShown = m.id;
+      p.innerHTML = `<div class="pane-in${fresh ? ' enter' : ''}">
+        <div class="pane-head" data-component="MessageHead"><div class="min-w-0">
+          <button type="button" class="back lg:hidden" data-back>${icon('chevron', 18, 'style="transform:rotate(180deg)"')}All messages</button>
+          <p class="meta"><span class="type">${TOPICS[m.topic]}</span><span class="dot-sep"></span>Received ${when(m.on, m.at)}</p>
+          <h2 class="t-section mt-1" id="pane-h" tabindex="-1">${esc(m.subject)}</h2>
+          <p class="state-line" id="state-line">${state}</p></div>
+          ${acts ? `<div class="acts">${acts}</div>` : ''}</div>
+        <div class="pane-cols"><div class="thread">${letterHTML(m)}${(m.replies || []).map((r, i) => replyHTML(m, r, i)).join('')}</div>
+        <div class="side-col">${composer}
+        <div class="pane-foot" data-component="DeleteMessage"><p>Delete a message you don’t need to keep, such as spam, or personal details once a photo is down.</p><button type="button" class="btn btn-day" data-delete>Delete message</button></div></div></div></div>`;
+      document.title = `${m.subject} · Messages · ICG desk`;
+      count();
+      if (focus) $('pane-h').focus();
+    }
+
+    function emptyPane() {
+      if (!MSGS.length) return `<div class="max-w-[520px]" data-component="NoMessages"><h2 class="t-section" id="pane-h" tabindex="-1">No messages yet</h2>
+        <p class="mt-2 text-[16px] text-ink-muted">When someone sends the contact form, their message shows up here, and you get a summary in your inbox once a day.</p>
+        <a class="btn btn-day mt-6" href="contact.html">See the contact form</a></div>`;
+      if (q.trim() || topic) return '';   // the list already says nothing matches, with Clear search
+      if (tab === 'open') return `<div class="max-w-[520px]" data-component="AllAnswered"><h2 class="t-section" id="pane-h" tabindex="-1">Everything is answered</h2>
+        <p class="mt-2 text-[16px] text-ink-muted">Every message has a reply or is closed. New ones from the contact form show up here.</p>
+        <button type="button" class="btn btn-day mt-6" data-tabgo="replied">See what was replied</button></div>`;
+      return `<div class="max-w-[520px]"><h2 class="t-section" id="pane-h" tabindex="-1">Nothing here</h2><p class="mt-2 text-[16px] text-ink-muted">${tab === 'replied' ? 'Messages you reply to move here.' : 'Messages closed without a reply move here.'}</p></div>`;
+    }
+
+    function count() {
+      const t = $('reply'); if (!t) return;
+      $('reply-count').textContent = `${t.value.length.toLocaleString('en-US')} of 5,000 characters`;
+    }
+
+    function render(focus) { list(); pane(focus); sync(); }
+    function openMsg(id, fromRow) {
+      cur = id;
+      const phone = isPhone();
+      if (phone) $('mx').classList.add('open');
+      list(); pane(phone, true);
+      sync(phone);
+      scrollTo(0, 0);
+    }
+    function back() {
+      $('mx').classList.remove('open'); list(); sync(); document.title = 'Messages · ICG desk';
+      const row = document.querySelector(`.li[data-id="${cur}"]`); if (row) { row.focus(); row.scrollIntoView({ block: 'center' }); }
+    }
+    function changeView() { shown = null; render(); }
+
+    /* Tabs: arrow keys move between them; only the selected one is in the Tab order. */
+    $('seg').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b && b.dataset.tab !== tab) { tab = b.dataset.tab; changeView(); } });
+    $('seg').addEventListener('keydown', e => {
+      const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!d) return;
+      e.preventDefault(); tab = TABS[(TABS.indexOf(tab) + d + 3) % 3]; changeView(); $('tab-' + tab).focus();
+    });
+    $('topic').addEventListener('change', e => { topic = e.target.value; changeView(); });
+    $('q').addEventListener('input', e => { q = e.target.value; changeView(); });
+    $('items').addEventListener('click', e => { const r = e.target.closest('.li[data-id]'); if (r) openMsg(r.dataset.id); });
+    addEventListener('popstate', () => { if (isPhone() && $('mx').classList.contains('open')) back(); });
+
+    /* Confirmation dialog: resolves true on the action, false on Cancel or Escape. */
+    function confirmBox(title, text, ok) {
+      return new Promise(res => {
+        $('confirm-title').textContent = title; $('confirm-text').textContent = text; $('confirm-ok').textContent = ok;
+        const d = $('confirm'); d.showModal(); $('confirm-cancel').focus();
+        const done = v => { d.close(); res(v); };
+        $('confirm-ok').onclick = () => done(true); $('confirm-cancel').onclick = () => done(false);
+        d.oncancel = e => { e.preventDefault(); done(false); };
+      });
+    }
+
+    const nowAt = () => '10:14 AM';   // the prototype's "now", after the newest message
+    const spinner = '<svg aria-hidden="true" class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>';
+    const setErr = (id, text) => { const f = $(id), er = $(id + '-err'); f.setAttribute('aria-invalid', text ? 'true' : 'false'); er.innerHTML = text ? icon('alert', 16, 'class="shrink-0 mt-0.5"') + esc(text) : ''; er.classList.toggle('show', !!text); return text; };
+
+    document.addEventListener('click', async e => {
+      const t = e.target;
+      const m = MSGS.find(x => x.id === cur);
+      if (t.closest('[data-retry]')) { location.search = ''; return; }
+      if (t.closest('[data-clear]')) { q = ''; topic = ''; $('q').value = ''; changeView(); $('q').focus(); return; }
+      if (t.closest('[data-tabgo]')) { tab = t.closest('[data-tabgo]').dataset.tabgo; changeView(); $('tab-' + tab).focus(); return; }
+      if (t.closest('[data-back]')) { history.state && history.state.id && history.length > 1 ? history.back() : back(); return; }
+      const copy = t.closest('[data-copy]');
+      if (copy) { try { await navigator.clipboard.writeText(copy.dataset.copy); toast('Email address copied.'); } catch { toast('Couldn’t copy. Select the address and copy it instead.'); } return; }
+      if (!m) return;
+      if (t.closest('[data-unread]')) {
+        m.unread = !m.unread;
+        if (m.unread && isPhone()) back(); else { list(); pane(); document.querySelector('[data-unread]')?.focus(); }
+        toast(m.unread ? 'Marked as unread.' : 'Marked as read.'); return;
+      }
+      if (t.closest('[data-close]')) {
+        const prev = m.status; m.status = 'closed'; m.closedBy = ME_NAME; m.closedOn = '2026-11-15'; delete drafts[m.id];
+        render(); $('pane-h').focus();
+        toast('Message closed without a reply.', () => { m.status = prev; render(); $('pane-h').focus(); }); return;
+      }
+      if (t.closest('[data-reopen]')) { m.status = 'open'; render(); $('pane-h').focus(); toast('Message reopened. It’s back in Open.'); return; }
+      if (t.closest('[data-again]')) { m.again = true; pane(); $('reply').focus(); placeCaret(); return; }
+      if (t.closest('[data-mark]')) {
+        const prev = m.status; m.status = 'replied'; m.replies = [...(m.replies || []), { by: ME_NAME, on: '2026-11-15', at: nowAt(), marked: true }]; delete drafts[m.id];
+        render(); $('pane-h').focus();
+        toast('Marked as replied.', () => { m.status = prev; m.replies.pop(); render(); $('pane-h').focus(); }); return;
+      }
+      const rs = t.closest('[data-resend]');
+      if (rs) {
+        const to = $('resend-to').value.trim();
+        const err = !to ? 'Enter the address to send the reply to' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to) ? 'Enter an email address like name@plpasig.edu.ph' : to === m.replies[rs.dataset.resend].to ? 'This is the address that didn’t work. Change it first.' : '';
+        if (setErr('resend-to', err)) { $('resend-to').focus(); return; }
+        rs.disabled = true; rs.innerHTML = spinner + 'Sending…';
+        setTimeout(() => {
+          const r = m.replies[rs.dataset.resend];
+          m.replies.push({ ...r, to, on: '2026-11-15', at: nowAt(), delivery: 'sent', by: ME_NAME, body: r.body });
+          m.email = to; m.status = 'replied';
+          render(); $('pane-h').focus(); toast(`Reply sent to ${to}.`);
+        }, 900);
+        return;
+      }
+      if (t.closest('[data-delete]')) {
+        if (!await confirmBox(`Delete the message from ${nameOf(m)}?`, `${m.replies?.length ? 'The message and its replies are' : 'The message is'} removed for every admin. This can’t be undone.`, 'Delete message')) return;
+        MSGS = MSGS.filter(x => x !== m); shown = shown && shown.filter(id => id !== m.id); cur = null;
+        if (isPhone()) $('mx').classList.remove('open');
+        render(); toast('Message deleted.');
+        (isPhone() ? $('items').querySelector('.li') : $('pane-h'))?.focus(); return;
+      }
+    });
+
+    function placeCaret() { const t = $('reply'); if (t) { t.selectionStart = t.selectionEnd = t.value.length; } }
+    document.addEventListener('input', e => {
+      if (e.target.id === 'reply') {
+        const m = MSGS.find(x => x.id === cur);
+        drafts[m.id] = e.target.value.trim() === `Hi ${m.first},` ? undefined : e.target.value;
+        if (e.target.getAttribute('aria-invalid') === 'true' && e.target.value.trim().length > `Hi ${m.first},`.length) setErr('reply', '');
+        count();
+        const row = document.querySelector(`.li[data-id="${m.id}"] .meta`);
+        if (row) row.innerHTML = `<span class="type">${TOPICS[m.topic]}</span><span class="dot-sep"></span>${rowState(m)}`;
+      }
+      if (e.target.id === 'resend-to' && e.target.getAttribute('aria-invalid') === 'true') setErr('resend-to', '');
+    });
+    document.addEventListener('submit', e => {
+      if (e.target.id !== 'compose') return;
+      e.preventDefault();
+      const m = MSGS.find(x => x.id === cur), text = $('reply').value.trim();
+      if (setErr('reply', text.length <= `Hi ${m.first},`.length ? `Write your reply to ${m.first} before sending` : '')) { $('reply').focus(); return; }
+      const btn = $('send'); btn.disabled = true; btn.innerHTML = spinner + 'Sending…';
+      setTimeout(() => {
+        m.replies = [...(m.replies || []), { by: ME_NAME, on: '2026-11-15', at: nowAt(), to: m.email, delivery: 'sent', body: `${text}\n\n${ME_NAME}, ICG desk` }];
+        m.status = 'replied'; m.again = false; delete drafts[m.id];
+        list(); pane(); sync(); $('pane-h').focus();
+        toast(`Reply sent to ${nameOf(m)}.`);
+      }, 900);
+    });
+    /* Leaving with an unsent reply uses the browser's own leave dialog. */
+    addEventListener('beforeunload', e => { if (Object.values(drafts).some(Boolean)) { e.preventDefault(); e.returnValue = ''; } });
+
+    $('q').value = q;
+    if (params.get('id') && isPhone()) $('mx').classList.add('open');
+    if (params.get('id')) { const m = MSGS.find(x => x.id === params.get('id')); if (m && !inTab(m, tab)) tab = m.status; }
+    list(); pane(false, !!params.get('id')); sync();
+    /* Crossing the desktop breakpoint switches between one screen and two panes. */
+    matchMedia('(min-width: 1024px)').addEventListener('change', e => { if (e.matches) $('mx').classList.remove('open'); else if (cur && $('mx').classList.contains('open')) return; list(); pane(); sync(); });
+    $('pane').addEventListener('focusin', e => { if (e.target.id === 'reply' && e.target.selectionStart === 0 && !drafts[cur]) placeCaret(); });
+  </script>
+</body>
+</html>

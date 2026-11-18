@@ -15,10 +15,10 @@ keeps the list in place.
 ## Components
 | `data-component` | Notes |
 | --- | --- |
-| `ReviewList` | Card White column (380px, sticky, full height on desktop). `h1` "Reviews", segmented tabs Waiting / Decided with counts (`role="tablist"`, arrow keys switch). |
+| `ReviewList` | Card White column, 380px/sticky/full height only when the actual work area has at least 64rem. Below that, use the existing list/detail flow even when the desktop navigation is visible. `h1` Reviews and Waiting/Decided tabs keep their behavior. |
 | `ReviewRow` | One button per waiting review: kind ("New request"), type, writer, title, round and fixes ("Round 2, 2 of 2 fixed"), needed-by date or "No date". The open one has `aria-current="true"`. |
 | `DecidedRow` | What you did, when, writer, title, the article's current badge. Not interactive. |
-| `ReviewPane` / `ReviewHead` | Meta line, title (`h2`, takes focus when a review opens), decision on the right from 1280px. Phones: "All reviews" back button. |
+| `ReviewPane` / `ReviewHead` | Meta, title and decision. The decision sits beside the title only when the pane itself has 48rem available; otherwise it follows the title. All reviews appears whenever the list/detail flow is active, including smaller desktop work areas. Show the pane before focusing its heading; Back returns focus to the chosen row. |
 | `ReviewDecision` | Approve (marigold), Ask for changes (inline form: one request per line, optional note, "Send back to <writer>"), Step down (confirm dialog). After deciding: status line + "Next review" / "Done". |
 | `ReviewInvite` | For invitations: Accept / Decline. Decline shows a toast with Undo. Only the summary is shown before accepting. |
 | `FixedRequests` | Second reads: "<writer> fixed your N requests", their note, each request with its fix. |
@@ -58,3 +58,22 @@ keeps the list in place.
 - Queue order: the prototype keeps the order requests arrived; sorting by needed-by date
   may suit reviewers better.
 - Reviewer eligibility and self-review are still pending in the contracts.
+
+## Width and navigation — D05 (November 16, 2026)
+
+The outer Reviews layout already filled all 1656px beside the sidebar at a 1920px
+viewport. Its 900px article panel and 680px body measure are intentional reading caps,
+not a capped page wrapper, and are retained.
+
+The original viewport-based two-pane rule left only 188px for review text at 1024px.
+The queue/detail decision now follows a work-area container query (64rem). This keeps
+the chosen two-pane inbox at wide widths and gives smaller work areas the same
+full-width list/detail flow used on phones. The selected record and queue state persist
+when moving between views. Desktop pane padding is 40px on both sides, aligned with
+the other desk work areas; phones keep 16px. Decision layout uses the pane's own 48rem
+threshold, preventing the buttons from squeezing the title just because the viewport
+is wide. Step down has a 44px target; long headings/content and fixed-request text wrap.
+
+The pane is made visible before its heading receives focus. This corrects the failed
+focus attempt in the prior list-to-detail transition. No decision logic, eligibility,
+review deadlines, scheduling or rich-text format has been changed by this layout pass.

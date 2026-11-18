@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Site settings · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script>window.DESK_ROLE = 'admin';</script>
+  <script src="desk.js"></script>
+  <script src="public-data.js"></script>
+  <style>
+    /*
+     * Site settings (admin): what visitors see on the public site that isn't an article.
+     * One section at a time, picked from a section menu (a column on desktop, a row of
+     * pills on phones): Featured stories, Categories, About page, Contact and links, and
+     * Email sending (read only: the mail service's secrets never live here). Each section
+     * saves on its own; every save goes live at once and is written to the audit log.
+     * Route: /dashboard/settings?section=featured|categories|about|contact|email.
+     * Demo: ?mail=on (the mail service is connected).
+     */
+    .st-layout { margin-top: 28px; display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 1024px) { .st-layout { grid-template-columns: 220px minmax(0, 1fr); gap: 48px; align-items: start; } }   /* the section fills the width beside the menu */
+    #panel { container-type: inline-size; }
+    /* Wide sections: what's on the home page beside the stories you can add. */
+    .feat-cols { display: grid; gap: 28px; }
+    @container (min-width: 1100px) { .feat-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; } .feat-cols .search { max-width: none; } }
+
+    /* Section menu: a column on desktop, sideways pills on phones. Selected is Ink, never marigold. */
+    .st-nav ul { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .st-nav ul::-webkit-scrollbar { display: none; }
+    .st-nav a { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--radius-pill); border: 1px solid var(--color-ink-faint); background: var(--color-card); font-size: 14px; font-weight: 600; white-space: nowrap; transition: border-color 150ms ease, background-color 150ms ease; }
+    .st-nav a:hover { border-color: var(--color-ink); }
+    .st-nav a[aria-current="page"] { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+    .st-nav .dirty { width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+    .st-nav .sep { display: none; }
+    @media (min-width: 1024px) {
+      .st-nav { position: sticky; top: 40px; }
+      .st-nav ul { flex-direction: column; gap: 2px; overflow: visible; }
+      .st-nav a { height: 44px; padding: 0 14px; border: 0; background: transparent; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; color: var(--color-ink-muted); }
+      .st-nav a:hover { background: var(--color-rule); color: var(--color-ink); }
+      .st-nav a[aria-current="page"] { background: var(--color-card); color: var(--color-ink); font-weight: 600; }
+      .st-nav .sep { display: block; height: 1px; margin: 10px 14px; background: var(--color-rule); }
+    }
+
+    /* A section: a 3px Ink rule, the heading, what it's for, then the work (as in Account). */
+    .set { border-top: 3px solid var(--color-ink); padding-top: 16px; }
+    .set-desc { margin-top: 4px; font-size: 15px; line-height: 1.5; color: var(--color-ink-muted); max-width: 64ch; }
+    .set-body { margin-top: 24px; display: grid; gap: 28px; }
+    .sub-h { font-size: 15px; font-weight: 700; }
+    .panel-list { background: var(--color-card); border-radius: var(--radius-sm); }
+    .panel-list > li + li { border-top: 1px solid var(--color-rule); }
+    .save-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-top: 4px; }
+    .save-row.hidden { display: none; }
+    .hint { margin-top: 6px; font-size: 13px; color: var(--color-ink-muted); }
+    .field[aria-invalid="true"] { border-color: var(--color-error); box-shadow: 0 0 0 1px var(--color-error); }
+    .field { scroll-margin-top: 96px; }
+    .field-error { display: none; margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--color-error); }
+    .field-error.show { display: flex; gap: 6px; align-items: flex-start; }
+    textarea.field { min-height: 96px; }
+    .icon-btn.bordered { border: 1px solid var(--color-ink-faint); }
+    .icon-btn.bordered:hover:not(:disabled) { border-color: var(--color-ink); background: var(--color-card-hover); }
+    .icon-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-day:disabled:hover { background: transparent; color: var(--color-ink); }
+
+    /* Featured stories: the home page's slides, in order. The order is a real sequence, so it's numbered. */
+    .frow { display: flex; align-items: center; gap: 16px; padding: 14px 16px; }
+    .fnum { width: 28px; flex: none; font-size: 26px; line-height: 1; text-align: center; }   /* numeral-cell */
+    .fthumb { width: 120px; aspect-ratio: 3 / 2; flex: none; object-fit: cover; object-position: 50% 40%; border-radius: var(--radius-xs); background: var(--color-rule); }
+    .ftext { flex: 1; min-width: 0; }
+    .fbtns { display: flex; gap: 8px; flex: none; }
+    @media (max-width: 639px) {
+      .frow { flex-wrap: wrap; gap: 12px; }
+      .fthumb { width: 88px; }
+      .ftext { flex-basis: calc(100% - 152px); }
+      .fbtns { width: 100%; padding-left: 44px; }
+    }
+    .fempty { display: flex; align-items: center; gap: 16px; padding: 18px 16px; font-size: 15px; color: var(--color-ink-muted); }
+    .fempty .slot { width: 120px; aspect-ratio: 3 / 2; flex: none; border: 1px dashed var(--color-ink-faint); border-radius: var(--radius-xs); }
+    @media (max-width: 639px) { .fempty .slot { width: 88px; } }
+    .pick { display: flex; align-items: center; gap: 14px; padding: 12px 16px; }
+    .pick img { width: 72px; aspect-ratio: 3 / 2; flex: none; object-fit: cover; object-position: 50% 40%; border-radius: var(--radius-xs); }
+    .pick .on { flex: none; font-size: 13px; font-weight: 600; }
+    .search { position: relative; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-ink-muted); pointer-events: none; }
+    .search .field { padding-left: 44px; }
+
+    /* Categories and About sections: rows with their actions at the right. */
+    .crow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 14px 16px; }
+    .crow .txt { flex: 1 1 220px; min-width: 0; }
+    .crow .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+    .crow.off .t-row { color: var(--color-ink-muted); }
+    .rename { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; width: 100%; }
+    .rename > div { flex: 1 1 220px; }
+    .add-cat { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+    .add-cat > div { flex: 1 1 260px; max-width: 420px; }
+
+    /* Contact and links: a form in groups. */
+    .grp { display: grid; gap: 20px; }
+    .two { display: grid; gap: 20px; }
+    @media (min-width: 640px) { .two { grid-template-columns: 1fr 1fr; } }
+    .error-summary { padding: 16px; background: var(--color-error-soft); border: 1px solid var(--color-error); border-radius: var(--radius-sm); scroll-margin-top: 96px; }
+
+    /* Email sending: facts, not fields. */
+    .facts { border-top: 1px solid var(--color-rule); }
+    .facts > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 12px 0; border-bottom: 1px solid var(--color-rule); }
+    @media (min-width: 640px) { .facts > div { grid-template-columns: 140px minmax(0, 1fr); gap: 16px; } }
+    .facts dt { font-size: 14px; font-weight: 600; }
+    .facts dd { font-size: 15px; overflow-wrap: anywhere; }
+    .error-panel { padding: 16px; background: var(--color-error-soft); border: 1px solid var(--color-error); border-radius: var(--radius-sm); }
+
+    /* About section editor sheet */
+    .item-grp { padding: 16px; background: var(--color-card); border-radius: var(--radius-sm); display: grid; gap: 14px; }
+    .spin { animation: spin 900ms linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    dialog.confirm { padding: 0; border: 0; background: transparent; max-width: calc(100vw - 32px); }
+    dialog.confirm::backdrop { background: rgba(var(--night-rgb), .6); }
+    #desk-main h2, #desk-main h3 { text-wrap: balance; }
+    @media (prefers-reduced-motion: reduce) { .st-nav a { transition: none; } .spin { animation: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head">
+        <div><h1 class="t-section">Site settings</h1>
+          <p class="ov-sub">What visitors see on the public site besides the articles. Each save goes live at once and is recorded in the <a href="dashboard-audit.html?area=settings">audit log</a>.</p></div>
+      </header>
+      <div class="st-layout">
+        <nav class="st-nav" aria-label="Settings sections" data-component="SettingsNav"><ul id="nav"></ul></nav>
+        <section class="min-w-0 set" id="panel" aria-labelledby="panel-h" data-component="SettingsSection"></section>
+      </div>
+      <p class="sr-only" role="status" id="live"></p>
+    </div>
+  </main>
+
+  <dialog class="sheet" id="sheet" aria-labelledby="sheet-h" data-component="SideSheet">
+    <form class="sheet-inner" id="sheet-form" novalidate>
+      <div class="sheet-head">
+        <div class="flex-1 min-w-0"><h2 class="t-panel" id="sheet-h"></h2><p class="mt-1 text-[14px] text-ink-muted" id="sheet-sub"></p></div>
+        <button type="button" class="icon-btn on-day" id="sheet-close" aria-label="Close"></button>
+      </div>
+      <div class="sheet-body" id="sheet-body"></div>
+      <div class="sheet-foot"><button type="submit" class="btn btn-primary">Save section</button><button type="button" class="btn btn-day !h-12" id="sheet-cancel">Cancel</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="confirm" id="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-text" data-component="ConfirmDialog">
+    <div class="bg-card rounded-sm p-6 w-[440px] max-w-full">
+      <h2 id="confirm-title" class="t-panel"></h2>
+      <p id="confirm-text" class="mt-2 text-[15px] text-ink-muted"></p>
+      <div class="mt-6 flex flex-wrap justify-end gap-2">
+        <button type="button" class="btn btn-day" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn !h-11 !px-5 !text-[14px] bg-ink text-paper hover:bg-surface" id="confirm-ok"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const { $, esc, icon, mount, toast, MONTHS, DAYS, parse, ME } = window.Desk;
+    const D = window.ICGDemo;
+    mount({ current: 'settings', title: 'Site settings' });
+    $('sheet-close').innerHTML = icon('close', 20);
+
+    const SECTIONS = [['featured', 'Featured stories'], ['categories', 'Categories'], ['about', 'About page'], ['contact', 'Contact and links'], ['email', 'Email sending']];
+    const params = new URLSearchParams(location.search);
+    let section = SECTIONS.some(s => s[0] === params.get('section')) ? params.get('section') : 'featured';
+    const ME_NAME = ME.admin[0], MAX_FEATURED = 3;
+    const asDate = v => v instanceof Date ? v : parse(v);   // public-data.js holds Date objects
+    const longDate = s => { const d = asDate(s); return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`; };   // month and day never split
+    const plainDate = s => { const d = asDate(s); return `${MONTHS[d.getMonth()]} ${d.getDate()}${d.getFullYear() !== 2026 ? ', ' + d.getFullYear() : ''}`; };
+    const clone = o => JSON.parse(JSON.stringify(o));
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const say = t => { $('live').textContent = ''; setTimeout(() => { $('live').textContent = t; }, 30); };
+    const ERR = t => icon('alert', 16, 'class="shrink-0 mt-0.5"') + esc(t);
+    const up = icon('chevron', 20, 'style="transform:rotate(-90deg)"'), down = icon('chevron', 20, 'style="transform:rotate(90deg)"');
+
+    /* ---------- Saved state (what the public site shows now) and the working copy ---------- */
+    const story = title => D.find(title);
+    const SAVED = {
+      featured: [story('Second-semester student assembly').id, story('CHED supervisors review PLP’s education programs').id, story('Leadership summit fills the auditorium on its first day').id],
+      about: [
+        { key: 'intro', name: 'Page introduction', fixed: 'first', fields: { text: 'The Integrated Communications Group reports on Pamantasan ng Lungsod ng Pasig and keeps its record: every story, event and announcement, kept by date so anyone can find it later.' } },
+        { key: 'what', name: 'What we do', kind: 'Columns', fields: { heading: 'What we do' }, items: [
+          ['We report on campus', 'News from every college, written by student reporters and checked by editors before it goes up. Sports, academics, student government and the people behind them.'],
+          ['We keep the calendar', 'Every confirmed event goes on one public calendar with its time and place, so students can plan their week and add events to their phones.'],
+          ['We keep the record', 'Nothing is lost when the semester ends. Stories and events stay in the archive, searchable by day, month and year, back to 2019.']] },
+        { key: 'how', name: 'How a story gets on the record', kind: 'Steps', fields: { heading: 'How a story gets on the record', note: 'Usually two to three school days from submission to publication.' }, items: [
+          ['A college or organization sends it in', 'The date, time, place, a short description and photos, through the submission form.'],
+          ['A writer turns it into a story', 'They confirm the facts with the organizers and write it up in plain language.'],
+          ['Reviewers approve it', 'At least one reviewer checks accuracy, photo consent and tone before anything goes live.'],
+          ['It is published and dated', 'It appears on the front page and the calendar, then stays in the archive for good.']] },
+        { key: 'who', name: 'Who does the work', kind: 'Roles', fields: { heading: 'Who does the work', note: 'ICG is run by students with faculty advisers, and built with students of BSIT-3C and the university’s MIS office.' }, items: [
+          ['Editors', 'Assign stories, edit them and decide what runs on the front page.'],
+          ['Writers', 'Cover events and write stories and announcements.'],
+          ['Reviewers', 'Check every story for accuracy and consent before it is published.'],
+          ['Photo desk', 'Photographs events and keeps the photo archive.'],
+          ['Correspondents', 'One contact in each college who sends in what is happening there.']] },
+        { key: 'expect', name: 'What you can expect from us', kind: 'Promises', fields: { heading: 'What you can expect from us' }, items: [
+          ['Every item has a date', 'Stories show when they were published and events show when they happen.'],
+          ['We ask before we photograph', 'Photos of students need their consent. Ask us and we will take a photo down.'],
+          ['We fix mistakes in the open', 'Corrections are added to the story with the date they were made.'],
+          ['The record stays public', 'Anyone can read and search the archive. No account needed.']] },
+        { key: 'cta', name: 'Call to action band', fixed: 'last', fields: { heading: 'Have an event or a story for us?', text: 'Send it at least three school days ahead and we will put it on the calendar.' } },
+      ],
+      contact: {
+        address: 'Pamantasan ng Lungsod ng Pasig\nAlcalde Jose Street, Kapasigan, Pasig City', hours: 'Monday to Friday, 8:00 AM to 5:00 PM', hoursNote: 'Closed on holidays and during semester break',
+        email: 'icg@plpasig.edu.ph', eventsEmail: 'events.icg@plpasig.edu.ph', phone: '(02) 8643-1014', promise: '2',
+        facebook: '', instagram: '', youtube: '', tiktok: '',
+      },
+    };
+    const counts = {}; D.records.forEach(r => { counts[r.cat] = (counts[r.cat] || 0) + 1; });
+    let CATS = ['Academic', 'Campus', 'Careers', 'Community', 'Sports', 'Student life'].map(n => ({ name: n, slug: n.toLowerCase().replace(/\s+/g, '-'), n: counts[n] || 0 }))
+      .concat([{ name: 'Pandemic updates', slug: 'pandemic-updates', n: 14, off: 'March 2, 2023' }, { name: 'Webinars', slug: 'webinars', n: 0 }]);
+    let work = { featured: clone(SAVED.featured), about: clone(SAVED.about), contact: clone(SAVED.contact) };
+    const dirty = k => k in work && !same(work[k], SAVED[k]);
+    let featQ = '', contactErrors = null;
+
+    /* ---------- Section menu ---------- */
+    function nav() {
+      $('nav').innerHTML = SECTIONS.map(([k, label]) => `<li><a href="?section=${k}" data-section="${k}"${k === section ? ' aria-current="page"' : ''}>${label}${dirty(k) ? '<span class="dirty" aria-hidden="true"></span><span class="sr-only"> (unsaved changes)</span>' : ''}</a></li>`).join('')
+        + `<li class="sep" aria-hidden="true"></li><li><a href="dashboard-embeds.html?role=admin&amp;section=${section}${params.get('mail') === 'on' ? '&amp;mail=on' : ''}" data-embeds>Embed widgets</a></li>`;
+    }
+    $('nav').addEventListener('click', async e => {
+      const embed=e.target.closest('[data-embeds]');
+      if (embed) { e.preventDefault(); if (dirty(section) && !await leave()) return; location.href=embed.href; return; }
+      const a = e.target.closest('[data-section]'); if (!a) return;
+      e.preventDefault();
+      const to = a.dataset.section; if (to === section) return;
+      if (dirty(section) && !await leave()) return;
+      section = to; history.replaceState(null, '', `?section=${to}${params.get('mail') ? '&mail=' + params.get('mail') : ''}`);
+      render(); $('panel-h').focus();
+    });
+    function leave() {
+      const name = SECTIONS.find(s => s[0] === section)[1];
+      return confirmBox('Leave without saving?', `Your changes to ${name} haven’t been saved. The public site still shows the old version.`, 'Discard changes').then(ok => { if (ok) work[section] = clone(SAVED[section]); contactErrors = null; return ok; });
+    }
+    addEventListener('beforeunload', e => { if (Object.keys(work).some(dirty)) { e.preventDefault(); e.returnValue = ''; } });
+
+    function confirmBox(title, text, ok) {
+      return new Promise(res => {
+        $('confirm-title').textContent = title; $('confirm-text').textContent = text; $('confirm-ok').textContent = ok;
+        const d = $('confirm'); d.showModal(); $('confirm-cancel').focus();
+        const done = v => { d.close(); res(v); };
+        $('confirm-ok').onclick = () => done(true); $('confirm-cancel').onclick = () => done(false);
+        d.oncancel = e => { e.preventDefault(); done(false); };
+      });
+    }
+
+    const head = (title, desc) => `<h2 class="t-item" id="panel-h" tabindex="-1">${title}</h2><p class="set-desc">${desc}</p>`;
+    const saveRow = (k, label = 'Save changes') => `<div class="save-row${dirty(k) ? '' : ' hidden'}" id="save-row" data-component="SaveRow">
+        <button type="submit" class="btn btn-primary">${label}</button><button type="button" class="btn btn-day !h-12" data-discard>Discard</button><p class="text-[14px] text-ink-muted">You have unsaved changes.</p></div>`;
+    function syncDirty() { const r = $('save-row'); if (r) r.classList.toggle('hidden', !dirty(section)); nav(); }
+
+    /* ---------- Featured stories ---------- */
+    const rec = id => D.records.find(r => r.id === id);
+    const metaFor = r => `<span class="type">${r.type}</span><span class="dot-sep"></span>${esc(r.cat)}<span class="dot-sep"></span>${r.type === 'Event' ? `On ${longDate(r.date)}` : plainDate(r.date)}`;
+    const thumb = (r, cls) => `<img class="${cls}" src="../../legacy/gallery/${r.photo}" alt="" loading="lazy">`;
+    function featured() {
+      const f = work.featured, full = f.length >= MAX_FEATURED;
+      const rows = f.map((id, i) => { const r = rec(id); return `<li class="frow" data-component="FeaturedSlot">
+          <span class="display fnum" aria-hidden="true">${i + 1}</span>${thumb(r, 'fthumb')}
+          <div class="ftext"><p class="meta">${metaFor(r)}</p><p class="t-row mt-1"><a class="row-link" href="${D.href(r)}">${esc(r.title)}</a></p></div>
+          <div class="fbtns"><button type="button" class="icon-btn bordered on-day" data-up="${id}" aria-label="Move up: ${esc(r.title)}"${i === 0 ? ' disabled' : ''}>${up}</button>
+            <button type="button" class="icon-btn bordered on-day" data-down="${id}" aria-label="Move down: ${esc(r.title)}"${i === f.length - 1 ? ' disabled' : ''}>${down}</button>
+            <button type="button" class="btn btn-day" data-remove="${id}" aria-label="Remove from the home page: ${esc(r.title)}">Remove</button></div></li>`; }).join('');
+      const empties = Array.from({ length: MAX_FEATURED - f.length }, (_, i) => `<li class="fempty" data-component="EmptySlot"><span class="display fnum text-ink-faint" aria-hidden="true">${f.length + i + 1}</span><span class="slot" aria-hidden="true"></span><span>Empty. The newest published story fills this place until you choose one.</span></li>`).join('');
+      const q = featQ.trim().toLowerCase();
+      const pool = D.records.filter(r => !q || (r.title + ' ' + r.cat + ' ' + r.type).toLowerCase().includes(q)).sort((a, b) => b.date - a.date).slice(0, 6);
+      return `<form id="form" novalidate>${head('Featured stories', 'The home page opens with these, in this order. Visitors move between them with the arrows; they never change on their own. Only published stories and events can be featured.')}
+        <div class="set-body feat-cols">
+          <div class="grid gap-[28px] content-start"><div><h3 class="sub-h" id="fs-h">On the home page</h3><p class="hint !mt-1">${f.length} of ${MAX_FEATURED} places chosen.</p>
+            <ol class="panel-list mt-3" aria-labelledby="fs-h" data-component="FeaturedList">${rows}${empties}</ol></div>
+          ${saveRow('featured')}</div>
+          <div data-component="AddFeatured"><h3 class="sub-h"><label for="fq">Add a story</label></h3>
+            <p class="hint !mt-1" id="fq-hint">${full ? `The home page holds ${MAX_FEATURED}. Remove one from the home page to add another.` : 'Search published stories, events and announcements.'}</p>
+            <div class="search mt-3 max-w-[480px]"><input class="field" id="fq" type="search" placeholder="Title, category or type…" autocomplete="off" aria-describedby="fq-hint" value="${esc(featQ)}">${icon('search', 18)}</div>
+            <ul class="panel-list mt-3" id="picks" aria-label="Published stories">${pool.map(r => `<li class="pick" data-component="StoryPick">${thumb(r, '')}
+                <div class="flex-1 min-w-0"><p class="meta">${metaFor(r)}</p><p class="t-row mt-1">${esc(r.title)}</p></div>
+                ${f.includes(r.id) ? '<span class="on">On the home page</span>' : `<button type="button" class="btn btn-day" data-add="${r.id}" aria-label="Add to the home page: ${esc(r.title)}"${full ? ' disabled' : ''}>Add</button>`}</li>`).join('') || '<li class="p-4 text-[15px] text-ink-muted">No published stories match. Try other words.</li>'}</ul></div>
+        </div></form>`;
+    }
+
+    /* ---------- Categories (each change applies at once) ---------- */
+    let renaming = null;
+    function categories() {
+      const row = c => renaming === c.slug
+        ? `<li class="crow" data-component="RenameCategory"><form class="rename" data-rename-form="${c.slug}" novalidate><div><label class="field-label" for="rn">New name for ${esc(c.name)}</label><input class="field" id="rn" value="${esc(c.name)}" autocomplete="off" aria-describedby="rn-hint rn-err"><p class="hint" id="rn-hint">Links to ${esc(c.name)} keep working after a rename.</p><p class="field-error" id="rn-err"></p></div>
+            <div class="flex gap-2 sm:pt-7"><button type="submit" class="btn btn-primary !h-11">Rename</button><button type="button" class="btn btn-day" data-rename-cancel>Cancel</button></div></form></li>`
+        : `<li class="crow${c.off ? ' off' : ''}" data-component="CategoryRow"><div class="txt"><p class="t-row">${esc(c.name)}</p>
+            <p class="meta mt-1">${c.n ? `${c.n} ${c.n === 1 ? 'article' : 'articles'}` : 'No articles yet'}${c.off ? `<span class="dot-sep"></span>Archived ${c.off}` : ''}</p></div>
+            <div class="btns">${c.off ? `<button type="button" class="btn btn-day" data-restore="${c.slug}">Restore</button>`
+              : `<button type="button" class="btn btn-day" data-rename="${c.slug}" aria-label="Rename ${esc(c.name)}">Rename</button>${c.n
+                ? `<button type="button" class="btn btn-day" data-archive="${c.slug}" aria-label="Archive ${esc(c.name)}">Archive</button>`
+                : `<button type="button" class="btn btn-day" data-delete="${c.slug}" aria-label="Delete ${esc(c.name)}">Delete</button>`}`}</div></li>`;
+      const live = CATS.filter(c => !c.off), off = CATS.filter(c => c.off);
+      return `${head('Categories', 'Writers choose one for every article, and visitors filter the archive by them. Changes here apply as soon as you make them.')}
+        <div class="set-body">
+          <form class="add-cat" id="add-cat" novalidate data-component="AddCategory"><div><label class="field-label" for="nc">New category</label><input class="field" id="nc" autocomplete="off" placeholder="Arts and culture" aria-describedby="nc-err"><p class="field-error" id="nc-err"></p></div>
+            <button type="submit" class="btn btn-primary sm:mt-[26px]">Add category</button></form>
+          <div><h3 class="sub-h" id="cat-h">In use <span class="text-ink-muted font-normal">${live.length}</span></h3><ul class="panel-list mt-3" aria-labelledby="cat-h" data-component="CategoryList">${live.map(row).join('')}</ul></div>
+          ${off.length ? `<div><h3 class="sub-h" id="arc-h">Archived <span class="text-ink-muted font-normal">${off.length}</span></h3><p class="hint !mt-1">Writers can’t choose these for new articles. Their articles keep them, and visitors still find them in the archive.</p>
+            <ul class="panel-list mt-3" aria-labelledby="arc-h">${off.map(row).join('')}</ul></div>` : ''}
+        </div>`;
+    }
+
+    /* ---------- About page ---------- */
+    function about() {
+      const a = work.about, movable = a.filter(s => !s.fixed);
+      const summary = s => {
+        if (s.key === 'intro') return 'The line under the page title';
+        if (s.key === 'cta') return 'The marigold band above the footer';
+        const n = s.items.filter(([t, x]) => t.trim() || x.trim()).length;
+        return `${s.kind}: ${n} ${n === 1 ? 'item' : 'items'}`;
+      };
+      const empty = s => s.items ? !s.items.some(([t, x]) => t.trim() || x.trim()) : !Object.values(s.fields).some(v => v.trim());
+      return `<form id="form" novalidate>${head('About page', 'The sections of the About page, in the order visitors see them. A section with nothing in it is hidden from the page.')}
+        <div class="set-body"><ul class="panel-list" aria-label="About page sections" data-component="AboutSections">${a.map(s => {
+          const i = movable.indexOf(s);
+          return `<li class="crow" data-component="AboutSectionRow"><div class="txt"><p class="t-row">${esc(s.fields.heading || s.name)}</p>
+              <p class="meta mt-1">${summary(s)}<span class="dot-sep"></span>${empty(s) ? '<span class="flag">Hidden: empty</span>' : s.fixed === 'first' ? 'Always first' : s.fixed === 'last' ? 'Always last' : 'Shown'}</p></div>
+            <div class="btns">${s.fixed ? '' : `<button type="button" class="icon-btn bordered on-day" data-aup="${s.key}" aria-label="Move up: ${esc(s.name)}"${i === 0 ? ' disabled' : ''}>${up}</button><button type="button" class="icon-btn bordered on-day" data-adown="${s.key}" aria-label="Move down: ${esc(s.name)}"${i === movable.length - 1 ? ' disabled' : ''}>${down}</button>`}
+              <button type="button" class="btn btn-day" data-edit="${s.key}" aria-label="Edit ${esc(s.name)}">Edit</button></div></li>`; }).join('')}</ul>
+          ${saveRow('about', 'Save order')}
+          <p class="text-[14px] text-ink-muted">The photo at the top of the About page isn’t changed here. <a class="link" href="about.html">View the About page</a></p></div></form>`;
+    }
+
+    /* ---------- Contact and links ---------- */
+    const SOCIAL = [['facebook', 'Facebook', 'facebook.com', 'https://www.facebook.com/your-page'], ['instagram', 'Instagram', 'instagram.com', 'https://www.instagram.com/your-account'], ['youtube', 'YouTube', 'youtube.com', 'https://www.youtube.com/@your-channel'], ['tiktok', 'TikTok', 'tiktok.com', 'https://www.tiktok.com/@your-account']];
+    function contact() {
+      const c = work.contact, e = contactErrors || {};
+      const fld = (id, label, opts = {}) => `<div><label class="field-label" for="c-${id}">${label}${opts.optional ? ' <span class="opt">(optional)</span>' : ''}</label>
+          ${opts.area ? `<textarea class="field" id="c-${id}" data-k="${id}" rows="2" aria-describedby="c-${id}-hint c-${id}-err"${e[id] ? ' aria-invalid="true"' : ''}>${esc(c[id])}</textarea>`
+            : `<input class="field" id="c-${id}" data-k="${id}" type="${opts.type || 'text'}" value="${esc(c[id])}"${opts.ph ? ` placeholder="${opts.ph}"` : ''} autocomplete="off"${opts.type === 'email' || opts.type === 'url' ? ' spellcheck="false"' : ''} aria-describedby="c-${id}-hint c-${id}-err"${e[id] ? ' aria-invalid="true"' : ''}>`}
+          ${opts.hint ? `<p class="hint" id="c-${id}-hint">${opts.hint}</p>` : ''}<p class="field-error${e[id] ? ' show' : ''}" id="c-${id}-err">${e[id] ? ERR(e[id]) : ''}</p></div>`;
+      const errs = Object.entries(e);
+      return `<form id="form" novalidate>${head('Contact and links', 'Shown on the Contact page, in the site footer and on the About page.')}
+        <div class="set-body">
+          ${errs.length ? `<div class="error-summary" id="err-sum" tabindex="-1" role="alert" data-component="ErrorSummary"><p class="text-[15px] font-bold text-error">Fix ${errs.length === 1 ? 'this' : `these ${errs.length}`} to save</p><ul class="mt-2 space-y-1">${errs.map(([k, m]) => `<li><a class="text-error font-semibold underline underline-offset-4" href="#c-${k}">${m}</a></li>`).join('')}</ul></div>` : ''}
+          <div class="grp" data-component="VisitFields"><h3 class="sub-h">Visit</h3>
+            ${fld('address', 'Office address', { area: true, hint: 'Street and district are enough. The first line is shown in bold.' })}
+            <div class="two">${fld('hours', 'Office hours', { hint: 'As visitors should read it: “Monday to Friday, 8:00 AM to 5:00 PM”.' })}${fld('hoursNote', 'Under the hours', { optional: true })}</div></div>
+          <div class="grp" data-component="WriteFields"><h3 class="sub-h">Write to us</h3>
+            <div class="two">${fld('email', 'General email', { type: 'email' })}${fld('eventsEmail', 'Events email', { type: 'email', optional: true, hint: 'For event listings. Leave empty to use the general email.' })}</div>
+            <div class="two">${fld('phone', 'Phone', { type: 'tel', optional: true })}
+              <div><label class="field-label" for="c-promise">Reply within</label><select class="field" id="c-promise" data-k="promise" aria-describedby="c-promise-hint">${[['1', '1 school day'], ['2', '2 school days'], ['3', '3 school days'], ['5', '5 school days']].map(([v, l]) => `<option value="${v}"${c.promise === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+                <p class="hint" id="c-promise-hint">The Contact page promises this, and Messages counts each reply’s due date from it.</p></div></div></div>
+          <div class="grp" data-component="SocialFields"><div><h3 class="sub-h">Social links</h3><p class="hint !mt-1">Leave a link empty to hide it from the site.</p></div>
+            <div class="two">${SOCIAL.map(([k, l, , ph]) => fld(k, l, { type: 'url', optional: true, ph })).join('')}</div></div>
+          ${saveRow('contact')}
+        </div></form>`;
+    }
+    function checkContact() {
+      const c = work.contact, e = {};
+      const mail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      if (!c.address.trim()) e.address = 'Enter the office address';
+      if (!c.hours.trim()) e.hours = 'Enter the office hours';
+      if (!c.email.trim()) e.email = 'Enter the general email address';
+      else if (!mail(c.email.trim())) e.email = 'Enter an email address like icg@plpasig.edu.ph';
+      if (c.eventsEmail.trim() && !mail(c.eventsEmail.trim())) e.eventsEmail = 'Enter an email address like events.icg@plpasig.edu.ph, or leave it empty';
+      SOCIAL.forEach(([k, l, dom]) => {
+        const v = c[k].trim(); if (!v) return;
+        let u = null; try { u = new URL(v); } catch { /* not a link */ }
+        if (!u || u.protocol !== 'https:' || !(u.hostname === dom || u.hostname.endsWith('.' + dom)))
+          e[k] = `Enter a ${l} link that starts with https://www.${dom}/, or leave it empty`;
+      });
+      return Object.keys(e).length ? e : null;
+    }
+
+    /* ---------- Email sending (read only) ---------- */
+    let testState = null;
+    function email() {
+      const on = params.get('mail') === 'on';
+      return `${head('Email sending', 'The address replies, invites, password resets and email notices come from.')}
+        <div class="set-body">
+          <dl class="facts" data-component="MailFacts">
+            <div><dt>Sent from</dt><dd>icg@plpasig.edu.ph</dd></div>
+            <div><dt>Shown as</dt><dd>ICG desk</dd></div>
+            <div><dt>Mail service</dt><dd>${on ? 'Connected' : '<strong class="font-semibold">Not connected yet</strong><span class="block text-[13px] text-ink-muted mt-0.5">Until it is, the desk can’t send email.</span>'}</dd></div>
+            <div><dt>Used for</dt><dd>Message replies, invites, password resets and the notices people choose in Account › Email</dd></div>
+          </dl>
+          <p class="text-[15px] max-w-[64ch]">The mail service’s password and keys aren’t kept in Site settings, so nobody can read or change them here. The developers set them up on the server; ask them to change the address or the service.</p>
+          <div><button type="button" class="btn btn-day" id="test-mail"${testState === 'sending' ? ' disabled' : ''}>${testState === 'sending' ? `<svg aria-hidden="true" class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>Sending…` : 'Send me a test email'}</button>
+            <p class="hint">Sends a short email to ${ME_NAME}’s address, maria.santos@plpasig.edu.ph.</p></div>
+          ${testState === 'failed' ? `<div class="error-panel max-w-[560px]" role="alert" data-component="TestFailed"><p class="text-[15px] font-semibold text-error">The test email wasn’t sent.</p><p class="mt-1 text-[15px]">The mail service isn’t connected yet. Ask the developers to set it up, then try again.</p></div>` : ''}
+        </div>`;
+    }
+
+    /* ---------- Render ---------- */
+    function render() {
+      nav();
+      $('panel').innerHTML = { featured, categories, about, contact, email }[section]();
+      document.title = `${SECTIONS.find(s => s[0] === section)[1]} · Site settings · ICG desk`;
+    }
+
+    /* Clicks */
+    $('panel').addEventListener('click', async e => {
+      const t = e.target, at = s => t.closest(s);
+      const f = work.featured;
+      if (at('[data-discard]')) { work[section] = clone(SAVED[section]); contactErrors = null; render(); $('panel-h').focus(); say('Changes discarded.'); return; }
+      // Featured
+      let b;
+      if ((b = at('[data-up]')) || (b = at('[data-down]'))) {
+        const id = b.dataset.up || b.dataset.down, i = f.indexOf(id), j = b.dataset.up ? i - 1 : i + 1;
+        [f[i], f[j]] = [f[j], f[i]]; render();
+        const again = document.querySelector(`[data-${b.dataset.up ? 'up' : 'down'}="${id}"]:not(:disabled)`) || document.querySelector(`[data-${b.dataset.up ? 'down' : 'up'}="${id}"]`);
+        again?.focus(); say(`${rec(id).title} moved to place ${j + 1} of ${f.length}.`); return;
+      }
+      if ((b = at('[data-remove]'))) { const id = b.dataset.remove; work.featured = f.filter(x => x !== id); render(); $('fq').focus(); say(`${rec(id).title} removed. Save to update the home page.`); return; }
+      if ((b = at('[data-add]'))) { work.featured = [...f, b.dataset.add]; render(); (document.querySelector('[data-add]:not(:disabled)') || $('fq')).focus(); say(`${rec(b.dataset.add).title} added in place ${work.featured.length}. Save to update the home page.`); return; }
+      // Categories
+      if ((b = at('[data-rename]'))) { renaming = b.dataset.rename; render(); $('rn').select(); return; }
+      if (at('[data-rename-cancel]')) { const s = renaming; renaming = null; render(); document.querySelector(`[data-rename="${s}"]`)?.focus(); return; }
+      if ((b = at('[data-archive]'))) {
+        const c = CATS.find(x => x.slug === b.dataset.archive);
+        if (!await confirmBox(`Archive ${c.name}?`, `Writers won’t be able to choose ${c.name} for new articles. Its ${c.n} ${c.n === 1 ? 'article keeps' : 'articles keep'} it, and visitors still find ${c.n === 1 ? 'it' : 'them'} in the archive. You can restore it later.`, 'Archive category')) return;
+        c.off = 'November 15, 2026'; render(); $('panel-h').focus(); toast(`${c.name} is archived.`); return;
+      }
+      if ((b = at('[data-restore]'))) { const c = CATS.find(x => x.slug === b.dataset.restore); delete c.off; render(); $('panel-h').focus(); toast(`${c.name} is back. Writers can choose it again.`); return; }
+      if ((b = at('[data-delete]'))) {
+        const i = CATS.findIndex(x => x.slug === b.dataset.delete), c = CATS[i];
+        CATS.splice(i, 1); render(); $('nc').focus();
+        toast(`${c.name} deleted.`, () => { CATS.splice(i, 0, c); render(); }); return;
+      }
+      // About
+      if ((b = at('[data-aup]')) || (b = at('[data-adown]'))) {
+        const key = b.dataset.aup || b.dataset.adown, a = work.about, i = a.findIndex(s => s.key === key), j = b.dataset.aup ? i - 1 : i + 1;
+        [a[i], a[j]] = [a[j], a[i]]; render();
+        (document.querySelector(`[data-${b.dataset.aup ? 'aup' : 'adown'}="${key}"]:not(:disabled)`) || document.querySelector(`[data-${b.dataset.aup ? 'adown' : 'aup'}="${key}"]`))?.focus();
+        say(`${a[j].name} moved ${b.dataset.aup ? 'up' : 'down'}. Save the order to update the About page.`); return;
+      }
+      if ((b = at('[data-edit]'))) { openSection(b.dataset.edit, b); return; }
+      // Email
+      if (at('#test-mail')) {
+        testState = 'sending'; render();
+        setTimeout(() => {
+          if (params.get('mail') === 'on') { testState = null; render(); toast('Test email sent to maria.santos@plpasig.edu.ph.'); }
+          else { testState = 'failed'; render(); }
+          $('test-mail').focus();
+        }, 900);
+      }
+    });
+
+    $('panel').addEventListener('input', e => {
+      if (e.target.id === 'fq') { featQ = e.target.value; const pos = e.target.selectionStart; render(); $('fq').focus(); $('fq').setSelectionRange(pos, pos); return; }
+      const k = e.target.dataset.k;
+      if (k && section === 'contact') {
+        work.contact[k] = e.target.value;
+        if (contactErrors && contactErrors[k]) {           // re-check a field as soon as it's fixed
+          const now = checkContact(); if (!now || !now[k]) { delete contactErrors[k]; e.target.setAttribute('aria-invalid', 'false'); const er = $(`c-${k}-err`); er.classList.remove('show'); er.innerHTML = ''; }
+        }
+        syncDirty();
+      }
+      if (e.target.id === 'rn' || e.target.id === 'nc') { const er = $(e.target.id + '-err'); er.classList.remove('show'); e.target.setAttribute('aria-invalid', 'false'); }
+    });
+    $('panel').addEventListener('change', e => { if (e.target.dataset.k === 'promise') { work.contact.promise = e.target.value; syncDirty(); } });
+
+    $('panel').addEventListener('submit', e => {
+      e.preventDefault();
+      const f = e.target;
+      const setErr = (id, text) => { $(id).setAttribute('aria-invalid', 'true'); $(id + '-err').innerHTML = ERR(text); $(id + '-err').classList.add('show'); $(id).focus(); };
+      if (f.id === 'add-cat') {
+        const n = $('nc').value.trim();
+        if (!n) return setErr('nc', 'Enter a name for the category');
+        const dup = CATS.find(c => c.name.toLowerCase() === n.toLowerCase());
+        if (dup) return setErr('nc', dup.off ? `${dup.name} is archived. Restore it instead of adding it again.` : `There’s already a category called ${dup.name}`);
+        CATS.splice(CATS.filter(c => !c.off).length, 0, { name: n, slug: n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), n: 0 });
+        render(); $('nc').focus(); toast(`${n} added. Writers can choose it now.`); return;
+      }
+      if (f.dataset.renameForm) {
+        const c = CATS.find(x => x.slug === f.dataset.renameForm), n = $('rn').value.trim();
+        if (!n) return setErr('rn', 'Enter the new name');
+        const dup = CATS.find(x => x !== c && x.name.toLowerCase() === n.toLowerCase());
+        if (dup) return setErr('rn', `There’s already a category called ${dup.name}`);
+        const old = c.name; c.name = n; renaming = null; render();
+        document.querySelector(`[data-rename="${c.slug}"]`)?.focus();
+        if (n !== old) toast(`Renamed to ${n}. Links to ${old} still work.`, () => { c.name = old; render(); });
+        return;
+      }
+      if (f.id !== 'form') return;
+      if (section === 'contact') {
+        contactErrors = checkContact();
+        if (contactErrors) { render(); $('err-sum').focus(); return; }
+      }
+      const btn = f.querySelector('#save-row .btn-primary'); btn.disabled = true;
+      btn.innerHTML = `<svg aria-hidden="true" class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>Saving…`;
+      setTimeout(() => {
+        SAVED[section] = clone(work[section]); render(); $('panel-h').focus();
+        toast({ featured: 'Featured stories saved. The home page shows them now.', about: 'Order saved. The About page shows it now.', contact: 'Contact and links saved. The site shows them now.' }[section]);
+      }, 700);
+    });
+
+    /* ---------- About section editor (side sheet) ---------- */
+    let editing = null, opener = null;
+    const sheet = $('sheet');
+    function openSection(key, from) {
+      const s = work.about.find(x => x.key === key); editing = s; opener = from;
+      $('sheet-h').textContent = s.name;
+      $('sheet-sub').textContent = s.items ? 'Leave an item empty to leave it out. If every item is empty, the section is hidden.' : 'Saved straight to the About page.';
+      const f = s.fields, ta = (id, label, v, max, opt) => `<div><label class="field-label" for="${id}">${label}${opt ? ' <span class="opt">(optional)</span>' : ''}</label><textarea class="field" id="${id}" maxlength="${max}" rows="3" aria-describedby="${id}-hint">${esc(v)}</textarea><p class="hint" id="${id}-hint">Up to ${max} characters.</p></div>`;
+      const inp = (id, label, v, max) => `<div><label class="field-label" for="${id}">${label}</label><input class="field" id="${id}" maxlength="${max}" value="${esc(v)}" autocomplete="off" aria-describedby="${id}-err"><p class="field-error" id="${id}-err"></p></div>`;
+      $('sheet-body').innerHTML = (f.heading !== undefined ? inp('s-heading', 'Heading', f.heading, 60) : '')
+        + (f.text !== undefined ? ta('s-text', s.key === 'intro' ? 'Introduction' : 'Line under the heading', f.text, 280) : '')
+        + (f.note !== undefined ? ta('s-note', s.key === 'how' ? 'Note on timing' : 'Introduction', f.note, 200, true) : '')
+        + (s.items ? s.items.map(([t, x], i) => `<fieldset class="item-grp" data-component="AboutItem"><legend class="sr-only">${s.kind === 'Steps' ? 'Step' : 'Item'} ${i + 1}</legend>
+            <p class="text-[13px] font-semibold text-ink-muted" aria-hidden="true">${s.kind === 'Steps' ? 'Step' : s.kind === 'Roles' ? 'Role' : 'Item'} ${i + 1}</p>
+            ${inp(`s-t${i}`, s.kind === 'Roles' ? 'Role' : 'Title', t, 80)}${ta(`s-x${i}`, 'Text', x, 240)}</fieldset>`).join('') : '');
+      sheet.showModal(); $('sheet-close').focus();
+    }
+    const closeSheet = () => sheet.close();
+    sheet.addEventListener('close', () => { editing = null; (opener && document.contains(opener) ? opener : $('panel-h')).focus(); });
+    $('sheet-close').addEventListener('click', closeSheet);
+    $('sheet-cancel').addEventListener('click', closeSheet);
+    sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+    $('sheet-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const s = editing, f = s.fields;
+      const items = s.items ? s.items.map((_, i) => [$(`s-t${i}`).value.trim(), $(`s-x${i}`).value.trim()]) : null;
+      const hasContent = items ? items.some(([t, x]) => t || x) : true;
+      if (f.heading !== undefined && hasContent && !$('s-heading').value.trim()) {
+        $('s-heading').setAttribute('aria-invalid', 'true'); $('s-heading-err').innerHTML = ERR('Enter a heading, or empty every item to hide the section'); $('s-heading-err').classList.add('show'); $('s-heading').focus(); return;
+      }
+      const missing = items ? items.findIndex(([t, x]) => !t && x) : -1;
+      if (missing > -1) { $(`s-t${missing}`).setAttribute('aria-invalid', 'true'); $(`s-t${missing}-err`).innerHTML = ERR('Give this item a title, or empty its text too'); $(`s-t${missing}-err`).classList.add('show'); $(`s-t${missing}`).focus(); return; }
+      if (f.heading !== undefined) f.heading = $('s-heading').value.trim();
+      if (f.text !== undefined) f.text = $('s-text').value.trim();
+      if (f.note !== undefined) f.note = $('s-note').value.trim();
+      if (items) s.items = items;
+      // Content saves at once; the saved order is kept as it was.
+      const saved = SAVED.about.find(x => x.key === s.key); saved.fields = clone(s.fields); if (items) saved.items = clone(items);
+      closeSheet(); render();
+      toast(hasContent ? `${s.name} saved. The About page shows it now.` : `${s.name} is empty, so it’s hidden from the About page.`);
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -3,7 +3,8 @@
   'use strict';
   const D = window.ICGDemo;
   const esc = D.escape;
-  const page = location.pathname.split('/').pop().replace('.html','') || 'home';
+  // The app's design preview serves pages at routes (/news/<id>) and names the file in PREVIEW_FILE.
+  const page = (window.PREVIEW_FILE || location.pathname.split('/').pop()).replace('.html','') || 'home';
   const params = new URLSearchParams(location.search);
   const routes = [['Home','home'],['Calendar','calendar'],['Archive','archive'],['About','about'],['Contact','contact']];
   const active = page==='article' ? (D.get(params.get('id'))?.type==='Event' ? 'calendar':'archive') : page;
@@ -83,7 +84,7 @@
       time.textContent=record.date.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
       const cat=articleHead.querySelector('a.font-semibold');cat.textContent=record.cat;cat.href=`archive.html?cat=${encodeURIComponent(record.cat)}`;
       const figure=document.querySelector('[data-component="LeadPhoto"]');
-      figure.querySelector('img').src=`../../gallery/${record.photo || D.records[0].photo}`;
+      figure.querySelector('img').src=`../../legacy/gallery/${record.photo || D.records[0].photo}`;
       figure.querySelector('img').alt=record.alt;
       figure.querySelector('figcaption').textContent=record.alt+'. From the PLP campus photo collection.';
       const isSummit=record.id==='icg-summit-asks-every-college-to-tell-its-own-story';

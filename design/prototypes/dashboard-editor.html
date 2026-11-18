@@ -20,31 +20,49 @@
      * that ticks itself as you fix things, then the conversation with the reviewer,
      * where each request can be marked fixed.
      */
+    #desk-main { container: editor-work / inline-size; --editor-bar-height: 64px; --editor-tools-height: 50px; --editor-actions-height: 0px; --editor-shell-height: var(--dash-topbar); }
+    @media (min-width: 1024px) { #desk-main { --editor-shell-height: 0px; } }
+    #bar { position: sticky; top: var(--editor-shell-height); z-index: 20; }
+    #bar .editbar { position: static; flex-wrap: wrap; gap: 8px 12px; }
+    #macts { position: sticky; bottom: 0; z-index: 20; }
+    #macts .mobile-acts { position: static; flex-wrap: wrap; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
     .ready-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; padding: 24px 16px 48px; }
-    @media (min-width: 1024px) { .ready-layout { grid-template-columns: minmax(0, 1fr) 360px; gap: 48px; padding: 40px; } }
-    .doc { background: var(--color-card); border-radius: var(--radius-sm); padding: 24px 16px 48px; }
+    @media (min-width: 1024px) { .ready-layout { padding: 40px; } }
+    @container editor-work (min-width: 64rem) {
+      .ready-layout { grid-template-columns: minmax(0, 1fr) 360px; }
+      .review-col { position: sticky; top: calc(var(--editor-bar-height) + 40px); max-height: calc(100dvh - var(--editor-bar-height) - 56px); overflow-y: auto; }
+    }
+    .doc { min-width: 0; container: editor-document / inline-size; background: var(--color-card); border-radius: var(--radius-sm); padding: 24px 16px 48px; }
     @media (min-width: 768px) { .doc { padding: 40px 48px 64px; } }
     .doc-inner { max-width: 760px; margin: 0 auto; }
     .sel-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .inline-sel { appearance: none; height: 36px; padding: 0 34px 0 14px; border-radius: 999px; border: 1px solid var(--color-ink-faint); font-size: 14px; font-weight: 600; color: var(--color-ink);
+    .inline-sel { appearance: none; min-width: 0; max-width: 100%; height: 44px; padding: 0 34px 0 14px; border-radius: 999px; border: 1px solid var(--color-ink-faint); font-size: 14px; font-weight: 600; color: var(--color-ink);
       background: var(--color-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230a1f17' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center; }
     .inline-sel:hover { border-color: var(--color-ink); }
     .t-input { width: 100%; border: 0; resize: none; background: transparent; outline: none; color: var(--color-ink); overflow: hidden; }
     .t-input::placeholder { color: var(--color-ink-muted); }
     .t-title::placeholder { color: var(--color-ink-faint); }   /* large text: 4.0:1 on Card White */
     .t-input:focus-visible, .rte:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 6px; border-radius: 4px; }
-    .t-title { margin-top: 20px; font-size: 24px; line-height: 1.2; font-weight: 700; }
+    .t-title { margin-top: 24px; font-size: 24px; line-height: 1.2; font-weight: 700; }
     @media (min-width: 768px) { .t-title { font-size: 32px; line-height: 1.15; } }
     .t-excerpt { margin-top: 12px; font-size: 18px; line-height: 1.5; color: var(--color-ink-muted); }
-    .event-block { margin-top: 28px; padding: 20px; background: var(--color-paper); border-radius: var(--radius-sm); display: grid; gap: 16px; }
-    @media (min-width: 768px) { .event-block { grid-template-columns: 1fr 1fr 1fr; } .event-block .wide { grid-column: 1 / -1; } }
+    .event-block { margin-top: 32px; padding: 16px; background: var(--color-paper); border-radius: var(--radius-sm); display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .event-block[hidden] { display: none; }
+    .event-block > div { min-width: 0; }
+    @container editor-document (min-width: 36rem) { .event-block { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .event-block .wide { grid-column: 1 / -1; }
     .event-block h2 { grid-column: 1 / -1; }
-    .doc .drop { margin-top: 28px; aspect-ratio: 21 / 9; }
-    .tools-row { position: sticky; top: 64px; z-index: 5; margin: 28px 0 20px; padding: 4px 0; background: var(--color-card); border-top: 1px solid var(--color-rule); border-bottom: 1px solid var(--color-rule); }
-    @media (max-width: 1023px) { .tools-row { top: 120px; } }
-    .review-col { display: grid; gap: 32px; align-content: start; }
-    @media (min-width: 1024px) { .review-col { position: sticky; top: 104px; max-height: calc(100svh - 120px); overflow-y: auto; } }
-    .ruled { border-top: 3px solid var(--color-ink); padding-top: 12px; }
+    .doc .drop { margin-top: 32px; aspect-ratio: 21 / 9; }
+    .tools-row { position: sticky; top: calc(var(--editor-shell-height) + var(--editor-bar-height)); z-index: 5; margin: 32px 0 24px; padding: 4px 0; background: var(--color-card); border-top: 1px solid var(--color-rule); border-bottom: 1px solid var(--color-rule); }
+    .tools-row .rte-tools { gap: 8px; }
+    .tools-row .rte-tools button { width: 44px; height: 44px; flex: none; }
+    .doc .tagbox { gap: 8px; padding: 8px; }
+    .doc .tag { max-width: 100%; min-height: 44px; height: auto; padding: 0 0 0 12px; gap: 4px; overflow-wrap: anywhere; }
+    .doc .tag button { width: 44px; height: 44px; flex: none; }
+    .doc-inner, .review-col { overflow-wrap: anywhere; }
+    .doc-inner [id], .review-col [id] { scroll-margin-top: calc(var(--editor-shell-height) + var(--editor-bar-height) + var(--editor-tools-height) + 16px); scroll-margin-bottom: calc(var(--editor-actions-height) + 16px); }
+    .review-col { min-width: 0; display: grid; gap: 32px; align-content: start; }
+    .ruled { border-top: 3px solid var(--color-ink); padding-top: 16px; }
     .check { display: flex; align-items: flex-start; gap: 12px; width: 100%; min-height: 44px; padding: 8px 0; text-align: left; font-size: 15px; }
     .check + .check { border-top: 1px solid var(--color-rule); }
     .check .mk { flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 999px; border: 1px solid var(--color-ink-faint); display: grid; place-items: center; background: var(--color-card); color: transparent; }
@@ -54,11 +72,11 @@
     .check[data-done="false"][data-asked] .why { color: var(--color-ink); font-weight: 600; }
     button.check:hover .lb { text-decoration: underline; text-underline-offset: 4px; }
     .left-count { font-size: 15px; font-weight: 600; color: var(--color-ink-muted); }
-    .req { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 14px; }
+    .req { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; min-height: 44px; padding: 12px 0; font-size: 14px; }
     .req + .req { border-top: 1px solid var(--color-rule); }
     .fixed { color: var(--color-ink-muted); text-decoration: line-through; }
     .rte:empty::before { content: attr(data-placeholder); color: var(--color-ink-muted); }
-    .notice { padding: 12px 14px; background: var(--color-card); border-radius: var(--radius-sm); font-size: 14px; }
+    .notice { padding: 16px; background: var(--color-card); border-radius: var(--radius-sm); font-size: 14px; }
   </style>
 </head>
 <body class="bg-paper text-ink font-body antialiased">
@@ -154,6 +172,13 @@
       : `${icon('plus', 22)}<span><span class="font-semibold text-ink">Add a cover photo</span><br>Landscape, at least 2400px wide</span>`;
     if (a.cover) { $('cover').classList.add('!p-0', '!border-0', 'overflow-hidden'); $('cover').setAttribute('aria-label', 'Change the cover photo'); }
     $('tools').innerHTML = toolbar('body');
+    // Sticky offsets follow real wrapped controls, including font/viewport changes.
+    const chromeSizes = new ResizeObserver(entries => entries.forEach(({ target }) => {
+      const property = target.classList.contains('editbar') ? '--editor-bar-height' : target.id === 'tools' ? '--editor-tools-height' : '--editor-actions-height';
+      const value = Math.ceil(target.getBoundingClientRect().height) + 'px';
+      if ($('desk-main').style.getPropertyValue(property) !== value) $('desk-main').style.setProperty(property, value);
+    }));
+    [document.querySelector('.editbar'), $('tools'), document.querySelector('.mobile-acts')].forEach(el => chromeSizes.observe(el));
     $('tagwrap').innerHTML = tagbox('tags', art.tags);
     const grow = t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
     ['title', 'excerpt'].forEach(f => { grow($(f)); $(f).addEventListener('input', () => grow($(f))); });
@@ -198,7 +223,7 @@
     }
     $('checks').addEventListener('click', e => {
       const b = e.target.closest('[data-go]'); if (!b) return;
-      const el = $(b.dataset.go); el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); el.focus({ preventScroll: true });
+      const el = $(b.dataset.go); el.scrollIntoView({ block: 'start', behavior: 'auto' }); el.focus({ preventScroll: true });
     });
     $('reqs').addEventListener('click', e => {
       const b = e.target.closest('[data-fix]'); if (!b) return;

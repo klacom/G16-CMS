@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Account: the person's own settings, as ruled sections with each description under
+     * its heading. Wide screens (1280px and up) set them in two columns: Profile on the
+     * left; Password, Email and Where you're logged in on the right.
+     * Profile saves explicitly (a save row appears once something changed); email
+     * switches save as they change; the password form opens in place.
+     * Route: /dashboard/account. Demo: ?role=writer|reviewer|admin.
+     */
+    .acct { margin-top: 32px; display: grid; gap: 40px; grid-template-columns: minmax(0, 720px); align-items: start; }
+    @media (min-width: 1280px) { .acct { grid-template-columns: repeat(2, minmax(0, 720px)); gap: 48px; } }
+    .acct-col { display: grid; gap: 40px; align-content: start; min-width: 0; }
+    .set { border-top: 3px solid var(--color-ink); padding-top: 16px; scroll-margin-top: 72px; }
+    @media (min-width: 1024px) { .set { scroll-margin-top: 24px; } }
+    .set-head { margin-bottom: 20px; }
+    .set-desc { margin-top: 4px; font-size: 15px; line-height: 1.5; color: var(--color-ink-muted); max-width: 60ch; }
+    .acct-foot { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--color-rule); font-size: 14px; color: var(--color-ink-muted); max-width: 72ch; }
+
+    /* Fields (DESIGN.md: Inputs / Fields) */
+    .field[aria-invalid="true"] { border-color: var(--color-error); box-shadow: 0 0 0 1px var(--color-error); }
+    .field[aria-invalid="true"]:focus { box-shadow: 0 0 0 2px var(--color-error); }
+    .field { scroll-margin-top: 96px; }
+    .field-error { display: none; margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--color-error); }
+    .field-error.show { display: flex; gap: 6px; align-items: flex-start; }
+    .hint { margin-top: 6px; font-size: 13px; color: var(--color-ink-muted); }
+    .rules { margin-top: 10px; display: grid; gap: 6px; font-size: 14px; color: var(--color-ink-muted); }
+    .rules li { display: flex; gap: 8px; align-items: center; }
+    .rules .mark { width: 18px; height: 18px; flex: none; display: grid; place-items: center; border-radius: 999px; border: 1px solid var(--color-ink-faint); color: transparent; }
+    .rules li[data-met="true"] { color: var(--color-ink); }
+    .rules li[data-met="true"] .mark { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+    .check { appearance: none; width: 22px; height: 22px; flex: none; border: 1px solid var(--color-ink-faint); border-radius: var(--radius-xs); background: var(--color-card) center / 16px no-repeat; cursor: pointer; }
+    .check:hover { border-color: var(--color-ink); }
+    .check:checked { background-color: var(--color-ink); border-color: var(--color-ink); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eff2ee' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-10'/%3E%3C/svg%3E"); }
+    .check:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
+
+    /* Profile photo: a 72px circle, the photo or the person's initials on Ink. */
+    .avatar { width: 72px; height: 72px; flex: none; border-radius: 999px; overflow: hidden; display: grid; place-items: center; background: var(--color-ink); color: var(--color-paper); font-size: 24px; font-weight: 700; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+    .file-btn input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .file-btn:focus-within { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+
+    /* Facts set by an admin: plain rows, no field box. */
+    .facts { border-top: 1px solid var(--color-rule); }
+    .facts > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 12px 0; border-bottom: 1px solid var(--color-rule); }
+    @media (min-width: 640px) { .facts > div { grid-template-columns: 120px minmax(0, 1fr); gap: 16px; } }
+    .facts dt { font-size: 14px; font-weight: 600; }
+    .facts dd { font-size: 15px; overflow-wrap: anywhere; }
+    .facts dd .meta { display: block; margin-top: 2px; }
+    .facts-note { margin-top: 10px; font-size: 13px; color: var(--color-ink-muted); }
+    .always { flex: none; font-size: 13px; font-weight: 600; color: var(--color-ink); padding-right: 4px; }
+
+    .save-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-top: 4px; }
+
+    /* Switch (DESIGN.md: Switch): for settings that apply as soon as they change. */
+    .opts { background: var(--color-card); border-radius: var(--radius-sm); }
+    .opt-row { display: flex; align-items: center; gap: 16px; padding: 14px 16px; min-height: 64px; }
+    .opt-row + .opt-row { border-top: 1px solid var(--color-rule); }
+    .opt-row .txt { flex: 1; min-width: 0; font-size: 15px; }
+    .switch { position: relative; flex: none; width: 52px; height: 44px; display: grid; place-items: center; border-radius: var(--radius-pill); }
+    .switch .track { width: 44px; height: 26px; border-radius: 999px; background: var(--color-ink-faint); position: relative; transition: background-color 150ms ease; }
+    .switch .track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 999px; background: var(--color-card); transition: transform 180ms cubic-bezier(.2, .8, .2, 1); }
+    .switch[aria-checked="true"] .track { background: var(--color-ink); }
+    .switch[aria-checked="true"] .track::after { transform: translateX(18px); }
+    .switch:not(:disabled):active .track::after { width: 24px; }
+    .switch[aria-checked="true"]:not(:disabled):active .track::after { transform: translateX(14px); }
+
+    .sess { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; padding: 14px 0; border-bottom: 1px solid var(--color-rule); }
+    .sess:first-child { border-top: 1px solid var(--color-rule); }
+    .sess .txt { flex: 1; min-width: 180px; }
+    .here { font-size: 12px; font-weight: 700; }
+    .spin { animation: spin 900ms linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .switch .track, .switch .track::after { transition: none; } .spin { animation: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <header class="ov-head"><div><h1 class="t-section">Account</h1><p class="ov-sub" id="sub"></p></div></header>
+
+      <div class="acct">
+        <div class="acct-col">
+        <!-- Profile -->
+        <section class="set" id="profile" aria-labelledby="profile-h" data-component="ProfileSection">
+          <div class="set-head"><h2 id="profile-h" class="t-h2">Profile</h2><p class="set-desc">How you appear on the desk, and the name on the stories you write.</p></div>
+          <form id="profile-form" class="space-y-6 min-w-0" novalidate>
+            <div class="flex flex-wrap items-center gap-4" data-component="ProfilePhoto">
+              <div class="avatar" id="avatar" aria-hidden="true"></div>
+              <div class="min-w-0 flex-1 basis-[180px]">
+                <div class="flex flex-wrap gap-2">
+                  <label class="file-btn btn btn-day cursor-pointer" for="photo"><span id="photo-label">Upload a photo</span><input type="file" id="photo" accept="image/jpeg,image/png" aria-describedby="photo-hint photo-err"></label>
+                  <button type="button" class="btn btn-day hidden" id="photo-remove">Remove</button>
+                </div>
+                <p class="hint" id="photo-hint">JPG or PNG up to 5 MB. A square photo of your face works best.</p>
+                <p class="field-error" id="photo-err"></p>
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="name">Full name</label>
+              <input class="field" id="name" autocomplete="name" required data-describedby="name-hint" aria-describedby="name-hint">
+              <p class="hint" id="name-hint">Use the name people know you by on campus. Your stories show <span id="byline" data-component="BylinePreview"></span>.</p>
+              <p class="field-error" id="name-err"></p>
+            </div>
+            <div><dl class="facts" data-component="AccountFacts" id="facts"></dl><p class="facts-note">Only an ICG admin can change your email, role or group.</p></div>
+            <div class="save-row hidden" id="profile-save" data-component="SaveRow">
+              <button type="submit" class="btn btn-primary" id="save">Save changes</button>
+              <button type="button" class="btn btn-day !h-12" id="discard">Discard</button>
+              <p class="text-[14px] text-ink-muted">You have unsaved changes.</p>
+            </div>
+          </form>
+        </section>
+        </div>
+        <div class="acct-col">
+        <!-- Password -->
+        <section class="set" id="password-section" aria-labelledby="pw-h" data-component="PasswordSection">
+          <div class="set-head"><h2 id="pw-h" class="t-h2">Password</h2><p class="set-desc" id="pw-changed"></p></div>
+          <div class="min-w-0">
+            <button type="button" class="btn btn-day" id="pw-open" aria-expanded="false" aria-controls="pw-form">Change password</button>
+            <div id="pw-summary" class="hidden mb-5 p-4 rounded-sm bg-error-soft border border-error" role="alert" tabindex="-1" data-component="ErrorSummary">
+              <p class="font-bold text-error">Check the highlighted fields</p>
+              <ul class="mt-2 space-y-1 text-[15px]"></ul>
+            </div>
+            <form id="pw-form" class="hidden space-y-5" novalidate>
+              <div data-component="PasswordField">
+                <label class="field-label" for="current">Current password</label>
+                <div class="relative">
+                  <input class="field pr-[60px]" id="current" type="password" autocomplete="current-password" required data-caps="current-caps">
+                  <button type="button" data-toggles="current" class="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-pill hover:bg-card-hover" aria-label="Show password" aria-pressed="false" aria-controls="current"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
+                <p class="field-error" id="current-err"></p>
+                <p id="current-caps" class="hidden mt-1.5 text-[13px] font-semibold text-ink-muted">Caps Lock is on.</p>
+              </div>
+              <div data-component="PasswordField">
+                <label class="field-label" for="password">New password</label>
+                <div class="relative">
+                  <input class="field pr-[60px]" id="password" type="password" autocomplete="new-password" required aria-describedby="password-rules" data-describedby="password-rules" data-caps="password-caps">
+                  <button type="button" data-toggles="password" class="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-pill hover:bg-card-hover" aria-label="Show password" aria-pressed="false" aria-controls="password"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
+                <ul class="rules" id="password-rules" aria-label="Your password needs" data-component="PasswordRules">
+                  <li data-rule="length"><span class="mark" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>At least 12 characters<span class="sr-only sr-state"></span></li>
+                  <li data-rule="email"><span class="mark" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Not your email name<span class="sr-only sr-state"></span></li>
+                </ul>
+                <p class="field-error" id="password-err"></p>
+                <p id="password-caps" class="hidden mt-1.5 text-[13px] font-semibold text-ink-muted">Caps Lock is on.</p>
+              </div>
+              <div data-component="PasswordField">
+                <label class="field-label" for="confirm">Type it again</label>
+                <div class="relative">
+                  <input class="field pr-[60px]" id="confirm" type="password" autocomplete="new-password" required data-caps="confirm-caps">
+                  <button type="button" data-toggles="confirm" class="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-pill hover:bg-card-hover" aria-label="Show password" aria-pressed="false" aria-controls="confirm"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                </div>
+                <p class="field-error" id="confirm-err"></p>
+                <p id="confirm-caps" class="hidden mt-1.5 text-[13px] font-semibold text-ink-muted">Caps Lock is on.</p>
+              </div>
+              <div data-component="Checkbox">
+                <label class="flex items-center gap-3 min-h-11 text-[15px] cursor-pointer select-none">
+                  <input type="checkbox" class="check" id="signout-others" checked aria-describedby="signout-hint">
+                  Log out of the ICG desk on other devices
+                </label>
+                <p class="ml-[34px] text-[13px] text-ink-muted" id="signout-hint">Keep this on if you used a shared or lab computer.</p>
+              </div>
+              <div class="save-row">
+                <button type="submit" class="btn btn-primary" id="pw-save">Save new password</button>
+                <button type="button" class="btn btn-day !h-12" id="pw-cancel">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Email -->
+        <section class="set" id="email" aria-labelledby="email-h" data-component="EmailSection">
+          <div class="set-head"><h2 id="email-h" class="t-h2">Email</h2><p class="set-desc">Your inbox always shows everything. Choose what’s also emailed to you.</p></div>
+          <div class="min-w-0">
+            <div class="opts" id="opts" role="group" aria-labelledby="email-h"></div>
+            <p class="hint mt-3" role="status" id="email-status"></p>
+          </div>
+        </section>
+
+        <!-- Sessions -->
+        <section class="set" id="devices" aria-labelledby="dev-h" data-component="SessionsSection">
+          <div class="set-head"><h2 id="dev-h" class="t-h2" tabindex="-1">Where you’re logged in</h2><p class="set-desc">Log out of computers and phones you no longer use, especially shared or lab computers.</p></div>
+          <div class="min-w-0">
+            <div id="sessions"></div>
+            <button type="button" class="btn btn-day mt-5" id="out-all">Log out everywhere else</button>
+          </div>
+        </section>
+
+        </div>
+      </div>
+      <p class="acct-foot" data-component="LeavingNote"><strong class="font-semibold text-ink">Leaving ICG?</strong> Only an ICG admin can close an account. Your articles and your name on them stay on the site. <a class="link" href="contact.html?topic=account">Ask an admin</a></p>
+    </div>
+  </main>
+
+  <script src="signin-password.js"></script>
+  <script>
+    const { $, esc, mount, toast, role } = window.Desk;
+    const { setError, initNewPassword, showSummary, busy, unbusy } = window.SignIn;
+    mount({ current: 'account', title: 'Account' });
+
+    /* The signed-in person (profiles + auth email), per demo role. */
+    const PEOPLE = {
+      writer: { name: 'Lea Mendoza', email: 'lea.mendoza@plpasig.edu.ph', role: 'Writer', group: 'Computer Society', invitedBy: 'Maria Santos', joined: 'August 4, 2026' },
+      reviewer: { name: 'Paolo Cruz', email: 'paolo.cruz@plpasig.edu.ph', role: 'Reviewer', group: 'ICG, section editor', invitedBy: 'Maria Santos', joined: 'June 16, 2026' },
+      admin: { name: 'Maria Santos', email: 'maria.santos@plpasig.edu.ph', role: 'Admin', group: 'ICG', invitedBy: null, joined: 'June 2, 2026' },
+    };
+    const EMAILS = {
+      writer: [['decisions', 'Review decisions on your articles', 'Approved, or changes asked for', true], ['accepted', 'A reviewer accepts your request', '', false], ['live', 'When an article goes live', '', true]],
+      reviewer: [['requests', 'New review requests', 'Accept or decline from your inbox', true], ['back', 'Articles sent back to you', 'A writer fixed what you asked for', true], ['live', 'When an article you approved goes live', '', false]],
+      admin: [['invites', 'Invites that are accepted or expire', '', true], ['messages', 'New contact messages', 'Once a day, with all new messages', true], ['stepdown', 'A reviewer steps down from a review', '', false]],
+    };
+    const me = { ...PEOPLE[role] };
+    let saved = { name: me.name, photo: null };
+    let photo = null;
+    const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+
+    /* Profile */
+    $('sub').innerHTML = `Signed in as ${esc(me.email)}`;
+    $('name').value = me.name;
+    $('facts').innerHTML = [
+      ['Role', me.role],
+      ['Group', esc(me.group)],
+      ['Joined', `${me.joined}${me.invitedBy ? `<span class="meta">Invited by ${esc(me.invitedBy)}</span>` : ''}`],
+    ].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+
+    function paintProfile() {
+      const n = $('name').value.trim();
+      $('avatar').innerHTML = photo ? `<img src="${photo}" alt="">` : esc(initials(n || me.name));
+      $('photo-label').textContent = photo ? 'Change photo' : 'Upload a photo';
+      $('photo-remove').classList.toggle('hidden', !photo);
+      $('byline').innerHTML = `“By <strong class="font-semibold text-ink">${esc(n || '…')}</strong>, ${esc(me.group)}”`;
+      const dirty = n !== saved.name || photo !== saved.photo;
+      $('profile-save').classList.toggle('hidden', !dirty);
+      return dirty;
+    }
+    $('name').addEventListener('input', () => { if ($('name').getAttribute('aria-invalid') === 'true') setError('name', checkName()); paintProfile(); });
+    const checkName = () => {
+      const v = $('name').value.trim();
+      if (!v) return 'Enter your full name';
+      if (v.length < 3) return 'Enter your first and last name';
+      return '';
+    };
+    $('photo').addEventListener('change', e => {
+      const f = e.target.files[0]; e.target.value = '';
+      if (!f) return;
+      if (!/^image\/(jpeg|png)$/.test(f.type)) { setError('photo', 'Choose a JPG or PNG file'); return; }
+      if (f.size > 5 * 1024 * 1024) { setError('photo', 'Choose a photo under 5 MB'); return; }
+      setError('photo', ''); photo = URL.createObjectURL(f); paintProfile();
+    });
+    $('photo-remove').addEventListener('click', () => { photo = null; paintProfile(); $('photo').focus(); });
+    $('discard').addEventListener('click', () => { $('name').value = saved.name; photo = saved.photo; setError('name', ''); paintProfile(); $('name').focus(); });
+    $('profile-form').addEventListener('submit', e => {
+      e.preventDefault();
+      if (setError('name', checkName())) { $('name').focus(); return; }
+      busy($('save'), 'Saving…');
+      setTimeout(() => {
+        unbusy($('save'));
+        saved = { name: $('name').value.trim(), photo }; $('name').value = saved.name; paintProfile();
+        document.querySelectorAll('.side-person p:first-child').forEach(p => { p.textContent = saved.name; });
+        toast('Profile saved.');
+        $('name').focus();
+      }, 500);
+    });
+    // Leaving with unsaved profile changes asks first (the browser's own dialog).
+    addEventListener('beforeunload', e => { if (paintProfile()) { e.preventDefault(); e.returnValue = ''; } });
+
+    /* Password */
+    let changed = 'Sunday, November 8, 9:30 PM';
+    const paintChanged = () => { $('pw-changed').textContent = `Last changed ${changed}. Use one you don’t use anywhere else.`; };
+    paintChanged();
+    const np = initNewPassword({ pw: 'password', confirm: 'confirm', email: () => me.email });
+    const openPw = open => {
+      $('pw-form').classList.toggle('hidden', !open); $('pw-open').classList.toggle('hidden', open);
+      $('pw-open').setAttribute('aria-expanded', String(open));
+      if (open) $('current').focus();
+      else { np.reset(); $('current').value = ''; setError('current', ''); $('pw-summary').classList.add('hidden'); $('pw-open').focus(); }
+    };
+    $('pw-open').addEventListener('click', () => openPw(true));
+    $('pw-cancel').addEventListener('click', () => openPw(false));
+    $('current').addEventListener('input', () => { if ($('current').getAttribute('aria-invalid') === 'true') setError('current', ''); });
+    $('pw-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const errs = [['current', $('current').value ? '' : 'Enter your current password'], ['password', np.checkPw()], ['confirm', np.checkConfirm()]]
+        .map(([id, m]) => [id, setError(id, m)]).filter(([, m]) => m);
+      if (showSummary('pw-summary', errs, { current: 'Current password', password: 'New password', confirm: 'Type it again' })) return;
+      $('pw-summary').classList.add('hidden');
+      busy($('pw-save'), 'Saving…');
+      setTimeout(() => {
+        unbusy($('pw-save'));
+        // Demo: "wrong-password" stands in for a current password that doesn't match.
+        if ($('current').value === 'wrong-password') {
+          setError('current', 'That isn’t your current password. Try again, or log out and use “Forgot password”.');
+          $('current').value = ''; $('current').focus(); return;
+        }
+        const others = $('signout-others').checked;
+        changed = 'today, 10:05 AM'; paintChanged();
+        if (others) { sessions = sessions.filter(s => s.here); paintSessions(); }
+        openPw(false);
+        toast(others ? 'Password changed. You’re logged out everywhere else.' : 'Password changed.');
+      }, 600);
+    });
+
+    /* Email switches: each change saves at once. */
+    const prefs = EMAILS[role].map(x => [...x]);
+    function paintEmail() {
+      $('opts').innerHTML = prefs.map(([k, label, note, on]) => `<div class="opt-row"><div class="txt"><p id="opt-${k}">${label}</p>${note ? `<p class="meta mt-0.5" id="opt-${k}-n">${note}</p>` : ''}</div>
+          <button type="button" class="switch" role="switch" aria-checked="${on}" aria-labelledby="opt-${k}"${note ? ` aria-describedby="opt-${k}-n"` : ''} data-pref="${k}"><span class="track" aria-hidden="true"></span></button></div>`).join('')
+        + `<div class="opt-row"><div class="txt"><p id="opt-sec">Security notices</p><p class="meta mt-0.5" id="opt-sec-n">A password change or a new sign-in</p></div>
+          <span class="always">Always</span></div>`;
+    }
+    paintEmail();
+    $('opts').addEventListener('click', e => {
+      const b = e.target.closest('[data-pref]'); if (!b) return;
+      const p = prefs.find(x => x[0] === b.dataset.pref); p[3] = !p[3];
+      b.setAttribute('aria-checked', String(p[3]));
+      $('email-status').textContent = `Saved. ${p[1]}: ${p[3] ? 'emailed' : 'inbox only'}.`;
+    });
+
+    /* Sessions */
+    let sessions = [
+      { id: 's1', what: 'Chrome on Windows', when: 'Active now', here: true },
+      { id: 's2', what: 'Safari on iPhone', when: 'Last active today, 7:42 AM' },
+      { id: 's3', what: 'Chrome on Windows', when: 'Last active Thursday, November 12' },
+    ];
+    function paintSessions() {
+      $('sessions').innerHTML = sessions.map(s => `<div class="sess" data-component="Session"><div class="txt"><p class="t-row">${s.what}${s.here ? ' <span class="here">· This browser</span>' : ''}</p><p class="meta mt-1">${s.when}</p></div>
+        ${s.here ? '' : `<button type="button" class="btn btn-day" data-out="${s.id}" aria-label="Log out of ${s.what}, ${s.when.toLowerCase()}">Log out</button>`}</div>`).join('');
+      $('out-all').classList.toggle('hidden', sessions.length < 2);
+    }
+    paintSessions();
+    $('sessions').addEventListener('click', e => {
+      const b = e.target.closest('[data-out]'); if (!b) return;
+      const i = sessions.findIndex(s => s.id === b.dataset.out), s = sessions[i];
+      sessions.splice(i, 1); paintSessions();
+      toast(`Logged out of ${s.what}.`);
+      const left = [...$('sessions').querySelectorAll('[data-out]')];
+      (left[Math.max(0, i - 1)] || left[0] || $('dev-h')).focus();
+    });
+    $('out-all').addEventListener('click', () => {
+      const n = sessions.length - 1; sessions = sessions.filter(s => s.here); paintSessions();
+      toast(`Logged out of ${n} other ${n === 1 ? 'device' : 'devices'}.`);
+      $('dev-h').focus();
+    });
+
+    paintProfile();
+    if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
+  </script>
+</body>
+</html>

@@ -189,3 +189,26 @@ select.field { appearance: none; padding-right: 40px; background: var(--color-ca
 .comment .who { font-size: 14px; font-weight: 700; }
 .comment .when { font-size: 13px; color: var(--color-ink-muted); }
 .comment .text { margin-top: 6px; font-size: 15px; line-height: 1.5; }
+
+/* Segmented control (DESIGN.md: Reviews, Inbox): two or three tabs on a Mist track. Tabs, not filters, so never marigold. */
+.seg { display: flex; gap: 4px; padding: 4px; border-radius: var(--radius-pill); background: var(--color-paper); }
+.seg button { flex: 1; height: 40px; padding: 0 16px; border-radius: var(--radius-pill); font-size: 14px; font-weight: 600; }
+.seg button:hover { background: var(--color-rule); }
+.seg [aria-selected="true"], .seg [aria-selected="true"]:hover { background: var(--color-ink); color: var(--color-paper); }
+.seg button:focus-visible { outline-offset: 2px; }
+
+/* Side sheet (DESIGN.md: Side sheet): one record without leaving the list. Users, Audit log. */
+dialog.sheet { margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; width: min(480px, 100vw); max-width: 100vw; padding: 0; border: 0; background: var(--color-paper); color: var(--color-ink);
+  transition: transform 250ms cubic-bezier(.2, .8, .2, 1), opacity 250ms ease, overlay 250ms allow-discrete, display 250ms allow-discrete; }
+dialog.sheet[open] { transform: none; opacity: 1; }
+@starting-style { dialog.sheet[open] { transform: translateX(32px); opacity: 0; } }
+dialog.sheet::backdrop { background: rgba(var(--night-rgb), .6); }
+.sheet-inner { display: flex; flex-direction: column; height: 100%; }
+.sheet-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 16px 16px 24px; border-bottom: 1px solid var(--color-rule); }
+.sheet-body { flex: 1; overflow-y: auto; padding: 24px; display: grid; gap: 28px; align-content: start; }
+.sheet-foot { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 16px 24px; border-top: 1px solid var(--color-rule); background: var(--color-paper); }
+.sheet-foot.hidden { display: none; }
+@media (prefers-reduced-motion: reduce) { dialog.sheet { transition: none; } }
+
+/* No one-word last lines in desk copy. */
+#desk-main p, #desk-main dd { text-wrap: pretty; }

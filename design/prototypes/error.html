@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Something went wrong · ICG</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <link rel="stylesheet" href="error-pages.css">
+</head>
+<body class="recovery-page failure-page">
+  <header class="recovery-header"><div class="recovery-container"><a class="recovery-brand" id="recovery-brand" href="home.html" aria-label="ICG home"><span class="recovery-mark">ICG</span><span class="recovery-brand-name" id="brand-name">Pamantasan ng Lungsod ng Pasig</span></a></div></header>
+  <main class="recovery-container recovery-main failure-layout" aria-labelledby="error-title">
+    <div class="recovery-copy">
+      <h1 class="recovery-heading" id="error-title">Something went wrong</h1>
+      <p class="recovery-description">This page didn’t finish loading. You can try again or choose another page.</p>
+      <div class="recovery-actions"><button type="button" class="recovery-action primary" id="retry" hidden>Try again</button></div>
+      <p class="retry-status" id="retry-status" role="status" aria-live="polite" aria-atomic="true"></p>
+      <noscript><p class="no-script">Use the links to continue to another page.</p></noscript>
+    </div>
+    <section class="recovery-destinations" aria-labelledby="destinations-title">
+      <h2 id="destinations-title">Try another page</h2>
+      <ul>
+        <li><a class="recovery-route" id="first-route" href="home.html"><div><h3 id="first-title">Home</h3><p id="first-description">Start with what’s happening on campus.</p></div><span aria-hidden="true">→</span></a></li>
+        <li><a class="recovery-route" id="second-route" href="calendar.html"><div><h3 id="second-title">Calendar</h3><p id="second-description">Find a date, then see what’s on.</p></div><span aria-hidden="true">→</span></a></li>
+      </ul>
+    </section>
+  </main>
+  <footer class="recovery-container recovery-footer"><p id="preview-note">Design preview · Sample recovery</p></footer>
+  <script>
+    (() => {
+      const $=id=>document.getElementById(id), params=new URLSearchParams(location.search);
+      const desk=params.get('context')==='desk', roles=['writer','reviewer','admin'];
+      const role=roles.includes(params.get('role')) ? params.get('role') : 'writer';
+      const overview='dashboard.html?'+new URLSearchParams({role});
+      const destination=desk ? overview : 'calendar.html?date=2026-11-14&view=month';
+      if (desk) {
+        $('brand-name').textContent='Campus Desk'; $('recovery-brand').href=overview;
+        $('recovery-brand').setAttribute('aria-label','ICG desk overview');
+        $('first-route').href=overview; $('first-title').textContent='Overview';
+        $('first-description').textContent='Return to your desk and the work waiting for you.';
+        $('second-route').href='dashboard-inbox.html?'+new URLSearchParams({role});
+        $('second-title').textContent='Inbox'; $('second-description').textContent='Check updates on your work.';
+        $('preview-note').textContent='Design preview · Campus Desk recovery';
+      }
+      let pending=false;
+      $('retry').addEventListener('click', () => {
+        if (pending) return;
+        pending=true; $('retry').disabled=true; $('retry').setAttribute('aria-busy','true');
+        $('retry').textContent='Trying again…'; $('retry-status').classList.remove('failed');
+        $('retry-status').textContent='Trying to load the page again…';
+        // A short deterministic wait demonstrates pending state; the build awaits reset/revalidation.
+        setTimeout(() => {
+          if (params.get('retry')!=='fail') { location.replace(destination); return; }
+          pending=false; $('retry').disabled=false; $('retry').setAttribute('aria-busy','false');
+          $('retry').textContent='Try again';
+          $('retry-status').textContent='Still couldn’t load this page. Try again later, or choose another page.';
+          $('retry-status').classList.add('failed'); $('retry').focus({preventScroll:true});
+        },300);
+      });
+      $('retry').hidden=false;
+    })();
+  </script>
+</body>
+</html>

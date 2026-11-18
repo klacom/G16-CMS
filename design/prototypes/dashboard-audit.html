@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Audit log · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script>window.DESK_ROLE = 'admin';</script>
+  <script src="desk.js"></script>
+  <style>
+    /*
+     * Audit log (admin): every change made on the desk, newest first, grouped under
+     * the day it happened. The desk writes the entries itself; nobody can edit or
+     * delete one. Area chips, search, a person and a date range narrow it (the range
+     * is always set, a year at most); choosing an entry opens the side sheet with its
+     * exact time, what changed and where it came from. "Download CSV" exports what the
+     * filters show, and the download is itself logged.
+     * Route: /dashboard/audit. Demo: ?area=, ?who=, ?range=today|7|30|90|custom&from=&to=, ?q=,
+     * ?id=E-1028, ?state=loading|error.
+     */
+    .desk-content.au-page { max-width: none; }   /* full width: the table fills wide screens */
+    .au-controls { margin-top: 28px; display: grid; gap: 12px; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chips .chip { flex: none; }
+    .au-row2 { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .search { position: relative; flex: 1 1 260px; max-width: 420px; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-ink-muted); pointer-events: none; }
+    .search .field { padding-left: 44px; }
+    .au-row2 .select { height: 48px; }
+    @media (max-width: 639px) { .au-row2 .select { flex: 1 1 0; min-width: 0; } }   /* phones: person and dates share a row */
+    .custom { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+    .custom > div { width: 180px; }
+    .custom .field { min-height: 44px; padding: 8px 12px; }
+    .field-error { display: none; margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--color-error); }
+    .field-error.show { display: flex; gap: 6px; align-items: flex-start; }
+    .field[aria-invalid="true"] { border-color: var(--color-error); box-shadow: 0 0 0 1px var(--color-error); }
+
+    /* What the list holds right now: a count and the dates it covers. */
+    .au-scope { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+    .au-scope p { font-size: 14px; color: var(--color-ink-muted); }
+
+    /* The log: one Card White table, a row group per day. */
+    .awrap { margin-top: 12px; padding: 4px 8px 8px; background: var(--color-card); border-radius: var(--radius-sm); }
+    table.atable { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .atable thead th { text-align: left; font-size: 13px; font-weight: 600; color: var(--color-ink-muted); padding: 12px; border-bottom: 1px solid var(--color-rule); }
+    .atable .dayrow th { padding: 22px 12px 10px; text-align: left; font-weight: 400; }
+    .atable tbody.day + tbody.day .dayrow th { border-top: 1px solid var(--color-rule); }
+    .dh { display: flex; align-items: baseline; gap: 8px; }
+    .dnum { font-size: 20px; line-height: 1; }                               /* numeral-cell-sm */
+    @media (min-width: 1024px) { .dnum { font-size: 26px; } }                /* numeral-cell */
+    .dwd { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: var(--color-ink-muted); }   /* label-sm */
+    .dwd.today { color: var(--color-ink); }
+    .dmo, .dcount { font-size: 13px; color: var(--color-ink-muted); }
+    .dcount { margin-left: auto; }
+    .atable tbody tr.entry { position: relative; border-top: 1px solid var(--color-rule); transition: background-color 150ms ease; }
+    .atable tbody tr.dayrow + tr.entry { border-top-color: transparent; }
+    .atable tr.entry:hover { background: var(--color-card-hover); }
+    .atable tr.entry:hover .what { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--color-ink-faint); }
+    .atable td { padding: 12px; vertical-align: middle; }
+    .c-time { width: 104px; white-space: nowrap; font-size: 14px; color: var(--color-ink-muted); }
+    .c-who { width: 250px; }
+    .c-area { width: 120px; font-size: 13px; font-weight: 600; color: var(--color-amber); }
+    .c-chev { width: 44px; color: var(--color-ink-muted); }
+    .c-chev svg { transition: transform 150ms ease; }
+    tr.entry:hover .c-chev svg { transform: translateX(2px); }
+    .person { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .av { width: 32px; height: 32px; flex: none; border-radius: 999px; display: grid; place-items: center; background: var(--color-ink); color: var(--color-paper); font-size: 12px; font-weight: 700; }
+    .av.auto { background: transparent; color: var(--color-ink-muted); box-shadow: inset 0 0 0 1.5px var(--color-ink-faint); }
+    .av.lg { width: 44px; height: 44px; font-size: 14px; }
+    .pname { font-size: 15px; font-weight: 600; line-height: 1.3; }
+    .prole { font-size: 13px; color: var(--color-ink-muted); }
+    .open-entry { position: static; text-align: left; color: inherit; line-height: 1.45; }
+    .open-entry::after { content: ''; position: absolute; inset: 0; }     /* the whole row opens the entry */
+    .open-entry:focus-visible { outline: none; }
+    .atable tr.entry:has(.open-entry:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: -2px; }
+    .what b { font-weight: 600; }
+    .m-meta { display: none; }
+    /* Below 1280px each entry is a stacked row: what happened, then who, when and the area. */
+    @media (max-width: 1279px) {
+      .atable thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      .atable, .atable tbody, .atable .dayrow, .atable .dayrow th { display: block; }
+      .atable tr.entry { display: grid; grid-template-columns: minmax(0, 1fr) 24px; column-gap: 8px; padding: 12px 8px 14px; }
+      .atable td { padding: 0; }
+      .atable td.c-time, .atable td.c-who, .atable td.c-area { display: none; }
+      .atable td.c-chev { width: auto; align-self: center; }
+      .atable .dayrow th { padding: 20px 8px 8px; }
+      .m-meta { display: block; margin-top: 4px; font-size: 13px; color: var(--color-ink-muted); }
+      .m-meta .area { color: var(--color-amber); font-weight: 600; }
+    }
+
+    /* Entry sheet */
+    .facts { border-top: 1px solid var(--color-rule); }
+    .facts > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-rule); font-size: 15px; }
+    .facts dt { font-size: 14px; font-weight: 600; }
+    .facts dd { overflow-wrap: anywhere; }
+    .facts .sub { display: block; font-size: 13px; color: var(--color-ink-muted); }
+    .blk-h { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    table.change { width: 100%; border-collapse: collapse; background: var(--color-card); border-radius: var(--radius-sm); font-size: 15px; }
+    .change th, .change td { text-align: left; padding: 10px 14px; vertical-align: top; }
+    .change thead th { font-size: 13px; font-weight: 600; color: var(--color-ink-muted); border-bottom: 1px solid var(--color-rule); }
+    .change tbody tr + tr { border-top: 1px solid var(--color-rule); }
+    .change tbody th { font-weight: 600; width: 32%; }
+    .change .none { color: var(--color-ink-muted); }
+    .sheet-note { font-size: 15px; color: var(--color-ink-muted); }
+    .error-panel { padding: 16px; background: var(--color-error-soft); border: 1px solid var(--color-error); border-radius: var(--radius-sm); }
+    .spin { animation: spin 900ms linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .atable tr.entry, .c-chev svg { transition: none; } tr.entry:hover .c-chev svg { transform: none; } .spin { animation: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid au-page">
+      <header class="ov-head">
+        <div><h1 class="t-section">Audit log</h1><p class="ov-sub">Every change made on the desk, newest first. The desk writes each entry itself, and nobody can edit or delete one.</p></div>
+        <button type="button" class="btn btn-primary hidden lg:inline-flex" id="download" data-component="DownloadButton"></button>
+      </header>
+
+      <div class="au-controls" data-component="AuditFilters">
+        <div class="chips" role="group" aria-label="Area" id="chips"></div>
+        <div class="au-row2">
+          <div class="search"><label class="sr-only" for="q">Search the log</label><input class="field" id="q" type="search" placeholder="Name, article title or email…" autocomplete="off" spellcheck="false"><span id="q-icon"></span></div>
+          <label class="sr-only" for="who">Person</label>
+          <select class="select" id="who"></select>
+          <label class="sr-only" for="range">Dates</label>
+          <select class="select" id="range">
+            <option value="today">Today</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="custom">Choose dates…</option>
+          </select>
+        </div>
+        <div class="custom hidden" id="custom" data-component="DateRange">
+          <div><label class="field-label" for="from">From</label><input class="field" id="from" type="date" min="2025-11-15" max="2026-11-15" aria-describedby="from-err"><p class="field-error" id="from-err"></p></div>
+          <div><label class="field-label" for="to">To</label><input class="field" id="to" type="date" min="2025-11-15" max="2026-11-15" aria-describedby="to-err"><p class="field-error" id="to-err"></p></div>
+        </div>
+      </div>
+
+      <div class="au-scope" data-component="AuditScope"><h2 class="t-h2" id="scope-h" role="status"></h2><p id="scope-dates"></p></div>
+      <div class="awrap" id="awrap" data-component="AuditTable">
+        <table class="atable" aria-labelledby="scope-h">
+          <thead><tr><th scope="col">Time</th><th scope="col">Person</th><th scope="col">What happened</th><th scope="col">Area</th><th scope="col"><span class="sr-only">Open</span></th></tr></thead>
+          <tbody id="rows-start"></tbody>
+        </table>
+        <div id="empty" class="hidden p-6 lg:p-8" data-component="AuditEmpty"></div>
+      </div>
+      <p class="mt-4 text-[14px] text-ink-muted max-w-[72ch]">Times are Philippine Time. Message text, passwords and other private details are never written to the log.</p>
+    </div>
+  </main>
+
+  <dialog class="sheet" id="sheet" aria-labelledby="sheet-h" data-component="SideSheet">
+    <div class="sheet-inner">
+      <div class="sheet-head">
+        <div class="flex-1 min-w-0" id="sheet-headtext"></div>
+        <button type="button" class="icon-btn on-day" id="sheet-close" aria-label="Close"></button>
+      </div>
+      <div class="sheet-body" id="sheet-body"></div>
+    </div>
+  </dialog>
+
+  <script>
+    const { $, esc, icon, mount, toast, TODAY, MONTHS, DAYS, parse, ME } = window.Desk;
+    mount({ current: 'audit', title: 'Audit log', action: { label: 'Download CSV', href: '#download', icon: 'download' } });
+    $('download').innerHTML = `${icon('download', 18)}Download CSV`;
+    $('q-icon').outerHTML = icon('search', 18);
+    $('sheet-close').innerHTML = icon('close', 20);
+
+    const AREAS = { articles: 'Articles', reviews: 'Reviews', people: 'People', messages: 'Messages', settings: 'Site settings', security: 'Security' };
+    const PEOPLE = {
+      'Maria Santos': 'Admin', 'Nina Flores': 'Admin', 'Paolo Cruz': 'Reviewer', 'Bea Villanueva': 'Reviewer', 'Lea Mendoza': 'Writer',
+      'Jo Ramos': 'Writer', 'Joy Bautista': 'Writer', 'Kim Reyes': 'Writer', 'Carla Dizon': 'Writer', 'Miguel Torres': 'Writer',
+    };
+    const DESK = 'The desk';
+    const ME_NAME = ME.admin[0];
+
+    /*
+     * audit_entries, newest first. who: a person's name, or DESK for what the desk does on
+     * its own (scheduled publishing, expired invites, bounced mail, failed log-ins).
+     * what: verb first, names and titles in <b>. change: [field, before, after].
+     */
+    let ENTRIES = [
+      { id: 'E-1048', on: '2026-11-15', at: '10:05:41 AM', who: 'Lea Mendoza', area: 'security', act: 'login', what: 'Logged in', from: 'Chrome on Android' },
+      { id: 'E-1047', on: '2026-11-15', at: '9:40:12 AM', who: 'Lea Mendoza', area: 'articles', act: 'draft_edited', what: 'Edited the draft <b>What we learned running a bootcamp for 120 students</b>', on_: ['What we learned running a bootcamp for 120 students', 'dashboard-editor.html?id=a1&role=admin'], from: 'Chrome on Android' },
+      { id: 'E-1046', on: '2026-11-15', at: '9:15:03 AM', who: 'Maria Santos', area: 'security', act: 'login', what: 'Logged in', from: 'Firefox on Windows' },
+      { id: 'E-1045', on: '2026-11-15', at: '9:12:27 AM', who: 'Jo Ramos', area: 'people', act: 'invite_accepted', what: 'Accepted the invite and joined as a <b>Writer</b>', on_: ['Jo Ramos', 'dashboard-users.html?q=jo'], from: 'Safari on iPhone', note: 'Invited by Maria Santos on November 10.' },
+      { id: 'E-1044', on: '2026-11-15', at: '7:02:55 AM', who: DESK, area: 'security', act: 'login_failed', what: 'Recorded 3 failed log-ins for <b>nina.flores@plpasig.edu.ph</b> within 5 minutes', on_: ['Nina Flores', 'dashboard-users.html?q=nina'], from: 'Chrome on Windows', note: 'The password wasn’t changed and Nina wasn’t logged out. If Nina didn’t try to log in, ask Nina to reset the password from the log-in page.' },
+      { id: 'E-1043', on: '2026-11-14', at: '6:15:20 PM', who: 'Lea Mendoza', area: 'articles', act: 'draft_edited', what: 'Edited the draft <b>Code camp for senior high students</b>', on_: ['Code camp for senior high students', 'dashboard-editor.html?id=a2&role=admin'], from: 'Chrome on Windows' },
+      { id: 'E-1042', on: '2026-11-14', at: '4:20:08 PM', who: 'Paolo Cruz', area: 'reviews', act: 'changes_requested', what: 'Asked for changes to <b>Code camp for senior high students</b>', on_: ['Code camp for senior high students', 'dashboard-editor.html?id=a2&role=admin'], from: 'Edge on Windows', change: [['Requests', null, '2 (venue, sign-up deadline)']] },
+      { id: 'E-1041', on: '2026-11-14', at: '3:40:00 PM', who: DESK, area: 'people', act: 'invite_expired', what: 'Ended the invite to <b>rafael.santos@plpasig.edu.ph</b> after 7 days', on_: ['rafael.santos@plpasig.edu.ph', 'dashboard-users.html?status=invited'], note: 'Sent by Maria Santos on November 7, as a Reviewer. It was never used.' },
+      { id: 'E-1040', on: '2026-11-14', at: '11:48:31 AM', who: 'Paolo Cruz', area: 'reviews', act: 'review_accepted', what: 'Accepted the review of <b>Hackathon rules and team sign-up</b>', on_: ['Hackathon rules and team sign-up', 'dashboard-editor.html?id=a3&role=admin'], from: 'Edge on Windows' },
+      { id: 'E-1039', on: '2026-11-14', at: '11:20:44 AM', who: 'Lea Mendoza', area: 'reviews', act: 'review_requested', what: 'Sent <b>Hackathon rules and team sign-up</b> to <b>Paolo Cruz</b> for review', on_: ['Hackathon rules and team sign-up', 'dashboard-editor.html?id=a3&role=admin'], from: 'Chrome on Windows', change: [['Status', 'Draft', 'In review']] },
+      { id: 'E-1038', on: '2026-11-14', at: '10:30:15 AM', who: 'Nina Flores', area: 'settings', act: 'setting_changed', what: 'Changed the office hours on the Contact page', on_: ['Site settings › Contact', null], from: 'Chrome on macOS', change: [['Office hours', 'Monday to Friday, 8:00 AM to 5:00 PM', 'Monday to Friday, 8:00 AM to 6:00 PM']] },
+      { id: 'E-1037', on: '2026-11-13', at: '5:02:10 PM', who: DESK, area: 'messages', act: 'reply_bounced', what: 'Couldn’t deliver the reply to <b>Carlo Reyes</b>: the address doesn’t exist', on_: ['Please take down a photo of me', 'dashboard-messages.html?id=m5'], note: 'Sent to carlo.reyes@plpasig.edu.hp by Nina Flores at 4:50 PM.' },
+      { id: 'E-1036', on: '2026-11-13', at: '4:50:02 PM', who: 'Nina Flores', area: 'messages', act: 'message_replied', what: 'Replied to <b>Carlo Reyes</b> about <b>Please take down a photo of me</b>', on_: ['Please take down a photo of me', 'dashboard-messages.html?id=m5'], from: 'Chrome on macOS' },
+      { id: 'E-1035', on: '2026-11-13', at: '4:44:37 PM', who: 'Nina Flores', area: 'articles', act: 'gallery_photo_removed', what: 'Removed a photo from the gallery of <b>Intramurals 2026 opening day</b>', on_: ['Intramurals 2026 opening day', null], from: 'Chrome on macOS', change: [['Gallery', '12 photos', '11 photos']], note: 'Removed at the request of the person in the photo (contact message from Carlo Reyes).' },
+      { id: 'E-1034', on: '2026-11-13', at: '4:05:19 PM', who: 'Paolo Cruz', area: 'reviews', act: 'approved', what: 'Approved <b>Computer Society joins the city’s digital literacy week</b>', on_: ['Computer Society joins the city’s digital literacy week', 'dashboard-editor.html?id=a4&role=admin'], from: 'Edge on Windows', change: [['Status', 'In review', 'Approved']], note: 'It goes live November 16, 8:00 AM, as Lea Mendoza scheduled it.' },
+      { id: 'E-1033', on: '2026-11-13', at: '2:05:44 PM', who: 'Maria Santos', area: 'messages', act: 'message_replied', what: 'Replied to <b>Andrea Gomez</b> about <b>Can a livestream link go on the calendar?</b>', on_: ['Can a livestream link go on the calendar?', 'dashboard-messages.html?id=m6'], from: 'Firefox on Windows' },
+      { id: 'E-1032', on: '2026-11-13', at: '11:02:09 AM', who: 'Maria Santos', area: 'people', act: 'invite_sent', what: 'Invited <b>ana.reyes@plpasig.edu.ph</b> as a Writer', on_: ['ana.reyes@plpasig.edu.ph', 'dashboard-users.html?status=invited'], from: 'Firefox on Windows', change: [['Role', null, 'Writer'], ['Group', null, 'Student Council']], note: 'The invite works until November 20.' },
+      { id: 'E-1031', on: '2026-11-13', at: '9:10:51 AM', who: 'Nina Flores', area: 'messages', act: 'message_replied', what: 'Replied to <b>Ben Aquino</b> about <b>Interview request from the city youth paper</b>', on_: ['Interview request from the city youth paper', 'dashboard-messages.html?id=m7'], from: 'Chrome on macOS' },
+      { id: 'E-1030', on: '2026-11-12', at: '5:20:33 PM', who: 'Bea Villanueva', area: 'reviews', act: 'review_withdrawn', what: 'Stepped down from reviewing <b>Freshmen photo walk</b>', on_: ['Freshmen photo walk', null], from: 'Safari on iPad', note: 'Reason given: “I’m covering the intramurals that week.” Kim Reyes chose a new reviewer.' },
+      { id: 'E-1029', on: '2026-11-12', at: '2:14:00 PM', who: 'Maria Santos', area: 'people', act: 'group_changed', what: 'Changed <b>Joy Bautista</b>’s group', on_: ['Joy Bautista', 'dashboard-users.html?q=joy'], from: 'Firefox on Windows', change: [['Group', 'Student Council', 'ICG']] },
+      { id: 'E-1028', on: '2026-11-12', at: '8:15:26 AM', who: 'Nina Flores', area: 'messages', act: 'message_closed', what: 'Closed the message <b>Get your website on page one of Google</b> without replying', on_: ['Get your website on page one of Google', 'dashboard-messages.html?id=m9'], from: 'Chrome on macOS', change: [['Status', 'Open', 'Closed']] },
+      { id: 'E-1027', on: '2026-11-10', at: '3:00:12 PM', who: 'Maria Santos', area: 'messages', act: 'message_replied', what: 'Replied to <b>Mika Dela Rosa</b> about <b>Glee Club Christmas concert</b>', on_: ['Glee Club Christmas concert', 'dashboard-messages.html?id=m8'], from: 'Firefox on Windows' },
+      { id: 'E-1026', on: '2026-11-10', at: '2:30:00 PM', who: DESK, area: 'articles', act: 'published', what: 'Published <b>Computer Studies hackathon kickoff</b> on the site', on_: ['Computer Studies hackathon kickoff', 'article.html?id=computer-studies-hackathon-kickoff'], change: [['Status', 'Approved', 'Published']], note: 'Written by Lea Mendoza, approved by Paolo Cruz. It went live at the time Lea set.' },
+      { id: 'E-1025', on: '2026-11-10', at: '10:00:40 AM', who: 'Maria Santos', area: 'people', act: 'invite_sent', what: 'Invited <b>jo.ramos@plpasig.edu.ph</b> as a Writer', on_: ['Jo Ramos', 'dashboard-users.html?q=jo'], from: 'Firefox on Windows', change: [['Role', null, 'Writer'], ['Group', null, 'College of Nursing']] },
+      { id: 'E-1024', on: '2026-11-09', at: '9:30:05 AM', who: 'Maria Santos', area: 'messages', act: 'message_closed', what: 'Closed the message <b>Never mind, I found it</b> without replying', on_: ['Never mind, I found it', 'dashboard-messages.html?id=m10'], from: 'Firefox on Windows', change: [['Status', 'Open', 'Closed']] },
+      { id: 'E-1023', on: '2026-11-09', at: '8:02:47 AM', who: 'Maria Santos', area: 'settings', act: 'about_section_edited', what: 'Edited the About page section <b>Who we are</b>', on_: ['Site settings › About', null], from: 'Firefox on Windows', note: 'Long text is logged as edited, without the old or new text.' },
+      { id: 'E-1022', on: '2026-10-28', at: '4:12:09 PM', who: 'Joy Bautista', area: 'security', act: 'login', what: 'Logged in', from: 'Chrome on Android' },
+      { id: 'E-1021', on: '2026-10-21', at: '1:10:00 PM', who: DESK, area: 'articles', act: 'published', what: 'Published <b>Web development workshop series opens for sign-ups</b> on the site', on_: ['Web development workshop series opens for sign-ups', null], change: [['Status', 'Approved', 'Published']], note: 'Written by Lea Mendoza, approved by Paolo Cruz.' },
+      { id: 'E-1020', on: '2026-10-02', at: '3:45:18 PM', who: 'Maria Santos', area: 'people', act: 'account_deactivated', what: 'Deactivated <b>Miguel Torres</b>’s account', on_: ['Miguel Torres', 'dashboard-users.html?status=deactivated'], from: 'Firefox on Windows', change: [['Access', 'Active', 'Deactivated']], note: 'Miguel was logged out everywhere at once. Miguel’s 4 published articles stay on the site.' },
+    ];
+
+    const params = new URLSearchParams(location.search);
+    const STATE = params.get('state');
+    const RANGES = ['today', '7', '30', '90', 'custom'];
+    let opener = null, openId = null;   // the entry open in the sheet
+    let view = {
+      area: AREAS[params.get('area')] ? params.get('area') : '',
+      who: params.get('who') || '',
+      range: RANGES.includes(params.get('range')) ? params.get('range') : '30',
+      from: params.get('from') || '', to: params.get('to') || '',
+      q: params.get('q') || '',
+    };
+
+    /* Dates (The Plain Date Rule). Keys are YYYY-MM-DD so they compare as text. */
+    const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const longDate = (s, year) => { const d = parse(s); return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}${year ? ', ' + d.getFullYear() : ''}`; };
+    const plain = s => { const d = parse(s); return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; };
+    const short = at => at.replace(/:\d\d (AM|PM)/, ' $1');
+    const daysBefore = n => { const d = new Date(TODAY); d.setDate(d.getDate() - n); return key(d); };
+    const to24 = at => { const [, h, mi, se, ap] = at.match(/(\d+):(\d+):(\d+) (AM|PM)/); let H = +h % 12; if (ap === 'PM') H += 12; return `${String(H).padStart(2, '0')}${mi}${se}`; };
+    const initials = n => n.split(' ').map(w => w[0]).slice(0, 2).join('');
+    const plainText = html => html.replace(/<[^>]+>/g, '');
+
+    /* The date range is always set (a bounded query), a year at most. */
+    function bounds() {
+      const today = key(TODAY);
+      if (view.range === 'custom') return { from: view.from || daysBefore(29), to: view.to || today };
+      if (view.range === 'today') return { from: today, to: today };
+      return { from: daysBefore(+view.range - 1), to: today };
+    }
+    function rangeError() {
+      if (view.range !== 'custom') return null;
+      const { from, to } = bounds();
+      if (from > to) return ['from', 'Choose a start date on or before the end date'];
+      if ((parse(to) - parse(from)) / 864e5 > 366) return ['to', 'Choose a range of a year or less. Download several ranges for longer periods.'];
+      return null;
+    }
+    function inRange() { const { from, to } = bounds(); return ENTRIES.filter(e => e.on >= from && e.on <= to); }
+    function matches(e, anyArea) {
+      const q = view.q.trim().toLowerCase();
+      return (anyArea || !view.area || e.area === view.area) && (!view.who || e.who === view.who)
+        && (!q || [e.who, plainText(e.what), e.on_ ? e.on_[0] : '', e.id].join(' ').toLowerCase().includes(q));
+    }
+    const shown = () => inRange().filter(e => matches(e)).sort((a, b) => (b.on + to24(b.at)).localeCompare(a.on + to24(a.at)));
+
+    function sync() {
+      const u = new URLSearchParams();
+      if (view.area) u.set('area', view.area);
+      if (view.who) u.set('who', view.who);
+      if (view.range !== '30') u.set('range', view.range);
+      if (view.range === 'custom') { if (view.from) u.set('from', view.from); if (view.to) u.set('to', view.to); }
+      if (view.q) u.set('q', view.q);
+      if (openId) u.set('id', openId);
+      ['role', 'state'].forEach(k => { if (params.get(k)) u.set(k, params.get(k)); });
+      history.replaceState(null, '', location.pathname + (u.toString() ? '?' + u : ''));
+    }
+
+    const personCell = n => n === DESK
+      ? `<div class="person"><span class="av auto" aria-hidden="true">${icon('clock', 16)}</span><div class="min-w-0"><p class="pname">The desk</p><p class="prole">Automatic</p></div></div>`
+      : `<div class="person"><span class="av" aria-hidden="true">${initials(n)}</span><div class="min-w-0"><p class="pname">${esc(n)}</p><p class="prole">${PEOPLE[n] || ''}</p></div></div>`;
+
+    function render() {
+      $('custom').classList.toggle('hidden', view.range !== 'custom');
+      $('range').value = view.range;
+      const names = [DESK, ...Object.keys(PEOPLE).sort()];
+      $('who').innerHTML = `<option value="">Anyone</option>` + names.map(n => `<option value="${esc(n)}"${n === view.who ? ' selected' : ''}>${n === DESK ? 'The desk (automatic)' : esc(n)}</option>`).join('');
+      const count = a => inRange().filter(e => (!a || e.area === a) && matches(e, true)).length;   // chips count everything else that's filtered
+      $('chips').innerHTML = [['', 'Everything'], ...Object.entries(AREAS)].map(([k, label]) =>
+        `<button type="button" class="chip" aria-pressed="${view.area === k}" data-area="${k}">${label} <span class="count">${count(k)}</span></button>`).join('');
+
+      const err = rangeError();
+      ['from', 'to'].forEach(id => { const on = err && err[0] === id; $(id).setAttribute('aria-invalid', on ? 'true' : 'false'); $(id + '-err').innerHTML = on ? icon('alert', 16, 'class="shrink-0 mt-0.5"') + esc(err[1]) : ''; $(id + '-err').classList.toggle('show', !!on); });
+      $('download').disabled = false;
+
+      const table = document.querySelector('.atable');
+      document.querySelectorAll('.atable tbody.day').forEach(b => b.remove());
+      if (STATE === 'loading') {
+        $('scope-h').textContent = 'Loading entries…'; $('scope-dates').textContent = '';
+        $('rows-start').innerHTML = [0, 1, 2, 3, 4, 5].map(() => `<tr class="entry"><td class="c-time"><div class="ph w-14"></div></td><td class="c-who"><div class="ph w-32"></div></td><td><div class="ph w-3/4"></div></td><td class="c-area"><div class="ph w-16"></div></td><td></td></tr>`).join('');
+        return;
+      }
+      $('rows-start').innerHTML = '';
+      if (STATE === 'error') {
+        $('scope-h').textContent = 'The log didn’t load'; $('scope-dates').textContent = '';
+        table.classList.add('hidden'); $('empty').classList.remove('hidden');
+        $('empty').innerHTML = `<div class="error-panel max-w-[560px]" data-component="AuditError"><p class="text-[15px] font-semibold text-error">The audit log didn’t load.</p><p class="mt-1 text-[15px]">Check your connection, then try again. Nothing in the log was changed.</p><button type="button" class="btn btn-day mt-4" data-retry>Try again</button></div>`;
+        return;
+      }
+      if (err) {
+        $('scope-h').textContent = 'Fix the dates to see entries'; $('scope-dates').textContent = '';
+        table.classList.add('hidden'); $('empty').classList.add('hidden'); $('download').disabled = true; sync(); return;
+      }
+      const list = shown(), { from, to } = bounds();
+      $('scope-h').textContent = `${list.length} ${list.length === 1 ? 'entry' : 'entries'}`;
+      $('scope-dates').textContent = from === to ? longDate(from, true) : `${plain(from).replace(/, \d{4}$/, parse(from).getFullYear() === parse(to).getFullYear() ? '' : '$&')} to ${plain(to)}`;
+      table.classList.toggle('hidden', !list.length);
+      $('empty').classList.toggle('hidden', !!list.length);
+      $('download').disabled = !list.length;
+      if (!list.length) {
+        const narrowed = view.area || view.who || view.q.trim();
+        $('empty').innerHTML = narrowed
+          ? `<p class="t-h2">No entries match</p><p class="mt-2 text-[16px] text-ink-muted max-w-[60ch]">Nothing between these dates matches your filters. Try another person or area, or a longer range.</p><button type="button" class="btn btn-day mt-5" data-clear>Clear filters</button>`
+          : `<p class="t-h2">Nothing happened on the desk ${view.range === 'today' ? 'today' : 'between these dates'}</p><p class="mt-2 text-[16px] text-ink-muted">Try a longer range.</p><button type="button" class="btn btn-day mt-5" data-range="90">Show the last 90 days</button>`;
+        sync(); return;
+      }
+      const days = []; list.forEach(e => { const d = days.find(x => x.on === e.on); d ? d.items.push(e) : days.push({ on: e.on, items: [e] }); });
+      table.insertAdjacentHTML('beforeend', days.map(g => {
+        const d = parse(g.on), today = g.on === key(TODAY);
+        return `<tbody class="day" data-component="AuditDay"><tr class="dayrow"><th colspan="5" scope="rowgroup"><div class="dh"><span class="sr-only">${today ? 'Today, ' : ''}${longDate(g.on, true)}, ${g.items.length} ${g.items.length === 1 ? 'entry' : 'entries'}</span>
+            <span aria-hidden="true" class="display dnum">${d.getDate()}</span><span aria-hidden="true" class="dwd${today ? ' today' : ''}">${today ? 'TODAY' : DAYS[d.getDay()].slice(0, 3).toUpperCase()}</span><span aria-hidden="true" class="dmo">${MONTHS[d.getMonth()]}${d.getFullYear() !== TODAY.getFullYear() ? ' ' + d.getFullYear() : ''}</span><span aria-hidden="true" class="dcount">${g.items.length} ${g.items.length === 1 ? 'entry' : 'entries'}</span></div></th></tr>
+          ${g.items.map(e => `<tr class="entry" data-id="${e.id}" data-component="AuditEntry">
+            <td class="c-time">${short(e.at)}</td>
+            <td class="c-who">${personCell(e.who)}</td>
+            <td class="c-what"><button type="button" class="open-entry" data-open="${e.id}"><span class="what">${e.what}</span></button>
+              <span class="m-meta">${e.who === DESK ? 'The desk' : esc(e.who)}<span class="dot-sep"></span>${short(e.at)}<span class="dot-sep"></span><span class="area">${AREAS[e.area]}</span></span></td>
+            <td class="c-area">${AREAS[e.area]}</td>
+            <td class="c-chev" aria-hidden="true">${icon('chevron', 20)}</td></tr>`).join('')}</tbody>`;
+      }).join(''));
+      sync();
+    }
+
+    /* Filters */
+    $('chips').addEventListener('click', e => { const b = e.target.closest('[data-area]'); if (b) { view.area = b.dataset.area; render(); } });
+    $('who').addEventListener('change', e => { view.who = e.target.value; render(); });
+    $('q').addEventListener('input', e => { view.q = e.target.value; render(); });
+    $('range').addEventListener('change', e => {
+      view.range = e.target.value;
+      if (view.range === 'custom') { const b = bounds(); $('from').value = view.from = view.from || b.from; $('to').value = view.to = view.to || b.to; render(); $('from').focus(); return; }
+      render();
+    });
+    ['from', 'to'].forEach(id => $(id).addEventListener('change', e => { view[id] = e.target.value; render(); }));
+    document.addEventListener('click', e => {
+      if (e.target.closest('[data-clear]')) { view.area = ''; view.who = ''; view.q = ''; $('q').value = ''; render(); $('q').focus(); }
+      const r = e.target.closest('[data-range]'); if (r) { view.range = r.dataset.range; render(); $('range').focus(); }
+      if (e.target.closest('[data-retry]')) location.search = '';
+      if (e.target.closest('#download') || e.target.closest('.desk-topbar a[href="#download"]')) { e.preventDefault(); download(); }
+    });
+    document.querySelector('.atable').addEventListener('click', e => { const b = e.target.closest('tr.entry'); if (b && b.dataset.id) openEntry(b.dataset.id, b.querySelector('.open-entry')); });
+
+    /*
+     * CSV export of what the filters show. Cells that start with = + - @ are prefixed
+     * with an apostrophe so a spreadsheet never runs them as formulas.
+     */
+    function cell(v) { let s = String(v ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+    function download() {
+      const list = shown(); if (!list.length || rangeError()) return;
+      const btn = $('download'), label = btn.innerHTML;
+      btn.disabled = true; btn.innerHTML = '<svg aria-hidden="true" class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>Preparing…';
+      setTimeout(() => {
+        const rows = [['Entry', 'Date', 'Time (Philippine Time)', 'Person', 'Role', 'Area', 'Action', 'What happened', 'On', 'Changed', 'From'],
+          ...list.map(e => [e.id, e.on, e.at, e.who, PEOPLE[e.who] || 'Automatic', AREAS[e.area], e.act, plainText(e.what), e.on_ ? e.on_[0] : '',
+            (e.change || []).map(([f, b, a]) => `${f}: ${b ?? '(none)'} → ${a}`).join('; '), e.from || ''])];
+        const blob = new Blob(['﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+        const { from, to } = bounds(), a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = `icg-audit-log-${from}-to-${to}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        // Downloading the log is itself logged.
+        const n = Math.max(...ENTRIES.map(x => +x.id.slice(2))) + 1;
+        ENTRIES.unshift({ id: 'E-' + n, on: key(TODAY), at: '10:16:02 AM', who: ME_NAME, area: 'security', act: 'audit_exported', what: `Downloaded the audit log as CSV (${list.length} ${list.length === 1 ? 'entry' : 'entries'})`, from: 'Firefox on Windows',
+          change: [['Dates', null, `${plain(from)} to ${plain(to)}`], ['Filters', null, [view.area && AREAS[view.area], view.who, view.q && `“${view.q}”`].filter(Boolean).join(', ') || 'None']] });
+        btn.innerHTML = label; render();
+        toast(`Downloaded ${list.length} ${list.length === 1 ? 'entry' : 'entries'} as a CSV file. The download is in the log too.`);
+      }, 700);
+    }
+
+    /* Entry sheet: read only, so it has no foot. */
+    const sheet = $('sheet');
+    sheet.addEventListener('close', () => { openId = null; sync(); (opener && document.contains(opener) ? opener : $('q')).focus(); });
+    $('sheet-close').addEventListener('click', () => sheet.close());
+    sheet.addEventListener('click', e => { if (e.target === sheet) sheet.close(); });
+    function openEntry(id, from) {
+      const e = ENTRIES.find(x => x.id === id); if (!e) return;
+      opener = from || document.activeElement; openId = id;
+      const desk = e.who === DESK;
+      $('sheet-headtext').innerHTML = `<div class="flex items-start gap-3">${desk ? `<span class="av lg auto" aria-hidden="true">${icon('clock', 20)}</span>` : `<span class="av lg" aria-hidden="true">${initials(e.who)}</span>`}
+        <div class="min-w-0"><h2 class="t-panel" id="sheet-h">${desk ? 'The desk' : esc(e.who)} ${e.what.replace(/^[A-Z]/, c => c.toLowerCase())}</h2><p class="prole mt-1">${AREAS[e.area]}<span class="dot-sep"></span>${e.id}</p></div></div>`;
+      const facts = [
+        ['When', `${longDate(e.on, true)}, ${e.at}<span class="sub">Philippine Time</span>`],
+        ['Who', desk ? 'The desk, automatically<span class="sub">Not done by a person</span>' : `${esc(e.who)}<span class="sub">${PEOPLE[e.who]}</span>`],
+        ...(e.on_ ? [['On', e.on_[1] ? `<a class="link" href="${e.on_[1]}">${esc(e.on_[0])}</a>` : esc(e.on_[0])]] : []),
+        ...(e.from ? [['From', esc(e.from)]] : []),
+      ];
+      $('sheet-body').innerHTML = `<dl class="facts" data-component="EntryFacts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
+        ${e.change ? `<div data-component="EntryChange"><p class="blk-h" id="chg-h">What changed</p><table class="change" aria-labelledby="chg-h"><thead><tr><th scope="col">Field</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+          <tbody>${e.change.map(([f, b, a]) => `<tr><th scope="row">${esc(f)}</th><td>${b == null ? '<span class="none">None</span>' : esc(b)}</td><td>${esc(a)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+        ${e.note ? `<p class="text-[15px] max-w-[60ch]" data-component="EntryNote">${esc(e.note)}</p>` : ''}
+        <p class="sheet-note">The desk wrote this entry when it happened. It can’t be edited or deleted.</p>`;
+      sheet.showModal(); $('sheet-close').focus(); sync();
+    }
+
+    $('q').value = view.q;
+    if (view.range === 'custom') { const b = bounds(); $('from').value = b.from; $('to').value = b.to; }
+    render();
+    if (params.get('id')) openEntry(params.get('id'));
+  </script>
+</body>
+</html>

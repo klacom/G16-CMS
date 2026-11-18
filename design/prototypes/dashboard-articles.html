@@ -16,8 +16,8 @@
      * photos, grouped under ruled month heads by when you last worked on them,
      * so the list reads like your own archive (DESIGN.md: Proof sheet).
      */
-    .controls { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-    .controls .find { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .controls { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .controls .find { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
     .controls .find .search { flex: 1 1 280px; max-width: 480px; }
     .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: -2px; padding: 2px; }
     .chips::-webkit-scrollbar { display: none; }
@@ -26,9 +26,10 @@
     .search .field { padding-left: 44px; }
 
     .month { margin-top: 40px; }
-    .month-head { border-top: 3px solid var(--color-ink); padding-top: 12px; display: flex; align-items: baseline; gap: 10px; }
+    #months > .month:first-child { margin-top: 32px; }
+    .month-head { border-top: 3px solid var(--color-ink); padding-top: 16px; display: flex; align-items: baseline; gap: 8px; }
     .month-head .count { font-size: 15px; font-weight: 600; color: var(--color-ink-muted); }
-    .wall { margin-top: 16px; display: grid; gap: 24px 20px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .wall { margin-top: 16px; display: grid; gap: 32px 24px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 
     /* Proof card: the title is a stretched link; the actions button sits above it. */
     .proof { position: relative; }
@@ -37,23 +38,27 @@
     .proof:has(.stretch:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: 4px; border-radius: var(--radius-sm); }
     .proof .cover { position: relative; aspect-ratio: 3 / 2; border-radius: var(--radius-sm); overflow: hidden; background: var(--color-card); }
     .proof .cover img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1); }
-    .proof:hover .cover img { transform: scale(1.03); }
-    .proof:hover .t-row { text-decoration: underline; text-underline-offset: 4px; }
-    .proof .on-cover { position: absolute; left: 10px; bottom: 10px; }
+    @media (hover: hover) and (pointer: fine) {
+      .proof:hover .cover img { transform: scale(1.03); }
+      .proof:hover .t-row { text-decoration: underline; text-underline-offset: 4px; }
+    }
+    .proof .on-cover { position: absolute; left: 12px; bottom: 12px; }
     .proof .badge[data-status="draft"], .proof .badge[data-status="archived"] { background: var(--color-card); }
     .proof .badge[data-status="archived"] { padding-left: 8px; }
     .no-cover { height: 100%; display: grid; place-content: center; justify-items: center; gap: 6px; font-size: 13px; color: var(--color-ink-muted); }
     .no-cover svg { color: var(--color-ink-faint); }
     .proof .no-cover ~ .on-cover .badge[data-status="draft"] { background: var(--color-paper); }
-    .proof .body { position: relative; padding: 12px 48px 0 0; }
+    .proof .body { position: relative; min-width: 0; overflow-wrap: anywhere; padding: 12px 56px 0 0; }
     .proof .foot { margin-top: 8px; font-size: 13px; color: var(--color-ink-muted); }
-    .proof .more { position: absolute; z-index: 2; top: 4px; right: -6px; }
+    .proof .more { position: absolute; z-index: 2; top: 4px; right: 0; }
     .proof .badge-inline { display: none; }
 
     /* Phones: a compact row (thumbnail beside the text) so the sheet stays short. */
     @media (max-width: 639px) {
+      .controls .group-control { width: 100%; justify-content: space-between; }
+      .month { margin-top: 32px; }
       .wall { grid-template-columns: 1fr; gap: 0; background: var(--color-card); border-radius: var(--radius-sm); }
-      .proof { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 14px 8px 14px 14px; }
+      .proof { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 16px; }
       .proof + .proof { border-top: 1px solid var(--color-rule); }
       .proof .cover { align-self: start; background: var(--color-paper); }
       .proof .no-cover span { display: none; }
@@ -61,18 +66,20 @@
       .proof .badge-inline { display: block; margin-top: 8px; }
       .proof .body { padding: 0 44px 0 0; position: static; }
       .proof .badge-inline .badge[data-status="draft"] { background: var(--color-paper); }
-      .proof .more { top: 6px; right: 0; }
+      .proof .more { top: 8px; right: 8px; }
       .proof:has(.stretch:focus-visible) { outline-offset: -2px; border-radius: 0; }
     }
     @media (max-width: 379px) { .proof { grid-template-columns: 88px minmax(0, 1fr); } }
     .proof .meta { overflow-wrap: anywhere; }
+    .proof .meta-unit { display: inline-block; max-width: 100%; vertical-align: top; }
 
     .menu { position: absolute; right: 0; z-index: 40; min-width: 210px; padding: 6px; background: var(--color-card); border: 1px solid var(--color-ink); border-radius: var(--radius-sm); }
     .menu button { display: flex; width: 100%; align-items: center; min-height: 44px; padding: 0 12px; border-radius: var(--radius-xs); font-size: 15px; font-weight: 500; text-align: left; }
     .menu button:hover, .menu button:focus-visible { background: var(--color-card-hover); outline-offset: -2px; }
     dialog { padding: 0; border: 0; background: transparent; max-width: calc(100vw - 32px); }
     dialog::backdrop { background: rgba(var(--night-rgb), .6); }
-    .panel-note { margin-top: 40px; padding: 32px; background: var(--color-card); border-radius: var(--radius-sm); }
+    .panel-note { margin-top: 32px; padding: 32px; background: var(--color-card); border-radius: var(--radius-sm); }
+    @media (max-width: 639px) { .panel-note { padding: 24px; } }
     .ph-cover { aspect-ratio: 3 / 2; border-radius: var(--radius-sm); background: var(--color-rule); }
     @media (prefers-reduced-motion: reduce) { .proof .cover img { transition: none; } .proof:hover .cover img { transform: none; } }
   </style>
@@ -97,7 +104,7 @@
           <label class="sr-only" for="q" id="q-label">Search your articles</label>
           <input class="field" id="q" type="search" placeholder="Search titles, like hackathon" autocomplete="off">
         </div>
-        <div class="flex items-center gap-3">
+        <div class="group-control flex items-center gap-3">
           <label for="group" class="text-[14px] text-ink-muted shrink-0">Group by</label>
           <select id="group" class="select"><option value="edited">Month edited</option><option value="event">Event month</option></select>
         </div>
@@ -159,7 +166,7 @@
     const proof = a => `<article class="proof" data-id="${a.id}" data-component="ProofCard">
       <div class="cover">${a.cover ? `<img src="${a.cover}" alt="" loading="lazy">` : `<div class="no-cover">${icon('articles', 22)}<span>No cover photo yet</span></div>`}<div class="on-cover">${badge(a.status)}</div></div>
       <div class="body">
-        <p class="meta"><span class="type">${a.type}</span><span class="dot-sep"></span>${esc(a.category)}${a.event_starts_at ? `<span class="dot-sep"></span>${plainDate(a.event_starts_at)}` : ''}</p>
+        <p class="meta"><span class="type meta-unit">${a.type}</span> <span class="meta-unit"><span class="dot-sep"></span>${esc(a.category)}</span>${a.event_starts_at ? ` <span class="meta-unit"><span class="dot-sep"></span>${plainDate(a.event_starts_at)}</span>` : ''}</p>
         <h3 class="t-row mt-1"><a href="dashboard-editor.html?id=${a.id}" class="stretch">${esc(a.title)}</a></h3>
         <p class="foot">${foot(a)}${isAdmin ? `<span class="dot-sep"></span>By ${esc(a.writer)}` : ''}</p>
         <div class="badge-inline">${badge(a.status)}</div>

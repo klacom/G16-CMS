@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Embed widgets · ICG desk</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script>window.DESK_ROLE = 'admin';</script>
+  <script src="desk.js"></script>
+  <script src="dashboard-embeds.js" defer></script>
+  <style>
+    #desk-main { container: embed-work / inline-size; }
+    #desk-main [hidden] { display: none !important; }
+    .builder-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; color: var(--color-ink-muted); margin-bottom: 16px; }
+    .builder-back:hover { color: var(--color-ink); text-decoration: underline; text-underline-offset: 4px; }
+    .builder-layout { display: grid; grid-template-areas: 'configure' 'preview' 'code'; grid-template-columns: minmax(0, 1fr); gap: 32px; margin-top: 32px; align-items: start; }
+    .builder-group { min-width: 0; border-top: 3px solid var(--color-ink); padding-top: 16px; }
+    .builder-config { grid-area: configure; }
+    .builder-preview { grid-area: preview; }
+    .builder-code { grid-area: code; }
+    .builder-fields { display: grid; gap: 16px; margin-top: 24px; }
+    .builder-fields fieldset { display: grid; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
+    .builder-fields .field { min-width: 0; max-width: 100%; }
+    .builder-error { margin-top: 8px; color: var(--color-error); font-size: 14px; }
+    .builder-fields [aria-invalid='true'] { border-color: var(--color-error); }
+    .builder-preview-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 16px; }
+    .preview-width { display: inline-flex; padding: 4px; gap: 4px; background: var(--color-rule); border-radius: var(--radius-pill); }
+    .preview-width button { min-height: 44px; min-width: 88px; padding: 8px 16px; font-size: 14px; font-weight: 600; border-radius: var(--radius-pill); }
+    .preview-width [aria-pressed='true'] { background: var(--color-ink); color: var(--color-paper); }
+    .preview-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; margin: 16px 0; font-size: 13px; color: var(--color-ink-muted); }
+    .preview-stage { min-width: 0; padding: 16px 0; background: var(--color-rule); border-radius: var(--radius-sm); }
+    .preview-stage iframe { display: block; border: 0; width: 100%; margin: 0 auto; background: var(--color-card); }
+    .preview-stage[data-width='narrow'] iframe { width: min(280px, 100%); }
+    .preview-message { padding: 24px 16px; font-size: 15px; overflow-wrap: anywhere; }
+    .preview-message p + p { margin-top: 8px; }
+    .preview-message button { margin-top: 16px; }
+    .builder-code textarea { display: block; width: 100%; resize: vertical; min-height: 224px; margin-top: 16px; font: 400 13px/1.6 ui-monospace, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .code-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .code-actions .btn { min-height: 44px; height: auto; white-space: normal; padding-top: 12px; padding-bottom: 12px; }
+    .code-actions button:disabled { cursor: default; background: var(--color-rule); color: var(--color-ink-muted); border-color: var(--color-rule); }
+    .code-status { margin-top: 12px; font-size: 14px; overflow-wrap: anywhere; }
+    #desk-main input, #desk-main select, #embed-code { scroll-margin-top: 80px; }
+    @container embed-work (min-width: 64rem) { .builder-layout { grid-template-columns: 320px minmax(0, 1fr); grid-template-areas: 'configure preview' 'code preview'; column-gap: 32px; } }
+    @media (hover: hover) and (pointer: fine) { .preview-width button:not([aria-pressed='true']):hover { background: var(--color-card); } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid">
+      <a class="builder-back" id="settings-back" href="dashboard-settings.html?role=admin"><span aria-hidden="true">‹</span> Site settings</a>
+      <header class="ov-head"><div><h1 class="t-section">Embed widgets</h1><p class="ov-sub">Bring campus events and announcements to another website.</p></div></header>
+      <div class="builder-layout">
+        <section class="builder-group builder-config" aria-labelledby="configure-h" data-component="EmbedConfiguration">
+          <h2 class="t-panel" id="configure-h">Configure</h2>
+          <form class="builder-fields" id="embed-options" novalidate>
+            <div><label class="field-label" for="widget-kind">Widget</label><select class="field" id="widget-kind"><option value="events">Events</option><option value="announcements">Announcements</option></select></div>
+            <fieldset id="event-options"><legend class="sr-only">Event options</legend>
+              <div><label class="field-label" for="event-view">View</label><select class="field" id="event-view"><option value="list">List</option><option value="calendar">Calendar</option></select></div>
+              <div><label class="field-label" for="start-date" id="start-label">Show events from</label><input class="field" id="start-date" type="date" min="2000-01-01" max="2099-12-31" value="2026-11-14" aria-describedby="start-error"><p class="builder-error" id="start-error" hidden>Choose a valid date from 2000 to 2099.</p></div>
+            </fieldset>
+            <fieldset id="announcement-options" hidden disabled><legend class="sr-only">Announcement options</legend>
+              <div><label class="field-label" for="notice-layout">Layout</label><select class="field" id="notice-layout"><option value="column">Column</option><option value="row">Row</option></select></div>
+            </fieldset>
+            <div id="count-row"><label class="field-label" for="item-count">Number of events</label><input class="field" id="item-count" type="number" min="1" max="10" step="1" value="5" aria-describedby="count-hint count-error"><p class="field-hint" id="count-hint">Show up to 10 items.</p><p class="builder-error" id="count-error" hidden>Enter a whole number from 1 to 10.</p></div>
+            <p class="field-hint" id="calendar-hint" hidden>The calendar shows every event for the selected day.</p>
+            <div><label class="field-label" for="frame-height">Frame height (pixels)</label><input class="field" id="frame-height" type="number" min="240" max="1600" step="1" value="640" aria-describedby="height-hint height-error"><p class="field-hint" id="height-hint">240 to 1600. Content can scroll inside the frame.</p><p class="builder-error" id="height-error" hidden>Enter a whole number from 240 to 1600.</p></div>
+          </form>
+        </section>
+        <section class="builder-group builder-preview" aria-labelledby="preview-h" data-component="LiveWidgetPreview">
+          <div class="builder-preview-head"><h2 class="t-panel" id="preview-h" tabindex="-1">Preview</h2><div class="preview-width" role="group" aria-label="Preview width"><button type="button" data-preview-width="narrow" aria-pressed="false">Narrow</button><button type="button" data-preview-width="wide" aria-pressed="true">Wide</button></div></div>
+          <p class="field-hint">Try the widget here. Code keeps your starting options.</p>
+          <div class="preview-meta"><p id="preview-size"></p><p id="preview-status" role="status" aria-live="polite"></p></div>
+          <div class="preview-stage" id="preview-stage" data-width="wide">
+            <iframe id="builder-preview" title="ICG campus events" width="100%" height="640" aria-busy="true"></iframe>
+            <div class="preview-message" id="invalid-preview" hidden><p>Fix the marked fields to update the preview and code.</p></div>
+            <div class="preview-message" id="failed-preview" hidden><p class="font-semibold">The preview couldn’t load.</p><p>Try again to check how the widget looks.</p><button type="button" class="btn btn-day" id="reload-preview">Reload preview</button></div>
+          </div>
+        </section>
+        <section class="builder-group builder-code" aria-labelledby="code-h" data-component="EmbedCode">
+          <h2 class="t-panel" id="code-h">Embed code</h2><p class="field-hint" id="code-note">Local preview code. Uses this design server.</p>
+          <textarea class="field" id="embed-code" rows="8" readonly spellcheck="false" aria-labelledby="code-h" aria-describedby="code-note copy-status"></textarea>
+          <div class="code-actions"><button type="button" class="btn btn-primary" id="copy-code">Copy code</button><button type="button" class="btn btn-day" id="select-code">Select code</button></div>
+          <p class="code-status" id="copy-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

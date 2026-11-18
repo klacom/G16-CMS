@@ -15,7 +15,7 @@
 
   const REVIEWS = [
     { id: 'r1', state: 'accepted', round: 2, title: 'Code camp for senior high students', type: 'Event', category: 'Academic', writer: 'Lea Mendoza',
-      sent: '2026-11-15', sentTime: '10:07 AM', neededBy: '2026-11-26', why: 'Sign-ups close November 28',
+      sent: '2026-11-15', sentTime: '9:58 AM', neededBy: '2026-11-26', why: 'Sign-ups close November 28',
       excerpt: 'Forty senior high students from Pasig will build their first website with the Computer Society on Saturday, December 5.',
       event: { date: '2026-12-05', time: '9:00 AM to 12:00 NN', venue: 'Computer Lab 3, Main building', venueAdded: true },
       body: CAMP_BODY, note: 'Added the venue and the deadline. Thanks!',

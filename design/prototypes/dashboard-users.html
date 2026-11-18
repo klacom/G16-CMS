@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Users · ICG desk</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../tokens.css">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="../tailwind.config.js"></script>
+  <link rel="stylesheet" href="desk.css">
+  <script>window.DESK_ROLE = 'admin';</script>
+  <script src="desk.js"></script>
+  <script src="desk-admin-data.js"></script>
+  <style>
+    /*
+     * Users (admin): everyone with a desk account or an invite, as one table. Status
+     * chips, a role filter and search narrow it; choosing a person opens their side
+     * sheet (role, group, invite, deactivate). "Invite someone" opens the same sheet
+     * empty. Anything that changes another person's access asks first.
+     * Route: /dashboard/users. Demo: ?status=active|invited|deactivated, ?type=writer|reviewer|admin, ?q=, ?empty=1.
+     */
+    .desk-content.us-page { max-width: none; }   /* full width: the table fills wide screens */
+    .us-controls { margin-top: 28px; display: grid; gap: 12px; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chips .chip { flex: none; }
+    .us-row2 { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .search { position: relative; flex: 1 1 260px; max-width: 420px; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-ink-muted); pointer-events: none; }
+    .search .field { padding-left: 44px; }
+    .us-count { margin-left: auto; font-size: 14px; color: var(--color-ink-muted); }
+
+    /* People table: Card White, rows between Mist Rules, header in sentence case. */
+    .ptable-wrap { margin-top: 20px; padding: 4px 8px 8px; background: var(--color-card); border-radius: var(--radius-sm); }
+    table.ptable { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .ptable th[scope="col"] { position: sticky; top: 0; z-index: 1; background: var(--color-card); text-align: left; font-size: 13px; font-weight: 600; color: var(--color-ink-muted); padding: 12px; border-bottom: 1px solid var(--color-rule); }
+    .ptable th[scope="col"]:first-child { border-top-left-radius: var(--radius-sm); }
+    .ptable th[scope="col"]:last-child { border-top-right-radius: var(--radius-sm); }
+    .ptable td, .ptable th[scope="row"] { padding: 14px 12px; vertical-align: middle; text-align: left; font-weight: 400; }
+    .ptable tbody tr { position: relative; }
+    .ptable tbody tr + tr { border-top: 1px solid var(--color-rule); }
+    .ptable tbody tr:hover { background: var(--color-card-hover); }
+    .ptable tbody tr:hover .pname { text-decoration: underline; text-underline-offset: 4px; }
+    .ptable tbody tr:last-child td:first-child, .ptable tbody tr:last-child th { border-bottom-left-radius: var(--radius-sm); }
+    .open-person { position: static; text-align: left; color: inherit; }
+    .open-person::after { content: ''; position: absolute; inset: 0; }        /* the whole row opens the person */
+    .open-person:focus-visible { outline: none; }
+    .ptable tbody tr:has(.open-person:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: -2px; }
+    .person { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .av { width: 36px; height: 36px; flex: none; border-radius: 999px; display: grid; place-items: center; background: var(--color-ink); color: var(--color-paper); font-size: 13px; font-weight: 700; }
+    .av.lg { width: 56px; height: 56px; font-size: 18px; }
+    .av.pending { background: transparent; color: var(--color-ink-muted); box-shadow: inset 0 0 0 1.5px var(--color-ink-faint); }
+    .pname { font-weight: 600; }
+    .pmail { font-size: 13px; color: var(--color-ink-muted); overflow-wrap: anywhere; }
+    .you { font-size: 12px; font-weight: 700; margin-left: 6px; }
+    .st-attn { font-weight: 600; }
+    .st-note { display: block; font-size: 13px; color: var(--color-ink-muted); }
+    tr.off .pname, tr.off td { color: var(--color-ink-muted); }
+    tr.off .av { background: var(--color-rule); color: var(--color-ink-muted); }
+    .chev-cell { width: 44px; color: var(--color-ink-muted); }
+    tr:hover .chev-cell svg { transform: translateX(2px); }
+    .chev-cell svg { transition: transform 150ms ease; }
+    /* Below 1280px (phones, tablets, narrow desktops) each person is a stacked row. */
+    @media (max-width: 1279px) {   /* below 1280px the table becomes stacked rows */
+      .ptable thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      .ptable, .ptable tbody, .ptable tr, .ptable td, .ptable th[scope="row"] { display: block; }
+      .ptable tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) 24px; padding: 14px 8px; column-gap: 8px; border-radius: var(--radius-xs); }
+      .ptable td, .ptable th[scope="row"] { padding: 0; }
+      .ptable th[scope="row"] { grid-column: 1; }
+      .ptable td.c-role, .ptable td.c-active, .ptable td.c-status { grid-column: 1; margin-left: 48px; font-size: 14px; }
+      .ptable td.c-role { margin-top: 6px; }
+      .ptable td.c-group { display: none; }
+      .ptable td.c-active { font-size: 13px; color: var(--color-ink-muted); }
+      .ptable td.c-active:empty, .ptable td.c-status, tr[data-pending] td.c-active { display: none; }
+      .ptable td.chev-cell { grid-column: 2; grid-row: 1; align-self: center; width: auto; }
+      .ptable .m-label { display: inline; }
+    }
+    .m-label { display: none; }
+
+    .blk-h { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+
+    /* Role choice: radio pills (DESIGN.md: Topic choice), the chosen role's meaning under them. */
+    .roles { display: flex; flex-wrap: wrap; gap: 8px; }
+    .roles label { position: relative; }
+    .roles input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+    .roles span { display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: var(--radius-pill); background: var(--color-card); border: 1px solid var(--color-ink-faint); font-size: 15px; font-weight: 600; }
+    .roles label:hover span { border-color: var(--color-ink); }
+    .roles input:checked + span { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-paper); }
+    .roles input:focus-visible + span { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+    .role-desc { margin-top: 8px; font-size: 14px; color: var(--color-ink-muted); }
+
+    .facts { border-top: 1px solid var(--color-rule); }
+    .facts > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-rule); font-size: 15px; }
+    .facts dt { font-size: 14px; font-weight: 600; }
+    .field-error { display: none; margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--color-error); }
+    .field-error.show { display: flex; gap: 6px; align-items: flex-start; }
+    .field[aria-invalid="true"] { border-color: var(--color-error); box-shadow: 0 0 0 1px var(--color-error); }
+    .hint { margin-top: 6px; font-size: 13px; color: var(--color-ink-muted); }
+    textarea.field { min-height: 112px; resize: vertical; }
+    .access { padding-top: 20px; border-top: 1px solid var(--color-rule); }
+    dialog.confirm { padding: 0; border: 0; background: transparent; max-width: calc(100vw - 32px); }
+    dialog.confirm::backdrop { background: rgba(var(--night-rgb), .6); }
+    @media (prefers-reduced-motion: reduce) { .chev-cell svg { transition: none; } }
+  </style>
+</head>
+<body class="bg-paper text-ink font-body antialiased">
+  <main id="desk-main">
+    <div class="desk-content fluid us-page">
+      <header class="ov-head">
+        <div><h1 class="t-section">Users</h1><p class="ov-sub" id="sub"></p></div>
+        <button type="button" class="btn btn-primary hidden lg:inline-flex" id="invite-open" data-component="InviteButton">Invite someone</button>
+      </header>
+
+      <div class="us-controls" data-component="UserFilters">
+        <div class="chips" role="group" aria-label="Show" id="chips"></div>
+        <div class="us-row2">
+          <div class="search"><label class="sr-only" for="q">Search people</label><input class="field" id="q" type="search" placeholder="Name or email" autocomplete="off"><span id="q-icon"></span></div>
+          <label class="sr-only" for="rolef">Role</label>
+          <select class="select" id="rolef"><option value="">Any role</option><option value="writer">Writers</option><option value="reviewer">Reviewers</option><option value="admin">Admins</option></select>
+          <p class="us-count" id="count" role="status"></p>
+        </div>
+      </div>
+
+      <div class="ptable-wrap" data-component="PeopleTable">
+        <table class="ptable" aria-labelledby="users-h">
+          <caption class="sr-only" id="users-h">People with a desk account or an invite</caption>
+          <thead><tr><th scope="col">Person</th><th scope="col">Role</th><th scope="col" class="c-group-h">Group</th><th scope="col">Last active</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Open</span></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="empty" class="hidden p-8" data-component="UsersEmpty"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Person / invite sheet -->
+  <dialog class="sheet" id="sheet" aria-labelledby="sheet-h" data-component="SideSheet">
+    <form class="sheet-inner" id="sheet-form" novalidate method="dialog">
+      <div class="sheet-head">
+        <div class="flex-1 min-w-0" id="sheet-headtext"></div>
+        <button type="button" class="icon-btn on-day" id="sheet-close" aria-label="Close"></button>
+      </div>
+      <div class="sheet-body" id="sheet-body"></div>
+      <div class="sheet-foot hidden" id="sheet-foot"></div>
+    </form>
+  </dialog>
+
+  <dialog class="confirm" id="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-text" data-component="ConfirmDialog">
+    <div class="bg-card rounded-sm p-6 w-[440px] max-w-full">
+      <h2 id="confirm-title" class="t-panel"></h2>
+      <p id="confirm-text" class="mt-2 text-[15px] text-ink-muted"></p>
+      <div class="mt-6 flex flex-wrap justify-end gap-2">
+        <button type="button" class="btn btn-day" id="confirm-cancel">Cancel</button>
+        <button type="button" class="btn !h-11 !px-5 !text-[14px] bg-ink text-paper hover:bg-surface" id="confirm-ok"></button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const { $, esc, icon, mount, toast } = window.Desk;
+    mount({ current: 'users', title: 'Users', action: { label: 'Invite someone', href: '#invite', icon: 'plus' } });
+    $('invite-open').innerHTML = `${icon('plus', 18)}Invite someone`;
+    $('q-icon').outerHTML = icon('search', 18);
+    $('sheet-close').innerHTML = icon('close', 20);
+
+    const ROLE = { writer: 'Writer', reviewer: 'Reviewer', admin: 'Admin' };
+    const ROLE_DESC = {
+      writer: 'Writes articles and events and sends them for review.',
+      reviewer: 'Reviews articles: approves them or asks for changes.',
+      admin: 'Invites people, manages articles, messages and site settings. Publishing still needs a reviewer.',
+    };
+    const GROUPS = ['ICG', 'Computer Society', 'Glee Club', 'College of Nursing', 'Photography Club', 'Student Council'];
+
+    /* People (profiles + pending invites). state: active | invited | expired | deactivated */
+    let PEOPLE = structuredClone(window.AdminDemo.people);
+    const params = new URLSearchParams(location.search);
+    if (params.get('empty') === '1') PEOPLE = PEOPLE.filter(p => p.me);
+    const STATUS = [['all', 'Everyone'], ['active', 'Active'], ['invited', 'Invites'], ['deactivated', 'Deactivated']];
+    let view = {
+      status: STATUS.some(s => s[0] === params.get('status')) ? params.get('status') : 'all',
+      role: ROLE[params.get('type')] ? params.get('type') : '',
+      q: params.get('q') || '',
+    };
+    $('q').value = view.q; $('rolef').value = view.role;
+    const initials = p => (p.name || p.email).split(/[\s.@]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    const inState = (p, s) => s === 'all' || (s === 'invited' ? ['invited', 'expired'].includes(p.state) : p.state === s);
+    const who = p => p.name || p.email;
+
+    function statusHTML(p) {
+      if (p.state === 'invited') return `Invite sent<span class="st-note">Expires ${p.expires}</span>`;
+      if (p.state === 'expired') return `<span class="st-attn">Invite expired</span><span class="st-note">Sent ${p.sent}</span>`;
+      if (p.state === 'deactivated') return `Deactivated<span class="st-note">${p.off}</span>`;
+      return 'Active';
+    }
+    function sync() {
+      const q = new URLSearchParams();
+      if (view.status !== 'all') q.set('status', view.status);
+      if (view.role) q.set('type', view.role);
+      if (params.get('role')) q.set('role', params.get('role'));   // keep the demo person
+      if (view.q) q.set('q', view.q);
+      history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : ''));
+    }
+    function render() {
+      const n = s => PEOPLE.filter(p => inState(p, s)).length;
+      const waiting = PEOPLE.filter(p => p.state === 'invited').length, expired = PEOPLE.filter(p => p.state === 'expired').length;
+      $('sub').innerHTML = `${n('active')} active<span class="dot-sep"></span>${waiting} ${waiting === 1 ? 'invite' : 'invites'} waiting${expired ? `<span class="dot-sep"></span>${expired} expired` : ''}`;
+      $('chips').innerHTML = STATUS.map(([k, label]) => `<button type="button" class="chip" aria-pressed="${view.status === k}" data-status="${k}">${label} <span class="count">${n(k)}</span></button>`).join('');
+      const q = view.q.trim().toLowerCase();
+      const list = PEOPLE.filter(p => inState(p, view.status) && (!view.role || p.role === view.role) && (!q || (p.name + ' ' + p.email).toLowerCase().includes(q)))
+        .sort((a, b) => (a.state === 'deactivated') - (b.state === 'deactivated') || who(a).localeCompare(who(b)));
+      $('count').textContent = list.length === PEOPLE.length ? '' : `${list.length} of ${PEOPLE.length}`;
+      $('rows').innerHTML = list.map(p => `<tr class="${p.state === 'deactivated' ? 'off' : ''}" data-id="${p.id}"${p.state === 'invited' || p.state === 'expired' ? ' data-pending' : ''} data-component="PersonRow">
+          <th scope="row"><div class="person"><span class="av${p.state === 'invited' || p.state === 'expired' ? ' pending' : ''}" aria-hidden="true">${esc(initials(p))}</span>
+            <div class="min-w-0"><button type="button" class="open-person" data-open="${p.id}"><span class="pname">${esc(who(p))}</span>${p.me ? '<span class="you">You</span>' : ''}</button><p class="pmail">${p.name ? esc(p.email) : 'Hasn’t joined yet'}</p></div></div></th>
+          <td class="c-role">${ROLE[p.role]}<span class="m-label">${p.group ? `<span class="dot-sep"></span>${esc(p.group)}` : ''}<span class="dot-sep"></span>${statusHTML(p).replace(/<span class="st-note">.*?<\/span>/, '')}</span></td>
+          <td class="c-group">${esc(p.group || '')}</td>
+          <td class="c-active">${p.active ? esc(p.active) : p.state === 'invited' || p.state === 'expired' ? '<span class="text-ink-muted">Not yet</span>' : ''}</td>
+          <td class="c-status">${statusHTML(p)}</td>
+          <td class="chev-cell" aria-hidden="true">${icon('chevron', 20)}</td></tr>`).join('');
+      const alone = PEOPLE.length <= 1, empty = !list.length;
+      $('empty').classList.toggle('hidden', !empty && !alone);
+      $('empty').classList.toggle('border-t', alone && !empty); $('empty').classList.toggle('border-rule', alone && !empty);
+      document.querySelector('.ptable').classList.toggle('hidden', empty);
+      if (empty || alone) $('empty').innerHTML = alone
+        ? `<p class="t-h2">You’re the only one here</p><p class="mt-2 text-[16px] text-ink-muted">Invite writers, reviewers and other admins. Each invite is a link that works for 7 days.</p><button type="button" class="btn btn-primary mt-5" data-invite>Invite someone</button>`
+        : `<p class="t-h2">No one matches</p><p class="mt-2 text-[16px] text-ink-muted">Try another name, or clear the filters.</p><button type="button" class="btn btn-day mt-5" data-clear>Clear filters</button>`;
+      sync();
+    }
+
+    $('chips').addEventListener('click', e => { const b = e.target.closest('[data-status]'); if (b) { view.status = b.dataset.status; render(); } });
+    $('rolef').addEventListener('change', e => { view.role = e.target.value; render(); });
+    $('q').addEventListener('input', e => { view.q = e.target.value; render(); });
+    document.addEventListener('click', e => {
+      if (e.target.closest('[data-clear]')) { view = { status: 'all', role: '', q: '' }; $('q').value = ''; $('rolef').value = ''; render(); $('q').focus(); }
+      if (e.target.closest('[data-invite]') || e.target.closest('#invite-open') || e.target.closest('.desk-topbar a[href="#invite"]')) { e.preventDefault(); openInvite(); }
+    });
+    $('rows').addEventListener('click', e => { const tr = e.target.closest('tr[data-id]'); if (tr) openPerson(tr.dataset.id); });
+
+    /* Confirmation dialog: resolves true on the action, false on Cancel or Escape. */
+    function confirmBox(title, text, ok) {
+      return new Promise(res => {
+        $('confirm-title').textContent = title; $('confirm-text').textContent = text; $('confirm-ok').textContent = ok;
+        const d = $('confirm'); d.showModal(); $('confirm-cancel').focus();
+        const done = v => { d.close(); res(v); };
+        $('confirm-ok').onclick = () => done(true); $('confirm-cancel').onclick = () => done(false);
+        d.oncancel = e => { e.preventDefault(); done(false); };
+      });
+    }
+
+    /* Side sheet */
+    let opener = null, current = null, mode = null;
+    const sheet = $('sheet');
+    function openSheet(from) { opener = from || document.activeElement; sheet.showModal(); }
+    function closeSheet() { sheet.close(); }
+    sheet.addEventListener('close', () => { current = null; mode = null; (opener && document.contains(opener) ? opener : $('q')).focus(); });
+    $('sheet-close').addEventListener('click', closeSheet);
+    sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });   // the scrim
+
+    const roleChoice = (name, chosen, disabled) => `<div role="radiogroup" aria-labelledby="${name}-h" class="roles">${Object.entries(ROLE).map(([k, v]) =>
+      `<label><input type="radio" name="${name}" value="${k}"${k === chosen ? ' checked' : ''}${disabled ? ' disabled' : ''}><span>${v}</span></label>`).join('')}</div>
+      <p class="role-desc" id="${name}-desc">${ROLE_DESC[chosen]}</p>`;
+    const groupSelect = (id, chosen) => `<select class="field" id="${id}"><option value="">No group</option>${GROUPS.map(g => `<option${g === chosen ? ' selected' : ''}>${g}</option>`).join('')}</select>`;
+
+    function openPerson(id) {
+      const p = PEOPLE.find(x => x.id === id); if (!p) return;
+      current = p; mode = 'person';
+      const tr = document.querySelector(`tr[data-id="${id}"] .open-person`);
+      $('sheet-headtext').innerHTML = `<div class="flex items-center gap-3"><span class="av lg${p.state === 'invited' || p.state === 'expired' ? ' pending' : ''}" aria-hidden="true">${esc(initials(p))}</span>
+          <div class="min-w-0"><h2 class="t-panel" id="sheet-h">${esc(p.name || p.email)}${p.me ? ' <span class="you">You</span>' : ''}</h2>${p.name ? `<p class="pmail mt-0.5">${esc(p.email)}</p>` : ''}</div></div>`;
+      const pending = p.state === 'invited' || p.state === 'expired';
+      const facts = [
+        ['Status', p.state === 'active' ? `Active<span class="st-note">Last active ${esc(p.active.replace(/^Today/, 'today'))}</span>` : statusHTML(p)],
+        pending ? ['Invited by', `${esc(p.by)}<span class="st-note">On ${p.sent}</span>`] : ['Joined', `${p.joined}${p.by ? `<span class="st-note">Invited by ${esc(p.by)}</span>` : ''}`],
+        ...(p.work ? [['On the desk', esc(p.work)]] : []),
+      ];
+      let access = '';
+      if (p.me) access = `<p class="text-[15px] text-ink-muted">You can’t change your own role or deactivate your own account. Ask another admin.</p>`;
+      else if (p.state === 'active') access = `<p class="blk-h">Access</p><p class="text-[15px] text-ink-muted">Deactivating logs ${esc(p.name.split(' ')[0])} out everywhere at once. Their articles and their name on them stay.</p><button type="button" class="btn btn-day mt-4" data-act="deactivate">Deactivate account</button>`;
+      else if (p.state === 'deactivated') access = `<p class="blk-h">Access</p><p class="text-[15px] text-ink-muted">${esc(p.name.split(' ')[0])} can’t log in. Reactivating gives back access with the same role.</p><button type="button" class="btn btn-day mt-4" data-act="reactivate">Reactivate account</button>`;
+      else access = `<p class="blk-h">Invite</p><p class="text-[15px] text-ink-muted">${p.state === 'expired' ? 'The link expired before it was used.' : `The link works until ${p.expires}.`} Sending a new one makes the old link stop working.</p>
+          <div class="flex flex-wrap gap-2 mt-4"><button type="button" class="btn btn-day" data-act="resend">Send a new invite</button><button type="button" class="btn btn-day" data-act="withdraw">Withdraw invite</button></div>`;
+      $('sheet-body').innerHTML = `<dl class="facts" data-component="PersonFacts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
+        <div data-component="RoleChoice"><p class="blk-h" id="prole-h">Role</p>${roleChoice('prole', p.role, p.me || p.state === 'deactivated')}</div>
+        <div><label class="blk-h block" for="pgroup">Group</label>${groupSelect('pgroup', p.group)}<p class="hint">Shown with their name on stories.</p></div>
+        <div class="access" data-component="AccessBlock">${access}</div>`;
+      $('sheet-foot').innerHTML = `<button type="submit" class="btn btn-primary" id="p-save">Save changes</button><button type="button" class="btn btn-day !h-12" id="p-discard">Discard</button><p class="text-[14px] text-ink-muted">Unsaved changes</p>`;
+      $('sheet-foot').classList.add('hidden');
+      if (p.me) $('pgroup').disabled = false;
+      openSheet(tr);
+      $('sheet-close').focus();
+    }
+
+    function openInvite(prefill) {
+      current = null; mode = 'invite';
+      $('sheet-headtext').innerHTML = `<h2 class="t-panel" id="sheet-h">Invite someone</h2><p class="pmail mt-0.5">They’ll get an email with a link to set their password. It works for 7 days.</p>`;
+      $('sheet-body').innerHTML = `
+        <div><label class="field-label" for="i-email">Email</label><input class="field" id="i-email" type="email" autocomplete="off" placeholder="name@plpasig.edu.ph" value="${esc(prefill?.email || '')}" aria-describedby="i-email-err"><p class="field-error" id="i-email-err"></p></div>
+        <div><label class="field-label" for="i-name">Name <span class="opt">(optional)</span></label><input class="field" id="i-name" autocomplete="off" placeholder="Rafael Santos" value="${esc(prefill?.name || '')}"><p class="hint">They can change it when they accept.</p></div>
+        <div data-component="RoleChoice"><p class="field-label" id="irole-h">Role</p>${roleChoice('irole', prefill?.role || 'writer')}</div>
+        <div><label class="field-label" for="i-group">Group <span class="opt">(optional)</span></label>${groupSelect('i-group', prefill?.group || '')}</div>
+        <div><label class="field-label" for="i-note">Note in the email <span class="opt">(optional)</span></label><textarea class="field" id="i-note" placeholder="Welcome to the desk! Your first story is the Christmas concert."></textarea></div>`;
+      $('sheet-foot').innerHTML = `<button type="submit" class="btn btn-primary" id="i-send">Send invite</button><button type="button" class="btn btn-day !h-12" id="i-cancel">Cancel</button>`;
+      $('sheet-foot').classList.remove('hidden');
+      openSheet();
+      $('i-email').focus();
+    }
+
+    /* Live role description and dirty state. */
+    sheet.addEventListener('change', e => {
+      if (e.target.name === 'prole' || e.target.name === 'irole') $(`${e.target.name}-desc`).textContent = ROLE_DESC[e.target.value];
+      if (mode === 'person') {
+        const r = sheet.querySelector('[name=prole]:checked').value, g = $('pgroup').value;
+        $('sheet-foot').classList.toggle('hidden', r === current.role && g === (current.group || ''));
+      }
+    });
+    sheet.addEventListener('click', async e => {
+      if (e.target.closest('#i-cancel')) { closeSheet(); return; }
+      if (e.target.closest('#p-discard')) { openPerson(current.id); return; }
+      const act = e.target.closest('[data-act]')?.dataset.act; if (!act) return;
+      const p = current, first = (p.name || p.email).split(' ')[0];
+      if (act === 'deactivate') {
+        if (!await confirmBox(`Deactivate ${p.name}?`, `${first} will be logged out everywhere at once and won’t be able to log in. ${p.open ? `Their ${p.open} open reviews go back to the writers to choose someone else. ` : ''}Their articles stay on the site.`, 'Deactivate')) return;
+        p.state = 'deactivated'; p.off = 'today'; render(); openPerson(p.id);
+        toast(`${p.name} is deactivated and logged out.`);
+      }
+      if (act === 'reactivate') { p.state = 'active'; p.active = 'Not since reactivated'; render(); openPerson(p.id); toast(`${p.name} can log in again.`); }
+      if (act === 'resend') { p.state = 'invited'; p.sent = 'today'; p.expires = 'November 22'; render(); openPerson(p.id); toast(`New invite sent to ${p.email}. The old link no longer works.`); }
+      if (act === 'withdraw') {
+        const i = PEOPLE.indexOf(p); PEOPLE.splice(i, 1); closeSheet(); render();
+        toast(`Invite to ${p.email} withdrawn.`, () => { PEOPLE.splice(i, 0, p); render(); });
+      }
+    });
+
+    const setErr = (id, text) => { const f = $(id), er = $(id + '-err'); f.setAttribute('aria-invalid', text ? 'true' : 'false'); er.textContent = text; er.classList.toggle('show', !!text); return text; };
+    $('sheet-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (mode === 'invite') {
+        const email = $('i-email').value.trim().toLowerCase();
+        const err = !email ? 'Enter their email address'
+          : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Enter an email address like name@plpasig.edu.ph'
+          : PEOPLE.some(p => p.email === email && p.state !== 'expired') ? 'This person already has an account or an invite. Find them in the list.' : '';
+        if (setErr('i-email', err)) { $('i-email').focus(); return; }
+        PEOPLE = PEOPLE.filter(p => p.email !== email);
+        const p = { id: 'n' + Date.now(), name: $('i-name').value.trim(), email, role: sheet.querySelector('[name=irole]:checked').value, group: $('i-group').value, state: 'invited', sent: 'today', expires: 'November 22', by: 'Maria Santos' };
+        PEOPLE.push(p); closeSheet(); view.status = 'invited'; render();
+        toast(`Invite sent to ${email}. The link works until November 22.`);
+        return;
+      }
+      if (mode === 'person') {
+        const p = current, r = sheet.querySelector('[name=prole]:checked').value, g = $('pgroup').value;
+        if (r !== p.role) {
+          const lose = p.role === 'reviewer' && p.open ? ` Their ${p.open} open reviews go back to the writers to choose someone else.`
+            : p.role === 'writer' ? ' Their articles stay theirs, but they won’t be able to write new ones.'
+            : p.role === 'admin' ? ' They’ll lose access to Users, Messages, Audit log and Site settings.' : '';
+          if (!await confirmBox(`Make ${p.name} a ${ROLE[r]}?`, `${ROLE_DESC[r]}${lose} They’ll see the change the next time they open the desk.`, `Make ${ROLE[r]}`)) return;
+        }
+        p.role = r; p.group = g; render(); openPerson(p.id);
+        toast(`${p.name} saved.`);
+      }
+    });
+
+    render();
+    // Messages › "Invite <name>" opens the invite with the name and email filled in.
+    if (params.get('invite') === '1' || location.hash === '#invite') openInvite({ email: params.get('email') || '', name: params.get('name') || '' });
+  </script>
+</body>
+</html>

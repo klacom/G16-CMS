@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Announcements · ICG widget</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <link rel="stylesheet" href="embed-widgets.css">
+  <script src="public-data.js" defer></script>
+  <script src="embed-announcements.js" defer></script>
+</head>
+<body class="ew-page">
+  <main class="ew ew-announcements" data-component="AnnouncementsWidget" data-layout="column">
+    <header class="ew-head">
+      <div><h1 id="announcements-title" tabindex="-1">Announcements</h1><p>Pamantasan ng Lungsod ng Pasig</p></div>
+      <a class="ew-mark" href="home.html" target="_blank" rel="noopener" aria-label="ICG home (opens in a new tab)">ICG</a>
+    </header>
+    <div class="ew-content">
+      <div id="notice-state" class="ew-state" hidden></div>
+      <ol id="notices" class="ew-notice-list" aria-label="Published announcements" data-component="WidgetNotices"></ol>
+      <p id="notice-status" class="ew-sr" role="status" aria-live="polite" aria-atomic="true"></p>
+    </div>
+    <footer class="ew-foot">
+      <a href="archive.html?type=Announcement" target="_blank" rel="noopener">All announcements <span aria-hidden="true">↗</span><span class="ew-sr"> (opens in a new tab)</span></a>
+      <p>Dates are publication dates.</p><p>ICG · Sample campus content</p>
+    </footer>
+    <noscript><p class="ew-state">This preview needs JavaScript. <a href="archive.html?type=Announcement" target="_blank" rel="noopener">Open all announcements</a>.</p></noscript>
+  </main>
+</body>
+</html>

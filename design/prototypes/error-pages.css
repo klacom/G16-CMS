@@ -1,0 +1,69 @@
+/* Independent failure surfaces: no site bootstrap, feed or dashboard dependency. */
+.recovery-page { margin: 0; min-height: 100svh; display: flex; flex-direction: column; background: var(--color-paper); color: var(--color-ink); font: 400 1rem/1.5 var(--font-body); }
+.recovery-page *, .recovery-page *::before, .recovery-page *::after { box-sizing: border-box; }
+.recovery-page [hidden] { display: none !important; }
+.recovery-page h1, .recovery-page h2, .recovery-page h3, .recovery-page p, .recovery-page ul { margin: 0; }
+.recovery-page a { color: inherit; }
+.recovery-page :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 4px; }
+.recovery-page a:focus-visible { border-radius: var(--radius-xs); }
+.recovery-page ::selection { background: var(--color-marigold); color: var(--color-on-marigold); }
+.recovery-container { width: 100%; max-width: var(--container); margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+.recovery-header { display: flex; align-items: center; min-height: 76px; background: var(--gradient-night); color: var(--color-text-on-dark); border-bottom: 1px solid var(--color-line); }
+.recovery-brand { display: inline-flex; gap: 12px; align-items: center; min-height: 44px; max-width: 100%; padding: 8px 0; text-decoration: none; }
+.recovery-mark { flex: none; font: 400 30px/1 var(--font-display); }
+.recovery-brand-name { min-width: 0; max-width: 26ch; font-size: 13px; line-height: 1.4; color: var(--color-muted-on-dark); overflow-wrap: anywhere; }
+.recovery-header :focus-visible, .not-found-page :focus-visible { outline-color: var(--color-marigold); }
+.recovery-main { flex: 1; min-width: 0; padding-top: 40px; padding-bottom: 40px; }
+.recovery-copy { min-width: 0; overflow-wrap: anywhere; }
+.recovery-heading { font-size: 32px; font-weight: 700; line-height: 1.2; }
+.recovery-description { margin-top: 24px !important; max-width: 52ch; font-size: 16px; line-height: 1.5; color: var(--color-ink-muted); }
+.recovery-actions { display: flex; flex-wrap: wrap; align-items: start; gap: 12px; margin-top: 32px; }
+.recovery-action { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; max-width: 100%; padding: 12px 24px; border: 1px solid transparent; border-radius: var(--radius-pill); font: 700 15px/1.5 var(--font-body); text-align: center; text-decoration: none; overflow-wrap: anywhere; cursor: pointer; }
+.recovery-page .primary { background: var(--color-marigold); color: var(--color-on-marigold); }
+.recovery-page .secondary { border-color: var(--color-ink); color: var(--color-ink); background: transparent; }
+.recovery-footer { padding-top: 16px; padding-bottom: 24px; font-size: 13px; color: var(--color-ink-muted); }
+.not-found-page { background: var(--gradient-night); color: var(--color-text-on-dark); }
+.not-found-layout { display: grid; align-content: center; align-items: center; gap: 40px; }
+.not-found-page .recovery-heading { max-width: 10ch; font: 400 56px/.96 var(--font-display); text-transform: uppercase; }
+.not-found-page .recovery-description, .not-found-page .recovery-footer { color: var(--color-muted-on-dark); }
+.not-found-page .secondary { border-color: var(--color-muted-on-dark); color: var(--color-text-on-dark); }
+.missing-calendar { justify-self: end; width: 100%; max-width: 480px; padding: 16px; border: 1px solid var(--color-line); border-radius: var(--radius-sm); background: var(--gradient-night); pointer-events: none; user-select: none; }
+.calendar-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--color-line); font: 400 30px/1.1 var(--font-display); text-transform: uppercase; }
+.calendar-heading .calendar-code { font-size: 44px; color: var(--color-muted-on-dark); }
+.calendar-week, .calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; }
+.calendar-week { margin-top: 16px; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--color-muted-on-dark); }
+.calendar-days { margin-top: 8px; font: 400 20px/1.2 var(--font-display); }
+.calendar-days > span { display: grid; place-items: center; min-height: 40px; border: 2px solid transparent; }
+.calendar-days .missing-day { margin: 4px; min-height: 32px; border: 2px dashed var(--color-muted-on-dark); border-radius: var(--radius-xs); }
+.failure-layout { display: grid; align-content: center; align-items: start; gap: 40px; }
+.retry-status { min-height: 24px; margin-top: 16px !important; font-size: 15px; max-width: 52ch; }
+.retry-status.failed { color: var(--color-error); }
+.recovery-action:disabled { cursor: default; }
+.recovery-destinations { width: 100%; max-width: 400px; justify-self: end; border-top: 3px solid var(--color-ink); padding-top: 16px; }
+.recovery-destinations h2 { font-size: 20px; font-weight: 700; line-height: 1.3; }
+.recovery-destinations ul { list-style: none; padding: 0; margin-top: 24px; background: var(--color-card); border-radius: var(--radius-sm); }
+.recovery-destinations li + li { border-top: 1px solid var(--color-rule); }
+.recovery-route { display: grid; grid-template-columns: minmax(0, 1fr) 20px; align-items: center; gap: 16px; min-height: 72px; padding: 16px; text-decoration: none; overflow-wrap: anywhere; }
+.recovery-route h3 { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.recovery-route p { margin-top: 4px; font-size: 14px; color: var(--color-ink-muted); }
+.no-script { margin-top: 24px !important; font-size: 15px; }
+@media (min-width: 640px) { .not-found-page .recovery-heading { font-size: 72px; } }
+@media (min-width: 1024px) {
+  .recovery-container { padding-left: 64px; padding-right: 64px; }
+  .recovery-header { min-height: 92px; }
+  .recovery-mark { font-size: 40px; }
+  .recovery-main { padding-top: 56px; padding-bottom: 72px; }
+  .not-found-layout, .failure-layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 72px; }
+  .not-found-page .recovery-heading { font-size: 112px; }
+  .not-found-page .recovery-description { font-size: 18px; }
+  .missing-calendar { padding: 24px; }
+  .calendar-days { font-size: 26px; }
+  .calendar-days > span { min-height: 56px; }
+  .calendar-days .missing-day { min-height: 48px; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .recovery-action.primary:hover:not(:disabled) { background: var(--color-marigold-bright); }
+  .recovery-action.secondary:hover { background: var(--color-ink); color: var(--color-paper); }
+  .not-found-page .secondary:hover { background: var(--color-surface); color: var(--color-text-on-dark); }
+  .recovery-route:hover h3 { text-decoration: underline; text-underline-offset: 4px; }
+}
